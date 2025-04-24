@@ -1,0 +1,62 @@
+<div class="auth-page">
+    <div class="auth-container">
+      <div class="auth-tabs">
+        <button 
+          [class.active]="isLoginMode" 
+          (click)="switchMode(true)"
+        >
+          Login
+        </button>
+        <button 
+          [class.active]="!isLoginMode" 
+          (click)="switchMode(false)"
+        >
+          Sign Up
+        </button>
+      </div>
+  
+      <div class="auth-content">
+        <app-auth-form
+          *ngIf="isLoginMode"
+          [title]="'Welcome back!'"
+          [subtitle]="'Login to your account'"
+          [buttonText]="'Sign in'"
+          [formGroup]="loginForm"
+          (onSubmit)="onLogin()"
+        >
+          <input formControlName="email" type="email" placeholder="Email" />
+          <input formControlName="password" type="password" placeholder="Password" />
+        </app-auth-form>
+  
+        <app-auth-form
+          *ngIf="!isLoginMode"
+          [title]="'Join StyleSwift for exclusive'"
+          [subtitle]="'Unlock VIP benefits. No commitment required.'"
+          [buttonText]="'Sign up'"
+          [formGroup]="signupForm"
+          (onSubmit)="onSignup()"
+        >
+          <input formControlName="fullName" placeholder="Your full name" />
+          <input formControlName="email" type="email" placeholder="Your email address" />
+          <input formControlName="password" type="password" placeholder="Create a password" />
+          <input formControlName="confirmPassword" type="password" placeholder="Confirm password" />
+        </app-auth-form>
+  
+        <div class="divider" *ngIf="isLoginMode">
+          <span>or sign in with</span>
+        </div>
+  
+        <div class="social-login" *ngIf="isLoginMode">
+          <button class="social-btn google">Google</button>
+          <button class="social-btn facebook">Facebook</button>
+        </div>
+  
+        <p class="switch-mode">
+          {{ isLoginMode ? "Don't have an account?" : "Already have an account?" }}
+          <a (click)="switchMode(!isLoginMode)">
+            {{ isLoginMode ? 'Sign up' : 'Sign in' }}
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>

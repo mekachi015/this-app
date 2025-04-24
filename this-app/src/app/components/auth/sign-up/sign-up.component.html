@@ -1,0 +1,12 @@
+<app-auth-form
+  [title]="'Join StyleSwift for exclusive'"
+  [subtitle]="'Unlock VIP benefits. No commitment required.'"
+  [buttonText]="'Sign up'"
+  [formGroup]="signupForm"
+  (onSubmit)="onSignup()"
+>
+  <input formControlName="fullName" placeholder="Your full name" />
+  <input formControlName="email" placeholder="Your email address" />
+  <input type="password" formControlName="password" placeholder="Create a password" />
+  <input type="password" formControlName="confirmPassword" placeholder="Confirm password" />
+</app-auth-form>

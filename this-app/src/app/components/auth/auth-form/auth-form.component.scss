@@ -1,0 +1,212 @@
+/* auth-form.component.scss */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    background-image: linear-gradient(to bottom right, #f9f9ff, #f0f2ff);
+    //padding: 2rem;
+  }
+  
+  .auth-form {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 3rem;
+    width: 100%;
+    //max-width: 450px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-out;
+  
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2e2e48;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+  
+    .subtitle {
+      font-size: 1rem;
+      color: #6a6a8b;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+  
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      
+        input {
+          padding: 1rem 1.5rem;
+          border: 2px solid #e0e0f0;
+          border-radius: 12px; /* Matching button's rounded corners */
+          font-size: 1rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background-color: white;
+          box-shadow: 0 2px 6px rgba(115, 103, 240, 0.1); /* Subtle shadow like button */
+          
+          /* Matching the button's vibrant focus state */
+          &:focus {
+            border-color: #7367f0;
+            box-shadow: 0 0 0 3px rgba(115, 103, 240, 0.2);
+            outline: none;
+          }
+      
+          &::placeholder {
+            color: #a0a0c0;
+            font-weight: 400;
+          }
+        }
+      
+        /* Make password fields match exactly */
+        input[type="password"] {
+          letter-spacing: 0.5px; /* Better password character spacing */
+        }
+      }
+      
+      /* Enhanced submit button to coordinate perfectly */
+      .submit-btn {
+        background-color: #7367f0;
+        color: white;
+        border: none;
+        padding: 1.1rem; /* Slightly more padding */
+        border-radius: 12px; /* Matching input fields */
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: 0.3px; /* Improved typography */
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-top: 0.5rem;
+        box-shadow: 0 4px 12px rgba(115, 103, 240, 0.25);
+        text-transform: uppercase; /* Makes it more button-like */
+        
+        &:hover {
+          background-color: #5f55d8;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(115, 103, 240, 0.35);
+        }
+      
+        &:active {
+          transform: translateY(0);
+        }
+      }
+  
+    .submit-btn {
+      background-color: #7367f0;
+      color: white;
+      border: none;
+      padding: 1rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 10px rgba(115, 103, 240, 0.3);
+  
+      &:hover {
+        background-color: #5f55d8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(115, 103, 240, 0.4);
+      }
+  
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 1.75rem 0;
+      color: #b0b0d0;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+  
+      &::before,
+      &::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid #e8e8f8;
+      }
+  
+      span {
+        padding: 0 1rem;
+      }
+    }
+  
+    .social-login {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+  
+      .social-btn {
+        flex: 1;
+        padding: 0.8rem;
+        border-radius: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+  
+        &.google {
+          background-color: white;
+          border: 1px solid #e0e0f0;
+          color: #4a4a6a;
+  
+          &:hover {
+            background-color: #f5f5ff;
+            border-color: #d0d0e0;
+          }
+        }
+  
+        &.facebook {
+          background-color: #4267b2;
+          color: white;
+          border: none;
+  
+          &:hover {
+            background-color: #3a5c9d;
+          }
+        }
+      }
+    }
+  
+    .signin-link {
+      color: #6a6a8b;
+      font-size: 0.9rem;
+      margin-top: 1.5rem;
+  
+      a {
+        color: #7367f0;
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 0.25rem;
+        transition: all 0.2s;
+  
+        &:hover {
+          text-decoration: underline;
+          color: #5f55d8;
+        }
+      }
+    }
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
