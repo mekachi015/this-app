@@ -1,0 +1,34 @@
+.store-card {
+    flex: 0 0 auto;
+    width: 120px;
+    margin-right: 20px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  
+    &:hover {
+      transform: translateY(-5px);
+    }
+  
+    .store-image-container {
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+    }
+  
+    .store-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  
+    .store-name {
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0;
+      color: #333;
+    }
+  }
