@@ -1,1 +1,21 @@
-<p>search-bar works!</p>
+<div class="search-container">
+    <div class="store-name">STORE NAME</div>
+    
+    <div class="search-box">
+      <i class="fas fa-search search-icon"></i>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery"
+        placeholder="Search by name"
+        class="search-input"
+      >
+    </div>
+  
+    <button class="filter-btn">
+      Filter by category
+    </button>
+  
+    <button class="new-listing-btn">
+      New listing
+    </button>
+  </div>

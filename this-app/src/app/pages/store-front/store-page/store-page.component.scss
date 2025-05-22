@@ -1,33 +1,59 @@
 .stores-page {
-    padding: 20px;
-  
-    .page-title {
-      font-size: 2rem;
-      margin-bottom: 30px;
-    }
-  
-    .stores-scroll-container, .nearby-stores-container {
-      margin-bottom: 40px;
-      overflow-x: scroll;
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;  /* Firefox */
-      
-      &::-webkit-scrollbar {
-        display: none; /* Chrome, Safari and Opera */
-      }
-    }
-  
-    .stores-scroll, .nearby-stores {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 20px;
-      padding: 20px 0;
-      width: max-content;
-    }
-  
-    .section-title {
+  margin: 0;
+  padding: 0 20px;
+
+  @media (max-width: 768px) {
+    padding: 0 10px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    text-align: center;
+
+    @media (max-width: 768px) {
       font-size: 1.5rem;
-      margin: 30px 0 20px;
-      padding-left: 20px;
+      margin-bottom: 20px;
     }
+  }
+
+  .stores-scroll-container, .nearby-stores-container {
+    margin-bottom: 40px;
+    overflow-x: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      margin-bottom: 20px;
+    }
+  }
+
+  .stores-scroll, .nearby-stores {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    padding: 20px 0;
+    width: max-content;
+
+    @media (max-width: 768px) {
+      gap: 10px;
+      padding: 10px 0;
+    }
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    margin: 30px 0 20px;
+    padding-left: 20px;
+
+    @media (max-width: 768px) {
+      font-size: 1.2rem;
+      margin: 20px 0 15px;
+      padding-left: 10px;
+    }
+  }
 }
