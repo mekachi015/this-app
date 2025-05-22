@@ -3,10 +3,12 @@ import { Store } from '../../../models/store-front/store.model';
 import { StoreCardComponent } from "../../../components/store-front/store-card/store-card.component";
 import { NearYouComponent } from '../../../components/store-front/near-you/near-you.component';
 import { NavBarComponent } from "../../../components/nav-bar/nav-bar/nav-bar.component";
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-store-page',
   standalone: true,
-  imports: [StoreCardComponent, NearYouComponent,],
+  imports: [StoreCardComponent, NearYouComponent,CommonModule],
   templateUrl: './store-page.component.html',
   styleUrl: './store-page.component.scss'
 })
