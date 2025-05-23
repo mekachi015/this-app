@@ -5,6 +5,7 @@ import { SignUpComponent } from './components/auth/sign-up/sign-up.component';
 import { AuthenticationPageComponent } from './pages/auth/authentication-page/authentication-page.component';
 import { StorePageComponent } from './pages/store-front/store-page/store-page.component';
 import { SelectedStoreComponent } from './pages/store-front/selected-store/selected-store.component';
+import { CartPageComponent } from './pages/cart-page/cart-page.component';
 
 export const routes: Routes = [
     { path: '', component: AuthenticationPageComponent },
@@ -13,6 +14,7 @@ export const routes: Routes = [
     {path : '**', redirectTo: 'login', pathMatch: 'full'},
     {path : 'stores', component: StorePageComponent},
     {path : 'selected-store', component: SelectedStoreComponent},
+    {path : 'cart', component: CartPageComponent},
 ];
 
 @NgModule({
