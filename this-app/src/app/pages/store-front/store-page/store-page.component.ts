@@ -4,7 +4,7 @@ import { StoreCardComponent } from "../../../components/store-front/store-card/s
 import { NearYouComponent } from '../../../components/store-front/near-you/near-you.component';
 import { NavBarComponent } from "../../../components/nav-bar/nav-bar/nav-bar.component";
 import { CommonModule } from '@angular/common';
-import { SearchBarComponent } from '../../../components/store-searchbar/search-bar/search-bar.component';
+import { SearchBarComponent } from '../../../components/search-bar/search-bar.component';
 
 
 @Component({
