@@ -1,0 +1,118 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+.navigation-container {
+  position: relative;
+}
+
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px; // Start off-screen
+  height: 100vh;
+  width: 300px;
+  background: white;
+  z-index: 1001;
+  transition: transform 0.3s ease;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  padding-top: 60px; // Space for top nav
+
+  &.sidebar-visible {
+    transform: translateX(300px);
+  }
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+
+  &.overlay-visible {
+    display: block;
+  }
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  i {
+    width: 20px;
+    text-align: center;
+  }
+    
+    .label-text {
+      transition: opacity 0.3s;
+    }
+    
+    &:hover {
+      color: #7367f0;
+      background-color: #f8f7ff;
+    }
+    
+    &.active {
+      color: #7367f0;
+      background-color: #f0eeff;
+      border-left: 3px solid #7367f0;
+    }
+  }
+
+
+.main-content {
+  margin-left: 250px; /* Same as sidebar width */
+  margin-top: 70px; /* Same as top-nav height */
+  padding: 2rem;
+  flex: 1;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 70px);
+  transition: margin-left 0.3s ease;
+  
+  &.expanded {
+    margin-left: 0;
+  }
+}
+
+/* For mobile responsiveness */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    
+    &.collapsed {
+      transform: translateX(0);
+    }
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+}
+

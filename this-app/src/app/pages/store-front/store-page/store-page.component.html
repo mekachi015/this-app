@@ -1,0 +1,28 @@
+<div class="stores-page">
+
+  <!--Search bar component name-->
+  <app-search-bar></app-search-bar>
+
+
+  <h1 class="page-title">Stores</h1>
+  
+  <div class="stores-scroll-container">
+    <div class="stores-scroll">
+      <app-store-card 
+        *ngFor="let store of featuredStores" 
+        [store]="store">
+      </app-store-card>
+    </div>
+  </div>
+  
+  <h2 class="section-title">STORES NEAR YOU</h2>
+  
+  <div class="nearby-stores-container">
+    <div class="nearby-stores">
+      <app-near-you 
+        *ngFor="let store of nearbyStores" 
+        [store]="store">
+      </app-near-you>
+    </div>
+  </div>
+</div>
