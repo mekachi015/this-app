@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 interface SidebarItem {
   icon: string;
@@ -10,20 +11,21 @@ interface SidebarItem {
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [ RouterModule],
+  imports: [ RouterModule, CommonModule],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss'
 })
 export class NavBarComponent {
-  sidebarVisible = false;
-  sidebarItems = [
-    { label: 'Google Analytics', route: '/analytics' },
-    { label: 'Google Drive', route: '/drive' },
-    { label: 'Google Maps', route: '/maps' },
-    { label: 'Google Mail', route: '/mail' }
+  sidebarVisible: boolean = false;
+
+  sidebarItems: SidebarItem[] = [
+    { label: 'Home', route: '/home', icon: 'home' },
+    { label: 'Profile', route: '/profile', icon: 'user' },
+    { label: 'Settings', route: '/settings', icon: 'cog' }
   ];
 
-  toggleSidebar() {
+  toggleSidebar(): void {
     this.sidebarVisible = !this.sidebarVisible;
+    console.log('Sidebar visibility:', this.sidebarVisible); // Debug log
   }
 }

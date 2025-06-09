@@ -1,0 +1,168 @@
+.dashboard-container {
+    padding: 20px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+  }
+  
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+  
+    .main-nav {
+      display: flex;
+      gap: 20px;
+  
+      a {
+        text-decoration: none;
+        color: #333;
+        padding: 8px 16px;
+        border-radius: 4px;
+  
+        &.active {
+          background-color: #ff3366;
+          color: white;
+        }
+      }
+    }
+  }
+  
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    
+    .dashboard-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 300px;
+  
+      h2 {
+        margin-bottom: 20px;
+        font-size: 18px;
+        color: #333;
+      }
+    }
+  }
+  
+  // Inventory Management
+  .inventory {
+    background-color: #ffe5e5;
+  
+    .product-list {
+      .product-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+  
+        .stock-control {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+      }
+    }
+  }
+  
+  // Sales Tracker
+  .sales {
+    background-color: #ff3366;
+    color: white;
+  
+    .sales-list {
+      .sales-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+      }
+    }
+  }
+  
+  // Promo Tools
+  .promos {
+    background-color: #f0f0f0;
+  
+    .promo-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+  
+      .edit-btn {
+        background-color: #ff3366;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+    }
+  }
+  
+  // Messaging System
+  .messages {
+    background-color: #e6e6e6;
+  
+    .message-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+  
+      .reply-btn {
+        background-color: #ff3366;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+    }
+  }
+  
+  // Analytics
+  .analytics {
+    background-color: #ffe5e5;
+  
+    .analytics-charts {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+  
+      .chart {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        height: 120px;
+      }
+    }
+  }
+  
+  @media (max-width: 1200px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .main-header {
+      flex-direction: column;
+      gap: 20px;
+  
+      .main-nav {
+        width: 100%;
+        overflow-x: auto;
+      }
+    }
+  }

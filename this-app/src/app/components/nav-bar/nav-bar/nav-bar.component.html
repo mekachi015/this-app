@@ -1,49 +1,40 @@
 <div class="navigation-container">
-    <!-- Top Navigation Bar -->
-    <div class="top-nav">
+  <!-- Top Navigation Bar -->
+  <div class="top-nav">
       <div class="left-section">
-        <button class="menu-icon" (click)="toggleSidebar()">
-          <i class="fas fa-bars"></i>
-        </button>
-        <div class="store-name">
-          <h1>Fashionista</h1>
-        </div>
+          <button class="menu-icon" (click)="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+          </button>
+          <div class="store-name">
+              <h1>Fashionista</h1>
+          </div>
       </div>
       
-      <div class="nav-icons">
-        <button class="icon-button">
-          <i class="fas fa-search"></i>
-        </button>
-        <button class="icon-button">
-          <i class="fas fa-bell"></i>
-          <span class="notification-badge">3</span>
-        </button>
-        <button class="icon-button">
-          <i class="fas fa-cog"></i>
-        </button>
-        <button class="icon-button">
-          <i class="fas fa-user"></i>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Sidebar Navigation -->
-    <div class="sidebar" [class.collapsed]="!sidebarVisible">
-        <button class="sidebar-item">
-          <i class="fas fa-search"></i>
-          <span class="label-text">Search</span>
-        </button>
-        <button class="sidebar-item">
-          <i class="fas fa-bell"></i>
-          <span class="label-text">Notifications</span>
-          <span class="notification-badge">*</span> <!--Add svg for notifications-->
-        </button>
-        <button class="sidebar-item">
-          <i class="fas fa-cog"></i>
-          <span class="label-text">Settings</span>
-        </button>
-        <button class="sidebar-item">
-          <i class="fas fa-user"></i>
-          <span class="label-text">Profile</span>
-        </button>
-      </div>
+     <!---<div class="nav-icons">
+          <button class="icon-button">
+              <i class="fas fa-search"></i>
+          </button>
+          <button class="icon-button">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge">3</span>
+          </button>
+          <button class="icon-button">
+              <i class="fas fa-cog"></i>
+          </button>
+          <button class="icon-button">
+              <i class="fas fa-user"></i>
+          </button>
+      </div>-->
+  </div>
+  
+  <!-- Sidebar Navigation -->
+  <div class="sidebar" [ngClass]="{'sidebar-visible': sidebarVisible}">
+      <button class="sidebar-item" *ngFor="let item of sidebarItems" [routerLink]="item.route">
+          <i class="fas fa-{{item.icon}}"></i>
+          <span class="label-text">{{item.label}}</span>
+      </button>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" [ngClass]="{'overlay-visible': sidebarVisible}" (click)="toggleSidebar()"></div>
+</div>

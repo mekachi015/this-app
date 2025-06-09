@@ -69,7 +69,7 @@
       
       /* Enhanced submit button to coordinate perfectly */
       .submit-btn {
-        background-color: #7367f0;
+        background-color: #ff3366;
         color: white;
         border: none;
         padding: 1.1rem; /* Slightly more padding */
@@ -84,7 +84,7 @@
         text-transform: uppercase; /* Makes it more button-like */
         
         &:hover {
-          background-color: #5f55d8;
+          background-color: #ff3366;
           transform: translateY(-2px);
           box-shadow: 0 6px 16px rgba(115, 103, 240, 0.35);
         }
@@ -95,7 +95,7 @@
       }
   
     .submit-btn {
-      background-color: #7367f0;
+      background-color: #ff3366;
       color: white;
       border: none;
       padding: 1rem;
@@ -169,24 +169,24 @@
         }
   
         &.facebook {
-          background-color: #4267b2;
+          background-color: #ff3366;
           color: white;
           border: none;
   
           &:hover {
-            background-color: #3a5c9d;
+            background-color: #ff3366;
           }
         }
       }
     }
   
     .signin-link {
-      color: #6a6a8b;
+      color: #ff3366;
       font-size: 0.9rem;
       margin-top: 1.5rem;
   
       a {
-        color: #7367f0;
+        color: #ff3366;
         text-decoration: none;
         font-weight: 600;
         margin-left: 0.25rem;
@@ -194,7 +194,7 @@
   
         &:hover {
           text-decoration: underline;
-          color: #5f55d8;
+          color: #ff3366;
         }
       }
     }
