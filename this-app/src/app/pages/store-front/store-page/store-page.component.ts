@@ -51,41 +51,86 @@ export class StorePageComponent {
 
   ];
 
-  nearbyStores: Store[] = [
+   nearbyStores: Store[] = [
+    {
+      id: '1',
+      name: 'IFUKU Store',
+      imageUrl: 'assets/store-pictures/store-3.jpg',
+      bestseller: 'Japanese Denim Collection',
+      category: 'Japanese Fashion',
+      rating: 95,
+      operatingHours: '09:00 - 21:00',
+      description: 'Premium Japanese streetwear and authentic denim pieces.'
+    },
+    {
+      id: '2',
+      name: 'VINTAGE Corner',
+      imageUrl: 'assets/store-pictures/store-1.jpg',
+      bestseller: 'Vintage Leather Jackets',
+      category: 'Vintage Fashion',
+      rating: 92,
+      operatingHours: '10:00 - 19:00',
+      description: 'Curated vintage pieces from the 80s and 90s.'
+    },
     {
       id: '3',
-      name: 'Testseller',
-      imageUrl: 'assets/stores/testseller.jpg',
-      bestseller: 'Everything',
-      category: 'Thrifting',
-      rating: 95,
-      operatingHours: '09:00 - 21:00'
+      name: 'STREETWEAR Hub',
+      imageUrl: 'assets/store-pictures/store-6.jpg',
+      bestseller: 'Urban Streetwear Collection',
+      category: 'Street Fashion',
+      rating: 94,
+      operatingHours: '11:00 - 20:00',
+      description: 'Contemporary urban fashion for street style enthusiasts.'
     },
     {
       id: '4',
-      name: 'IFUKU',
-      imageUrl: 'assets/stores/ifuku.jpg',
-      bestseller: 'Blue Japanese Denim',
-      category: 'Japanese Denim',
+      name: 'LUXURY Boutique',
+      imageUrl: 'assets/store-pictures/store-4.jpg',
+      bestseller: 'Designer Collections',
+      category: 'Luxury Fashion',
+      rating: 97,
+      operatingHours: '10:00 - 18:00',
+      description: 'Exclusive designer pieces and high-end fashion.'
+    },
+    {
+      id: '1',
+      name: 'IFUKU Store',
+      imageUrl: 'assets/store-pictures/store-3.jpg',
+      bestseller: 'Japanese Denim Collection',
+      category: 'Japanese Fashion',
       rating: 95,
-      operatingHours: '09:00 - 17:00'
-    },{
+      operatingHours: '09:00 - 21:00',
+      description: 'Premium Japanese streetwear and authentic denim pieces.'
+    },
+    {
+      id: '2',
+      name: 'VINTAGE Corner',
+      imageUrl: 'assets/store-pictures/store-1.jpg',
+      bestseller: 'Vintage Leather Jackets',
+      category: 'Vintage Fashion',
+      rating: 92,
+      operatingHours: '10:00 - 19:00',
+      description: 'Curated vintage pieces from the 80s and 90s.'
+    },
+    {
       id: '3',
-      name: 'Testseller',
-      imageUrl: 'assets/stores/testseller.jpg',
-      bestseller: 'Everything',
-      category: 'Thrifting',
-      rating: 95,
-      operatingHours: '09:00 - 21:00'
+      name: 'STREETWEAR Hub',
+      imageUrl: 'assets/store-pictures/store-6.jpg',
+      bestseller: 'Urban Streetwear Collection',
+      category: 'Street Fashion',
+      rating: 94,
+      operatingHours: '11:00 - 20:00',
+      description: 'Contemporary urban fashion for street style enthusiasts.'
     },
     {
       id: '4',
-      name: 'IFUKU',
-      imageUrl: 'assets/stores/ifuku.jpg',
-      bestseller: 'Blue Japanese Denim',
-      category: 'Japanese Denim',
-      rating: 95,
-      operatingHours: '09:00 - 17:00'
+      name: 'LUXURY Boutique',
+      imageUrl: 'assets/store-pictures/store-4.jpg',
+      bestseller: 'Designer Collections',
+      category: 'Luxury Fashion',
+      rating: 97,
+      operatingHours: '10:00 - 18:00',
+      description: 'Exclusive designer pieces and high-end fashion.'
     }
   ];
 }

@@ -11,4 +11,8 @@ import { Store } from '../../../models/store-front/store.model';
 export class NearYouComponent {
   @Input() store!: Store;
 
+  selectStore(): void {
+  // Implement your logic here, or leave empty if not needed
+}
+
 }

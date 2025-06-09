@@ -1,44 +1,33 @@
 .stores-page {
+  padding: 1rem;
   background-color: #f8f9fa;
   min-height: 100vh;
-  padding: 1.5rem;
-  
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
-}
 
-// Hide scrollbars but keep functionality
-.stores-scroll-container,
-.nearby-stores-container {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  
-  &::-webkit-scrollbar {
-    display: none;
+  @media (max-width: 768px) {
+    padding: 0.75rem;
   }
 }
 
 .page-title {
-  color: #2d2d2d;
   font-size: 2rem;
-  font-weight: 600;
+  color: #2d2d2d;
   margin: 1.5rem 0;
-  
+  font-weight: 600;
+
   @media (max-width: 768px) {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     margin: 1rem 0;
   }
 }
 
 .section-title {
+  font-size: 1.25rem;
   color: #2d2d2d;
-  font-size: 1.5rem;
-  font-weight: 500;
   margin: 2rem 0 1rem;
-  
+  font-weight: 500;
+
   @media (max-width: 768px) {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     margin: 1.5rem 0 0.75rem;
   }
 }
@@ -51,75 +40,30 @@
     gap: 1.5rem;
     overflow-x: auto;
     padding: 0.5rem 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
     @media (max-width: 768px) {
       gap: 1rem;
-    }
-    
-    app-store-card {
-      min-width: 280px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-      transition: transform 0.2s ease;
-      
-      @media (max-width: 768px) {
-        min-width: 240px;
-      }
-      
-      &:hover {
-        transform: translateY(-2px);
-      }
+      padding: 0.25rem 0;
     }
   }
 }
 
 .nearby-stores-container {
-  margin-top: 1.5rem;
-  
   .nearby-stores {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    
+    gap: 2rem;
+    padding: 0.5rem 0;
+
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
       gap: 1rem;
-    }
-    
-    app-near-you {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-      transition: transform 0.2s ease;
-      
-      &:hover {
-        transform: translateY(-2px);
-      }
-    }
-  }
-}
-
-// Style for the search bar to match auth component
-::ng-deep app-search-bar {
-  input {
-    width: 100%;
-    padding: 0.9rem 1.2rem;
-    border: 2px solid #eef1f6;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    color: #2d3748;
-    background-color: #f8fafc;
-    transition: all 0.2s ease-in-out;
-    
-    &::placeholder {
-      color: #a0aec0;
-    }
-    
-    &:focus {
-      border-color: #ff3366;
-      box-shadow: 0 0 0 3px rgba(255, 51, 102, 0.1);
-      outline: none;
     }
   }
 }
