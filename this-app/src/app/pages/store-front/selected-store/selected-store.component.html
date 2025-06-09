@@ -12,7 +12,7 @@
           placeholder="Search for clothing"
           class="search-input"
         >
-        <button class="search-button">Search</button>
+        <button class="search-button" (click)="onSearch()">Search</button>
       </div>
     </header>
   
@@ -28,7 +28,7 @@
       <div class="product-card" *ngFor="let product of products">
         <div class="product-image">
           <img [src]="product.imageUrl" [alt]="product.name">
-          <button class="zoom-button">
+          <button class="zoom-button" (click)="zoomProduct(product)">
             <i class="fas fa-search-plus"></i>
           </button>
         </div>
@@ -36,7 +36,7 @@
           <h3>{{ product.name }}</h3>
           <p>{{ product.description }}</p>
           <p class="price">R{{ product.price.toFixed(2) }}</p>
-          <button class="add-to-cart">Add to Cart</button>
+          <button class="add-to-cart" (click)="addToCart(product)">Add to Cart</button>
         </div>
       </div>
     </main>
@@ -53,4 +53,4 @@
         Estimated delivery: 30 minutes.
       </p>
     </aside>
-  </div>
+</div>

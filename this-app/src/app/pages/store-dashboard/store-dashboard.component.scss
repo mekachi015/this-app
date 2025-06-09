@@ -1,168 +1,246 @@
 .dashboard-container {
-    padding: 20px;
-    background-color: #f5f5f5;
-    min-height: 100vh;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  margin-top: 4rem; // Add space for fixed navbar
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
-  
-  .main-header {
+}
+
+.dashboard-header {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-  
-    .logo {
-      font-size: 24px;
-      font-weight: bold;
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #2d2d2d;
+      margin: 0;
     }
-  
-    .main-nav {
+
+    .header-actions {
       display: flex;
-      gap: 20px;
-  
-      a {
-        text-decoration: none;
-        color: #333;
-        padding: 8px 16px;
-        border-radius: 4px;
-  
-        &.active {
-          background-color: #ff3366;
-          color: white;
+      gap: 1rem;
+
+      .action-btn {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: none;
+        background: #f8f9fa;
+        color: #4a5568;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: #edf2f7;
+          color: #7367f0;
         }
-      }
-    }
-  }
-  
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20px;
-    
-    .dashboard-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      min-height: 300px;
-  
-      h2 {
-        margin-bottom: 20px;
-        font-size: 18px;
-        color: #333;
-      }
-    }
-  }
-  
-  // Inventory Management
-  .inventory {
-    background-color: #ffe5e5;
-  
-    .product-list {
-      .product-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        border-bottom: 1px solid rgba(0,0,0,0.1);
-  
-        .stock-control {
+
+        .notification-badge {
+          position: absolute;
+          top: -5px;
+          right: -5px;
+          background: #7367f0;
+          color: white;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          font-size: 0.75rem;
           display: flex;
           align-items: center;
-          gap: 10px;
+          justify-content: center;
         }
       }
     }
   }
-  
-  // Sales Tracker
-  .sales {
-    background-color: #ff3366;
-    color: white;
-  
-    .sales-list {
-      .sales-item {
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: #7367f0;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .stat-info {
+      flex: 1;
+
+      h3 {
+        font-size: 1rem;
+        color: #4a5568;
+        margin: 0 0 0.5rem;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d2d2d;
+        margin: 0 0 0.5rem;
+      }
+
+      .stat-change {
+        font-size: 0.875rem;
         display: flex;
-        justify-content: space-between;
-        padding: 10px 0;
+        align-items: center;
+        gap: 0.25rem;
+
+        &.positive {
+          color: #7367f0;
+        }
+
+        &.negative {
+          color: #ff3366;
+        }
+
+        &.neutral {
+          color: #4a5568;
+        }
+
+        span {
+          color: #718096;
+        }
       }
     }
   }
-  
-  // Promo Tools
-  .promos {
-    background-color: #f0f0f0;
-  
-    .promo-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-  
-      .edit-btn {
-        background-color: #ff3366;
-        color: white;
-        border: none;
-        padding: 5px 15px;
-        border-radius: 4px;
-        cursor: pointer;
+}
+
+.orders-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2d2d2d;
+      margin: 0;
+    }
+
+    .view-all-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #7367f0;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #5e50ee;
       }
     }
   }
-  
-  // Messaging System
-  .messages {
-    background-color: #e6e6e6;
-  
-    .message-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-  
-      .reply-btn {
-        background-color: #ff3366;
-        color: white;
-        border: none;
-        padding: 5px 15px;
-        border-radius: 4px;
-        cursor: pointer;
+
+  .orders-table-container {
+    overflow-x: auto;
+    
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      white-space: nowrap;
+
+      th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eef1f6;
+      }
+
+      th {
+        font-weight: 500;
+        color: #4a5568;
+        background: #f8f9fa;
+      }
+
+      td {
+        color: #2d2d2d;
+      }
+
+      .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+
+        &.completed {
+          background: #edf2f7;
+          color: #7367f0;
+        }
+
+        &.pending {
+          background: #fff4e6;
+          color: #7367f0;
+        }
+
+        &.cancelled {
+          background: #ffe6eb;
+          color: #ff3366;
+        }
       }
     }
   }
-  
-  // Analytics
-  .analytics {
-    background-color: #ffe5e5;
-  
-    .analytics-charts {
-      display: flex;
+}
+
+// Mobile optimizations
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-table-container {
+    margin: 0 -1.5rem;
+    padding: 0 1.5rem;
+  }
+
+  .orders-section {
+    .section-header {
       flex-direction: column;
-      gap: 20px;
-  
-      .chart {
-        background: white;
-        border-radius: 8px;
-        padding: 15px;
-        height: 120px;
-      }
+      gap: 1rem;
+      align-items: flex-start;
     }
   }
-  
-  @media (max-width: 1200px) {
-    .dashboard-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .dashboard-grid {
-      grid-template-columns: 1fr;
-    }
-  
-    .main-header {
-      flex-direction: column;
-      gap: 20px;
-  
-      .main-nav {
-        width: 100%;
-        overflow-x: auto;
-      }
-    }
-  }
+}
