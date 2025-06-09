@@ -10,8 +10,8 @@ import { StoreDashboardComponent } from './pages/store-dashboard/store-dashboard
 
 export const routes: Routes = [
     { path: '', component: AuthenticationPageComponent },
-    // {path :'login', component: LoginComponent},
-    // {path :'sign-up', component: SignUpComponent},  
+    {path :'login', component: LoginComponent},
+    {path :'sign-up', component: SignUpComponent},  
     {path : '**', redirectTo: 'login', pathMatch: 'full'},
     {path : 'stores', component: StorePageComponent},
     {path : 'selected-store', component: SelectedStoreComponent},
