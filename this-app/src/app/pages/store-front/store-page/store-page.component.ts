@@ -20,53 +20,35 @@ export class StorePageComponent {
     {
       id: '1',
       name: 'IFUKU',
-      imageUrl: 'assets/stores/ifuku.jpg',
+      imageUrl: 'assets/store-pictures/store-3.jpg',
+      description: 'Premium Japanese streetwear and denim. Authentic pieces curated from Tokyo.',
     },
     {
       id: '2',
       name: 'BROKE',
-      imageUrl: 'assets/stores/broke.jpg',
+      imageUrl: 'assets/store-pictures/store-2.jpg',
+      description: 'Affordable streetwear for the fashion-conscious. Style doesn\'t have to break the bank.',
     },
     {
       id: '5',
       name: 'VINTAGE',
-      imageUrl: 'assets/stores/vintage.jpg',
+      imageUrl: 'assets/store-pictures/store-1.jpg',
+      description: 'Carefully selected vintage pieces from the 80s and 90s. Each item tells a story.',
     },
     {
       id: '6',
       name: 'STREETWEAR',
-      imageUrl: 'assets/stores/streetwear.jpg',
+      imageUrl: 'assets/store-pictures/store-6.jpg',
+      description: 'Contemporary urban fashion meets classic street style. For those who dare to stand out.',
     },
     {
       id: '7',
       name: 'LUXURY',
-      imageUrl: 'assets/stores/luxury.jpg',
-    },
-    {
-      id: '1',
-      name: 'IFUKU',
-      imageUrl: 'assets/stores/ifuku.jpg',
-    },
-    {
-      id: '2',
-      name: 'BROKE',
-      imageUrl: 'assets/stores/broke.jpg',
-    },
-    {
-      id: '5',
-      name: 'VINTAGE',
-      imageUrl: 'assets/stores/vintage.jpg',
-    },
-    {
-      id: '6',
-      name: 'STREETWEAR',
-      imageUrl: 'assets/stores/streetwear.jpg',
-    },
-    {
-      id: '7',
-      name: 'LUXURY',
-      imageUrl: 'assets/stores/luxury.jpg',
+      imageUrl: 'assets/store-pictures/store-4.jpg',
+      description: 'Exclusive designer pieces and high-end fashion. Luxury reimagined for modern taste.',
     }
+    // Remove duplicates for cleaner implementation
+
   ];
 
   nearbyStores: Store[] = [

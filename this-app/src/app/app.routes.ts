@@ -9,14 +9,14 @@ import { CartPageComponent } from './pages/cart-page/cart-page.component';
 import { StoreDashboardComponent } from './pages/store-dashboard/store-dashboard.component';
 
 export const routes: Routes = [
-    { path: '', component: AuthenticationPageComponent },
-    {path :'login', component: LoginComponent},
-    {path :'sign-up', component: SignUpComponent},  
-    {path : '**', redirectTo: 'login', pathMatch: 'full'},
-    {path : 'stores', component: StorePageComponent},
-    {path : 'selected-store', component: SelectedStoreComponent},
-    {path : 'cart', component: CartPageComponent},
-    {path : 'dashboard', component: StoreDashboardComponent},
+     { path: '', component: AuthenticationPageComponent },
+    { path: 'login', component: LoginComponent },
+    { path: 'sign-up', component: SignUpComponent },
+    { path: 'stores', component: StorePageComponent },
+    { path: 'selected-store', component: SelectedStoreComponent },
+    { path: 'cart', component: CartPageComponent },
+    { path: 'dashboard', component: StoreDashboardComponent },
+    { path: '**', redirectTo: 'login', pathMatch: 'full' } // Wildcard route should be last
 ];
 
 @NgModule({
