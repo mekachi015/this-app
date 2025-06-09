@@ -18,9 +18,9 @@ interface SidebarItem {
 export class NavBarComponent {
   sidebarVisible: boolean = false;
 
-  sidebarItems: SidebarItem[] = [
+   sidebarItems: SidebarItem[] = [
     { label: 'Home', route: '/home', icon: 'home' },
-    { label: 'Profile', route: '/profile', icon: 'user' },
+    { label: 'Profile', route: '/profile', icon: 'user-circle' },
     { label: 'Settings', route: '/settings', icon: 'cog' }
   ];
 
