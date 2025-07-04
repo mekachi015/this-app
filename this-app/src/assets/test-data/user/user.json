@@ -1,0 +1,25 @@
+{
+ "users": [
+    {
+      "id": "1",
+      "fullName": "Test User",
+      "email": "test@example.com",
+      "password": "password123",
+      "createdAt": "2025-06-11T00:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "fullName": "Test ",
+      "email": "another@example.com",
+      "password": "password123",
+      "createdAt": "2025-06-11T00:00:00.000Z"
+    },
+    {
+      "id": "1",
+      "fullName": "User",
+      "email": "p@example.com",
+      "password": "password123",
+      "createdAt": "2025-06-11T00:00:00.000Z"
+    }
+  ]
+}

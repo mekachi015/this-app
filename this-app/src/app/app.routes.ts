@@ -16,7 +16,7 @@ export const routes: Routes = [
     { path: 'selected-store', component: SelectedStoreComponent },
     { path: 'cart', component: CartPageComponent },
     { path: 'dashboard', component: StoreDashboardComponent },
-    { path: '**', redirectTo: 'login', pathMatch: 'full' } // Wildcard route should be last
+    { path: '**', redirectTo: 'stores', pathMatch: 'full' } // Wildcard route should be last
 ];
 
 @NgModule({

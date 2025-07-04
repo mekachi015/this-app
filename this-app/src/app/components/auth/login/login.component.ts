@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
-import { FormBuilder, Validators, FormGroup} from '@angular/forms';
+import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { AuthFormComponent } from "../auth-form/auth-form.component";
+import { AuthService } from '../../../services/authentication-service/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -10,10 +12,13 @@ import { AuthFormComponent } from "../auth-form/auth-form.component";
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-
   loginForm: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder, 
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -22,9 +27,19 @@ export class LoginComponent {
 
   onLogin() {
     if (this.loginForm.valid) {
-      console.log('Login form submitted:', this.loginForm.value);
+      const { email, password } = this.loginForm.value;
+      
+      this.authService.login(email, password).subscribe({
+        next: (user) => {
+          console.log('Login successful:', user);
+          // Navigate to home page or dashboard
+          this.router.navigate(['stores']);
+        },
+        error: (error) => {
+          console.error('Login failed:', error);
+          // Handle login error (show error message)
+        }
+      });
     }
   }
 }
-
-
