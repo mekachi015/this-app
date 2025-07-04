@@ -1,0 +1,33 @@
+<div class="navigation-container">
+  <nav class="top-nav">
+    <div class="left-section">
+      <button class="menu-icon" (click)="toggleSidebar()" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="store-name">
+        <h1>Fashionista</h1>
+      </div>
+    </div>
+  </nav>
+  
+  <aside class="sidebar" [ngClass]="{'sidebar-visible': sidebarVisible}">
+    <button class="close-icon" (click)="toggleSidebar()" aria-label="Close Menu">
+      <i class="fas fa-times"></i>
+    </button>
+    <button 
+      *ngFor="let item of sidebarItems" 
+      class="sidebar-item" 
+      [routerLink]="item.route"
+      [routerLinkActive]="'active'"
+      [routerLinkActiveOptions]="{exact: true}">
+      <i class="fas fa-{{item.icon}}"></i>
+      <span>{{item.label}}</span>
+    </button>
+  </aside>
+
+  <div 
+    class="overlay" 
+    [ngClass]="{'overlay-visible': sidebarVisible}" 
+    (click)="toggleSidebar()">
+  </div>
+</div>

@@ -1,0 +1,104 @@
+<div class="dashboard-container">
+  <!-- Header Section -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Dashboard</h1>
+      <div class="header-actions">
+        <button class="action-btn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge">3</span>
+        </button>
+        <button class="action-btn">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Cards -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-shopping-bag"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Total Orders</h3>
+        <p class="stat-value">245</p>
+        <p class="stat-change positive">+12.5% <span>vs last week</span></p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-wallet"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Revenue</h3>
+        <p class="stat-value">R52,489.00</p>
+        <p class="stat-change positive">+8.2% <span>vs last week</span></p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Active Customers</h3>
+        <p class="stat-value">1,234</p>
+        <p class="stat-change positive">+5.3% <span>vs last week</span></p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-box"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Products</h3>
+        <p class="stat-value">89</p>
+        <p class="stat-change neutral">0% <span>vs last week</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Orders -->
+  <section class="orders-section">
+    <div class="section-header">
+      <h2>Recent Orders</h2>
+      <button class="view-all-btn">View All</button>
+    </div>
+    <div class="orders-table-container">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Products</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of recentOrders">
+            <td>{{ order.id }}</td>
+            <td>{{ order.customer }}</td>
+            <td>{{ order.products }}</td>
+            <td>R{{ order.total.toFixed(2) }}</td>
+            <td>
+              <span class="status-badge" [class]="order.status.toLowerCase()">
+                {{ order.status }}
+              </span>
+            </td>
+            <td>
+              <button class="action-btn">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

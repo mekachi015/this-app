@@ -1,0 +1,10 @@
+<app-auth-form
+  [title]="'Welcome back!'"
+  [subtitle]="'Login to your account'"
+  [buttonText]="'Sign in'"
+  [formGroup]="loginForm"
+  (onSubmit)="onLogin()"
+>
+  <input formControlName="email" placeholder="Email" />
+  <input type="password" formControlName="password" placeholder="Password" />
+</app-auth-form>

@@ -1,0 +1,56 @@
+<div class="store-container">
+    <!-- Header -->
+    <header class="store-header">
+      <div class="logo-container">
+        <img src="assets/logo/ifuku-logo.png" alt="IFUKU ONE" class="store-logo">
+        <h1>{{ storeName }}</h1>
+      </div>
+      <div class="search-container">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          placeholder="Search for clothing"
+          class="search-input"
+        >
+        <button class="search-button" (click)="onSearch()">Search</button>
+      </div>
+    </header>
+  
+    <!-- Navigation -->
+    <nav class="store-nav">
+      <button class="nav-button active">Browse Products</button>
+      <button class="nav-button">Order Status</button>
+      <button class="nav-button">Account Settings</button>
+    </nav>
+  
+    <!-- Main Content -->
+    <main class="products-grid">
+      <div class="product-card" *ngFor="let product of products">
+        <div class="product-image">
+          <img [src]="product.imageUrl" [alt]="product.name">
+          <button class="zoom-button" (click)="zoomProduct(product)">
+            <i class="fas fa-search-plus"></i>
+          </button>
+        </div>
+        <div class="product-info">
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.description }}</p>
+          <p class="price">R{{ product.price.toFixed(2) }}</p>
+          <button class="add-to-cart" (click)="addToCart(product)">Add to Cart</button>
+        </div>
+      </div>
+    </main>
+  
+    <!-- Order Tracking -->
+    <aside class="order-tracking">
+      <h2>Live Order Tracking</h2>
+      <div class="map-container">
+        <!-- Add map implementation here -->
+        <img src="assets/map-placeholder.jpg" alt="Order tracking map">
+      </div>
+      <p class="delivery-status">
+        Your order is on the way!<br>
+        Estimated delivery: 30 minutes.
+      </p>
+    </aside>
+</div>

@@ -1,0 +1,11 @@
+<div class="store-card" (click)="selectStore()">
+  <div class="card-content">
+    <div class="store-image-container">
+      <img [src]="store.imageUrl" [alt]="store.name" class="store-image" />
+    </div>
+    <div class="store-details">
+      <p class="store-description">{{ store.description }}</p>
+    </div>
+  </div>
+  <h3 class="store-name">{{ store.name }}</h3>
+</div>
