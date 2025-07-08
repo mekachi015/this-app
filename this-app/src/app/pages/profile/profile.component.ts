@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Import CommonModule for Angular directives
-import { NgModule } from '@angular/core';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -11,8 +10,17 @@ import { NgModule } from '@angular/core';
 })
 export class ProfileComponent {
 
+  constructor(private router: Router) {}
+
   userName = 'Penny Pennyworth'; // Replace with actual user name
   userPhotoUrl = 'assets/profile-photos/profile-picture.jpg'; // Replace with actual photo URL
+  
+
+  goToWishlist() {
+    this.router.navigate(['/wishlist']);
+
+    console.log('Navigating to wishlist');
+  }
 
 settings = [
   { icon: 'fas fa-user-cog', name: 'Account Settings', description: 'Manage your account information and preferences.' },
