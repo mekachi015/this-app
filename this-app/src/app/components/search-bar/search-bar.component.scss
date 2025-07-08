@@ -3,7 +3,7 @@
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  margin-bottom: 2rem;
+  margin-top: 5rem;
   
   @media (max-width: 768px) {
     padding: 1rem;
@@ -11,7 +11,7 @@
 }
 
 .store-name {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #2d2d2d;
   margin-bottom: 1rem;
@@ -93,7 +93,7 @@
     }
   }
 
-  .new-listing-btn {
+  .sort-btn {
     background-color: #ff3366;
     border: none;
     color: white;

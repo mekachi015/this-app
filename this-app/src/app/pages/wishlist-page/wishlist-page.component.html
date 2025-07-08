@@ -1,0 +1,30 @@
+
+
+  <app-search-bar></app-search-bar>
+
+  <!-- Favorite Stores: Horizontal scroll -->
+  <section class="favorite-stores-section">
+  <h2>Your Favorite Stores</h2>
+  <div class="stores-scroll">
+    <app-store-card 
+      *ngFor="let store of favoriteStores" 
+      [store]="store">
+    </app-store-card>
+  </div>
+</section>
+
+ <section class="favorite-clothes-section">
+  <h2>Your Favorite Clothes</h2>
+  <div class="clothes-grid">
+    <div 
+      class="clothing-card"
+      *ngFor="let item of favoriteClothes">
+      <img [src]="item.imageUrl" [alt]="item.name" />
+      <div class="clothing-info">
+        <h3>{{ item.name }}</h3>
+        <p>{{ item.description }}</p>
+        <p class="price"> R{{item.price}}</p>
+      </div>
+    </div>
+  </div>
+</section>
