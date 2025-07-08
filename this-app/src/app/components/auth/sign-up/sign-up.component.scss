@@ -1,0 +1,15 @@
+:host ::ng-deep input {
+  border: 2px solid black ;
+  border-radius: 8px;
+  padding: .8rem 1rem;
+  font-size: .8rem;
+  color: #222;
+  background: #f0f8ff;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #ff3366;
+    background: #fff;
+    outline: none;
+  }
+}

@@ -1,0 +1,29 @@
+<div class="user-info-section">
+  <img [src]="userPhotoUrl" alt="Profile Photo">
+  <span>{{ userName }}</span>
+</div>
+
+<div class="user-summary-section">
+  <div>
+    <i class="fas fa-heart"></i>
+    <div>Wishlist</div>
+  </div>
+  <div>
+    <i class="fas fa-wallet"></i>
+    <div>Wallet</div>
+  </div>
+  <div>
+    <i class="fas fa-box"></i>
+    <div>Orders</div>
+  </div>
+</div>
+
+<div class="settings-section">
+  <div *ngFor="let setting of settings" style="display: flex; align-items: flex-start; margin-bottom: 24px;">
+    <i [class]="setting.icon" style="font-size: 24px; margin-right: 16px;"></i>
+    <div>
+      <div style="font-weight: bold;">{{ setting.name }}</div>
+      <div style="font-size: 12px; color: #888;">{{ setting.description }}</div>
+    </div>
+  </div>
+</div>
