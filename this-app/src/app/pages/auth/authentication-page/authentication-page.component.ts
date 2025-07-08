@@ -12,40 +12,46 @@ import { CommonModule } from '@angular/common';
   styleUrl: './authentication-page.component.scss'
 })
 export class AuthenticationPageComponent {
-  isLoginMode = true;
-  
+   isLoginMode = true;
   loginForm: FormGroup;
   signupForm: FormGroup;
 
   constructor(private fb: FormBuilder) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
 
     this.signupForm = this.fb.group({
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required]
+      confirmPassword: ['', Validators.required],
+    }, {
+      validators: this.passwordMatchValidator
     });
   }
 
-  switchMode(loginMode: boolean) {
-    this.isLoginMode = loginMode;
+  switchMode(isLogin: boolean) {
+    this.isLoginMode = isLogin;
   }
 
   onLogin() {
     if (this.loginForm.valid) {
-      console.log('Login form submitted', this.loginForm.value);
-      // Add your authentication logic here
+      // TODO: Implement login logic here (call AuthService, etc.)
+      console.log('Login form value:', this.loginForm.value);
     }
   }
 
   onSignup() {
     if (this.signupForm.valid) {
-      console.log('Signup form submitted', this.signupForm.value);
-      // Add your registration logic here
+      // TODO: Implement signup logic here (call AuthService, etc.)
+      console.log('Signup form value:', this.signupForm.value);
     }
+  }
+
+  passwordMatchValidator(g: FormGroup) {
+    return g.get('password')?.value === g.get('confirmPassword')?.value
+      ? null : { mismatch: true };
   }
 }

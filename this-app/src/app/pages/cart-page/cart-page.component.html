@@ -1,58 +1,53 @@
 <div class="cart-container">
-    <!-- Logo -->
-    <div class="store-logo">
-      <img src="assets/logo/shelflife-logo.png" alt="Shelflife">
+  <!-- Header -->
+  <header class="cart-header">
+    <div class="header-content">
+      <h1>Shopping Cart</h1>
+      <p class="item-count">{{ cartItems.length }} items</p>
     </div>
-  
-    <!-- Progress Steps -->
-    <div class="progress-steps">
-      <div *ngFor="let step of steps; let i = index" 
-           class="step" 
-           [class.active]="i + 1 === currentStep"
-           [class.completed]="i + 1 < currentStep">
-        {{ i + 1 | number: '2.0' }} {{ step }}
-      </div>
-    </div>
-  
-    <h1>Your Cart</h1>
-  
-    <!-- Cart Items -->
+  </header>
+
+  <!-- Cart Items -->
+  <main class="cart-content">
     <div class="cart-items">
-      <div *ngFor="let item of cartItems" class="cart-item">
+      <div class="cart-item" *ngFor="let item of cartItems">
         <div class="item-image">
           <img [src]="item.imageUrl" [alt]="item.name">
         </div>
         <div class="item-details">
-          <div class="item-header">
-            <div>
-              <h3>{{ item.brand }}</h3>
-              <h4>{{ item.name }}</h4>
-            </div>
-            <button class="remove-btn" (click)="removeItem(item.id)">×</button>
-          </div>
-          <p class="price">R {{ item.price.toFixed(2) }}</p>
-          <p>Colour: {{ item.color }}</p>
-          <p>Size: {{ item.size }}</p>
-          <div class="quantity-selector">
-            <select [(ngModel)]="item.quantity" (change)="updateQuantity(item, item.quantity)">
-              <option [value]="i" *ngFor="let i of [1,2,3,4,5]">{{ i }}</option>
-            </select>
-          </div>
+          <h3>{{ item.name }}</h3>
+          <p class="item-description">{{ item.description }}</p>
+          <div class="item-price">R{{ item.price.toFixed(2) }}</div>
+        </div>
+        <div class="item-quantity">
+          <button class="quantity-btn" (click)="decreaseQuantity(item)">-</button>
+          <span>{{ item.quantity }}</span>
+          <button class="quantity-btn" (click)="increaseQuantity(item)">+</button>
+        </div>
+        <button class="remove-btn" (click)="removeItem(item)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <aside class="order-summary">
+      <h2>Order Summary</h2>
+      <div class="summary-details">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>R{{ subtotal.toFixed(2) }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>R{{ shipping.toFixed(2) }}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span>R{{ total.toFixed(2) }}</span>
         </div>
       </div>
-    </div>
-  
-    <!-- Order Summary -->
-    <div class="order-summary">
-      <h2>Order Summary</h2>
-      <div class="summary-row">
-        <span>Sub Total</span>
-        <span>R {{ subtotal.toFixed(2) }}</span>
-      </div>
-    </div>
-  
-    <!-- Navigation Buttons -->
-    <div class="nav-buttons">
-      <button class="continue-btn">Continue to Delivery</button>
-    </div>
-  </div>
+      <button class="checkout-btn">Proceed to Checkout</button>
+    </aside>
+  </main>
+</div>

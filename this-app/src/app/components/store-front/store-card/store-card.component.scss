@@ -1,34 +1,87 @@
 .store-card {
-    flex: 0 0 auto;
-    width: 120px;
-    margin-right: 20px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-  
-    &:hover {
-      transform: translateY(-5px);
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  width: 300px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  @media (max-width: 768px) {
+    width: 280px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    min-width: 240px;
+  }
+
+  .card-content {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+      gap: 0.75rem;
     }
-  
-    .store-image-container {
-      width: 120px;
-      height: 120px;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      margin-bottom: 10px;
+  }
+
+  .store-image-container {
+    flex: 0 0 120px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+
+    @media (max-width: 480px) {
+      width: 100%;
+      height: 140px;
+      flex: none;
     }
-  
+
     .store-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-  
-    .store-name {
-      font-size: 14px;
-      font-weight: 600;
-      text-align: center;
-      margin: 0;
-      color: #333;
+  }
+
+  .store-details {
+    flex: 1;
+    padding: 0.25rem 0;
+
+    .store-description {
+      font-size: 0.6rem;
+      color: #666;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      @media (max-width: 480px) {
+        -webkit-line-clamp: 2;
+      }
     }
   }
+
+  .store-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d2d2d;
+    text-align: center;
+    margin: 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid #eef1f6;
+
+    @media (max-width: 480px) {
+      font-size: 0.95rem;
+      padding-top: 0.5rem;
+    }
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
