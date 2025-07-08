@@ -1,0 +1,130 @@
+.user-info-section {
+  display: flex;
+  justify-content: center; // Center content horizontally
+  align-items: center;
+  padding: 24px 32px 16px 32px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: 5rem;
+  gap: 4rem; // Add space between image and name
+
+  img {
+    order: 2; // Profile picture on the left
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid #e0e0e0;
+    object-fit: cover;
+  }
+
+  span {
+    order: 1; // User name on the right
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #222;
+    letter-spacing: 0.5px;
+  }
+}
+
+.user-summary-section {
+  display: flex;
+  justify-content: center; // Center all items horizontally
+  align-items: center;
+  gap: 4rem; // Space between each summary item
+  margin: 32px 0 24px 0;
+  background: #fff;
+  padding: 24px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+
+  > div {
+    display: flex;
+    flex-direction: column; // Stack icon above label
+    align-items: center;
+    color: #444;
+    min-width: 90px;
+
+    i {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      color: #ff3366;
+    }
+
+    div {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+  }
+}
+
+.settings-section {
+  margin: 32px 16px 0 16px;
+
+  > div {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    background: #f7f7f7;
+    padding: 18px 20px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background: #f0f8ff;
+    }
+
+    i {
+      font-size: 1.6rem;
+      margin-right: 18px;
+      color: #ff3366;
+      min-width: 32px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+
+      div:first-child {
+        font-weight: 600;
+        font-size: 1.05rem;
+        margin-bottom: 4px;
+        color: #222;
+      }
+
+      div:last-child {
+        font-size: 0.95rem;
+        color: #888;
+        line-height: 1.3;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 600px) {
+  .user-info-section {
+
+    
+   
+    span {
+      margin-right: 0;
+      margin-bottom: 8px;
+    }
+  }
+  .user-summary-section {
+    flex-direction: row;
+    gap: 50px;
+    padding: 18px 0;
+  }
+  .settings-section {
+    margin: 24px 4px 0 4px;
+    > div {
+      padding: 14px 10px;
+    }
+  }
+}

@@ -3,7 +3,9 @@
   [subtitle]="'Login to your account'"
   [buttonText]="'Sign in'"
   [formGroup]="loginForm"
+  [isLoginMode]="true"
   (onSubmit)="onLogin()"
+
 >
   <input formControlName="email" placeholder="Email" />
   <input type="password" formControlName="password" placeholder="Password" />
