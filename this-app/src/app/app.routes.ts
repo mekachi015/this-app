@@ -9,6 +9,7 @@ import { CartPageComponent } from './pages/cart-page/cart-page.component';
 import { StoreDashboardComponent } from './pages/store-dashboard/store-dashboard.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { WishlistPageComponent } from './pages/wishlist-page/wishlist-page.component';
+import { DriverComponentComponent } from './pages/driver-component/driver-component.component';
 
 export const routes: Routes = [
      { path: '', component: AuthenticationPageComponent },
@@ -20,7 +21,9 @@ export const routes: Routes = [
     { path: 'dashboard', component: StoreDashboardComponent },
     { path: 'profile', component: ProfileComponent }, 
     { path: 'wishlist', component: WishlistPageComponent }, // Dynamic route for selected store
+    { path: 'driver-dashboard', component: DriverComponentComponent},
     { path: '**', redirectTo: 'stores', pathMatch: 'full' } // Wildcard route should be last
+
 ];
 
 @NgModule({

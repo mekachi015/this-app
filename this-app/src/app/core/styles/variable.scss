@@ -5,3 +5,28 @@ $text-color: #333;
 $input-bg: #fff;
 $input-border: #ccc;
 $border-radius: 5px;
+
+:root {
+  --navbar-height: 64px;
+  --background-color: #f5f7fa;
+  --card-background: #ffffff;
+  --border-radius: 8px;
+  --border-radius-sm: 4px;
+  --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-tertiary: #718096;
+  --text-light: #ffffff;
+  
+  --primary-color: #4299e1;
+  --secondary-color: #718096;
+  --success-color: #48bb78;
+  
+  --status-pending: #ed8936;
+  --status-progress: #4299e1;
+  --status-success: #48bb78;
+  
+  --border-color: #e2e8f0;
+  --badge-background: #edf2f7;
+}
