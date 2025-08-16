@@ -34,12 +34,12 @@
                   [disabled]="currentDelivery.status.status !== 'pending'">
             Start Delivery
           </button>
-          <button class="success"
+          <button class="primary"
                   (click)="markAsDelivered()"
                   [disabled]="currentDelivery.status.status !== 'in-progress'">
             Complete Delivery
           </button>
-          <button class="secondary" (click)="callCustomer()">
+          <button class="primary" (click)="callCustomer()">
             Contact Customer
           </button>
         </div>

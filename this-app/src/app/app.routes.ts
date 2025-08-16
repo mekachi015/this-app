@@ -21,7 +21,7 @@ export const routes: Routes = [
     { path: 'dashboard', component: StoreDashboardComponent },
     { path: 'profile', component: ProfileComponent }, 
     { path: 'wishlist', component: WishlistPageComponent }, // Dynamic route for selected store
-    { path: 'driver-dashboard', component: DriverComponentComponent},
+    { path: 'driver', component: DriverComponentComponent},
     { path: '**', redirectTo: 'stores', pathMatch: 'full' } // Wildcard route should be last
 
 ];

@@ -26,7 +26,7 @@ export class DriverComponentComponent implements OnInit{
     },
     status: {
       id: 'status_001',
-      status: 'pending',
+      status: 'cancelled', // 'pending' | 'in-progress' | 'delivered' | 'cancelled'
       timestamp: new Date()
     },
     items: [
@@ -40,30 +40,82 @@ export class DriverComponentComponent implements OnInit{
 
   upcomingDeliveries: Delivery[] = [
     {
-      id: 'del_002',
-    customerId: 'cust_002',
-    customerName: 'Sarah Williams',
-    customerPhone: '+1234567891',
+    id: 'del_003',
+    customerId: 'cust_003',
+    customerName: 'Michael Johnson',
+    customerPhone: '+1234567892',
     location: {
-      latitude: 40.7142,
-      longitude: -74.0064,
-      address: '456 Madison Avenue',
+      latitude: 40.7589,
+      longitude: -73.9851,
+      address: '789 Fifth Avenue',
       city: 'New York',
-      postalCode: '10022'
+      postalCode: '10019'
     },
     status: {
-      id: 'status_002',
+      id: 'status_003',
       status: 'pending',
       timestamp: new Date()
     },
     items: [
-      { id: 'item_003', name: 'Summer Dress', quantity: 1, price: 129.99 },
-      { id: 'item_004', name: 'Sandals', quantity: 1, price: 59.99 }
+      { id: 'item_005', name: 'Leather Jacket', quantity: 1, price: 299.99 },
+      { id: 'item_006', name: 'Designer Scarf', quantity: 1, price: 89.99 }
     ],
-    estimatedDeliveryTime: new Date(Date.now() + 60 * 60000),
+    estimatedDeliveryTime: new Date(Date.now() + 90 * 60000),
     createdAt: new Date(),
     updatedAt: new Date()
-    }
+  },
+  {
+    id: 'del_004',
+    customerId: 'cust_004',
+    customerName: 'Emma Davis',
+    customerPhone: '+1234567893',
+    location: {
+      latitude: 40.7527,
+      longitude: -73.9772,
+      address: '321 Park Avenue',
+      city: 'New York',
+      postalCode: '10016'
+    },
+    status: {
+      id: 'status_004',
+      status: 'pending',
+      timestamp: new Date()
+    },
+    items: [
+      { id: 'item_007', name: 'Evening Gown', quantity: 1, price: 459.99 },
+      { id: 'item_008', name: 'Clutch Purse', quantity: 1, price: 129.99 },
+      { id: 'item_009', name: 'High Heels', quantity: 1, price: 199.99 }
+    ],
+    estimatedDeliveryTime: new Date(Date.now() + 120 * 60000),
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: 'del_005',
+    customerId: 'cust_005',
+    customerName: 'Robert Wilson',
+    customerPhone: '+1234567894',
+    location: {
+      latitude: 40.7484,
+      longitude: -73.9857,
+      address: '567 Broadway',
+      city: 'New York',
+      postalCode: '10012'
+    },
+    status: {
+      id: 'status_005',
+      status: 'pending',
+      timestamp: new Date()
+    },
+    items: [
+      { id: 'item_010', name: 'Business Suit', quantity: 1, price: 599.99 },
+      { id: 'item_011', name: 'Dress Shoes', quantity: 1, price: 249.99 },
+      { id: 'item_012', name: 'Tie Set', quantity: 2, price: 79.99 }
+    ],
+    estimatedDeliveryTime: new Date(Date.now() + 150 * 60000),
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
   ];
 
   constructor() {}
