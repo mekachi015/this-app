@@ -21,7 +21,8 @@ export class NavBarComponent {
    sidebarItems: SidebarItem[] = [
     { label: 'Home', route: '/home', icon: 'home' },
     { label: 'Profile', route: '/profile', icon: 'user-circle' },
-    { label: 'Settings', route: '/settings', icon: 'cog' }
+    { label: 'Settings', route: '/settings', icon: 'cog' },
+    { label: 'Administration', route: '/dashboard', icon: 'cogs' }
   ];
 
   toggleSidebar(): void {

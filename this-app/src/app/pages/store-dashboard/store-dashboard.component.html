@@ -15,6 +15,59 @@
     </div>
   </header>
 
+  <!-- Photo upload section  -->
+  <section class="upload-section">
+    <div class="upload-card">
+      <div class="upload-header">
+        <h2>Upload Photo</h2>
+        <p>Select an image from your device to upload</p>
+      </div>
+
+      <div
+        class="upload-area"
+        (click)="fileInput.click()"
+        (drop)="onDrop($event)"
+        (dragover)="onDragOver($event)"
+        [class.drag-over]="isDragOver"
+      >
+        <div class="upload-content" *ngIf="!selectedFile; else previewTemplate">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Drag & drop your file here</p>
+          <span class="upload-or">or</span>
+          <button class="browse-btn">Browse Files</button>
+          <p class="upload-hint">Supports JPG, PNG up to 5MB</p>
+        </div>
+
+        <ng-template #previewTemplate>
+          <div class="preview-container">
+            <img [src]="previewUrl" alt="Preview" class="image-preview" />
+            <div class="preview-actions">
+              <button
+                class="action-btn replace-btn"
+                (click)="$event.stopPropagation(); resetUpload()"
+              >
+                <i class="fas fa-sync-alt"></i> Replace
+              </button>
+            </div>
+          </div>
+        </ng-template>
+
+        <input
+          #fileInput
+          type="file"
+          hidden
+          (change)="onFileSelected($event)"
+          accept="image/jpeg, image/png"
+        />
+      </div>
+
+      <div class="upload-actions" *ngIf="selectedFile">
+        <button class="upload-btn" (click)="uploadFile()">Upload Photo</button>
+        <button class="cancel-btn" (click)="resetUpload()">Cancel</button>
+      </div>
+    </div>
+  </section>
+
   <!-- Stats Cards -->
   <section class="stats-grid">
     <div class="stat-card">
