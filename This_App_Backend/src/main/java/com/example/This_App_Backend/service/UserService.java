@@ -42,6 +42,11 @@ public class UserService {
         return userRepo.findAll();
     }
 
+    // Get user by email
+    public Optional<User> getUserByEmail(String email) {
+        return userRepo.findByEmail(email);
+    }
+
     // Get user by id
     public Optional<User> getUserById(Integer id) {
         return userRepo.findById(id);
@@ -87,4 +92,13 @@ public class UserService {
     public boolean userExists(Integer id) {
         return userRepo.existsById(id);
     }
+
+    public boolean existsByEmail(String email) {
+        return userRepo.existsByEmail(email);
+    }
+
+    public boolean existsByUsername(String username) {
+        return userRepo.existsByUsername(username);
+    }
+
 }
