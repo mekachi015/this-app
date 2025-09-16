@@ -2,8 +2,9 @@ package com.example.This_App_Backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,9 +15,15 @@ import java.util.List;
 @Table(name = "users") //maps user entity to "Users" table
 @Data
 @NoArgsConstructor
+@Getter
+@Setter
 //@AllArgsConstructor
 
 public class User {
+
+    public enum UserType {
+        CUSTOMER, DRIVER, ADMIN
+    }
 
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -40,8 +47,9 @@ public class User {
     @Column(name = "password", nullable = false, length = 100)
     private String password; // use jwt for password hashing and security
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_type", nullable = false, length = 20)   
-    private String userType; // e.g., driver, customer, admin find way to distinguish between user types, maybe use enum
+    private UserType userType; // e.g., DRIVER, CUSTOMER, ADMIN declared above
 
     @Column(name = "created_at", updatable = false) // updatable = false means JPA won't try to update this field
     private LocalDateTime createdAt;
@@ -53,47 +61,63 @@ public class User {
 
     // One User can have many User_Addresses
     // 'mappedBy' indicates that the 'user' field in UserAddress is the owning side of the relationship
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<User_Addresses> addresses = new ArrayList<>();
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<User_Addresses> addresses = new ArrayList<>();
 
     // One User can place many Orders
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Orders> orders = new ArrayList<>();
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    // private List<Orders> orders = new ArrayList<>();
 
     // One User can have many Payment_Methods
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payment_Methods> paymentMethods = new ArrayList<>();
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<Payment_Methods> paymentMethods = new ArrayList<>();
 
     // One User can write many Reviews_And_Ratings
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Review_And_Ratings> reviews = new ArrayList<>();
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    // private List<Review_And_Ratings> reviews = new ArrayList<>();
 
     // One User can have many Wishlists items
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Wishlist> wishlists = new ArrayList<>();
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<Wishlist> wishlists = new ArrayList<>();
 
     // One User can have many Cart items
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Cart> cartItems = new ArrayList<>();
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<Cart> cartItems = new ArrayList<>();
 
     // One User can be a Store_Owner (One-to-One relationship)
     // 'mappedBy' indicates that the 'user' field in StoreOwner is the owning side
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Store_Owners storeOwner;
+    // @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private Store_Owners storeOwner;
 
     // One User can be a Driver (One-to-One relationship)
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Drivers driver;
+    // @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private Drivers driver;
 
 
      @PrePersist // Called before an entity is first saved to the database
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        //generates user name if none is provided
+        if (this.username == null){
+            this.username = generateUsername();
+        }
     }
 
     @PreUpdate // Called before an entity is updated in the database
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    //Generate a unique username based on the first and last name
+    private String generateUsername(){
+        String baseUsername = (firstName.charAt(0) + lastName).toLowerCase();
+        String username = baseUsername;
+        int count = 1;
+
+
+        //check againts database if the name exist
+
+        return username;
     }
 }
