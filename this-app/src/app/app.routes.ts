@@ -10,11 +10,12 @@ import { StoreDashboardComponent } from './pages/store-dashboard/store-dashboard
 import { ProfileComponent } from './pages/profile/profile.component';
 import { WishlistPageComponent } from './pages/wishlist-page/wishlist-page.component';
 import { DriverComponentComponent } from './pages/driver-component/driver-component.component';
+import { NewAuthComponent } from './components/auth/new-auth/new-auth.component';
 
 export const routes: Routes = [
      { path: '', component: AuthenticationPageComponent },
-    { path: 'login', component: LoginComponent },
-    { path: 'sign-up', component: SignUpComponent },
+    { path: 'login', component: NewAuthComponent },
+    { path: 'sign-up', component: NewAuthComponent },
     { path: 'stores', component: StorePageComponent },
     { path: 'selected-store', component: SelectedStoreComponent },
     { path: 'cart', component: CartPageComponent },
@@ -22,6 +23,7 @@ export const routes: Routes = [
     { path: 'profile', component: ProfileComponent }, 
     { path: 'wishlist', component: WishlistPageComponent }, // Dynamic route for selected store
     { path: 'driver', component: DriverComponentComponent},
+    {path: 'new', component: NewAuthComponent},
     { path: '**', redirectTo: 'stores', pathMatch: 'full' } // Wildcard route should be last
 
 ];
