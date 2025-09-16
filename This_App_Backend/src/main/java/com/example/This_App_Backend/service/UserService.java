@@ -16,7 +16,7 @@ public class UserService {
     private UserRepository userRepo;
 
     @Autowired
-private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     // create a new user
     public User createUser(User user) {
@@ -31,8 +31,8 @@ private PasswordEncoder passwordEncoder;
             throw new RuntimeException("Email already exists");
         }
 
-         // Encode the password before saving
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Encode the password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         return userRepo.save(user);
     }
@@ -57,7 +57,7 @@ private PasswordEncoder passwordEncoder;
         return userRepo.findByUserType(userType);
     }
 
-    //Update user
+    // Update user
     public User updateUser(Integer id, User userDetails) {
         return userRepo.findById(id).map(user -> {
             user.setFirstName(userDetails.getFirstName());
@@ -68,7 +68,7 @@ private PasswordEncoder passwordEncoder;
 
             // Only update password if provided
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-               user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+                user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
             }
 
             return userRepo.save(user);
@@ -76,14 +76,14 @@ private PasswordEncoder passwordEncoder;
     }
 
     // Delete specific user
-    public void deleteUser(Integer id){
+    public void deleteUser(Integer id) {
         User user = userRepo.findById(id)
-        .orElseThrow(() -> new RuntimeException("User not found with id: " + id ));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         userRepo.delete(user);
     }
 
-        // Check if user exists
+    // Check if user exists
     public boolean userExists(Integer id) {
         return userRepo.existsById(id);
     }
