@@ -1,13 +1,15 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ReactiveFormsModule } from '@angular/forms';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../../../services/authentication-service/auth.service';
 
 
 
 @Component({
   selector: 'app-new-auth',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormGroup],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './new-auth.component.html',
   styleUrl: './new-auth.component.scss'
 })
@@ -20,6 +22,7 @@ export class NewAuthComponent  implements OnInit{
   isLoginMode: boolean = true;
   errorMessage: string = '';
   isLoading: boolean = false;
+
 
   constructor(
     private fb: FormBuilder,
@@ -40,7 +43,7 @@ export class NewAuthComponent  implements OnInit{
   private initializeForm(): void {
     if (this.isLoginMode) {
       this.formGroup = this.fb.group({
-        email: ['', [Validators.required, Validators.email]],
+        username: ['', [Validators.required]],
         password: ['', Validators.required]
       });
     } else {
@@ -74,34 +77,51 @@ export class NewAuthComponent  implements OnInit{
   }
 
   handleSubmit(): void {
-    if (this.formGroup.invalid) {
-      this.markFormGroupTouched();
-      return;
-    }
-
-    this.errorMessage = '';
-    this.isLoading = true;
-
-    if (this.isLoginMode) {
-      this.login();
-    } else {
-      this.register();
-    }
+  console.log('HandleSubmit called');
+  console.log('Form valid:', this.formGroup.valid);
+  console.log('Form value:', this.formGroup.value);
+  console.log('Is login mode:', this.isLoginMode);
+  
+  if (this.formGroup.invalid) {
+    console.log('Form is invalid, marking as touched');
+    this.markFormGroupTouched();
+    return;
   }
 
-  private login(): void {
-    const { email, password } = this.formGroup.value;
-    this.authService.login(email, password).subscribe({
-      next: (user) => {
-        this.isLoading = false;
-        this.router.navigate(['/']); // Redirect to home or desired route
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.errorMessage = error.message || 'Login failed. Please try again.';
-      }
-    });
+  this.errorMessage = '';
+  this.isLoading = true;
+
+  if (this.isLoginMode) {
+    console.log('Calling login method');
+    this.login();
+  } else {
+    console.log('Calling register method');
+    this.register();
   }
+}
+
+ private login(): void {
+  console.log('Login method called');
+  console.log('Form valid:', this.formGroup.valid);
+  console.log('Form errors:', this.formGroup.errors);
+  
+  const { username, password } = this.formGroup.value;
+  console.log('Login attempt with:', { username, password: password});
+  
+  this.authService.login(username, password).subscribe({
+    next: (user) => {
+      console.log('Login successful, user:', user);
+      this.isLoading = false;
+      console.log("Logged in");
+      this.router.navigate(['/stores']); // Redirect to home or desired route
+    },
+    error: (error) => {
+      console.error('Login failed:', error);
+      this.isLoading = false;
+      this.errorMessage = error.message || 'Login failed. Please try again.';
+    }
+  });
+}
 
   private register(): void {
     if (this.formGroup.hasError('passwordMismatch')) {
@@ -114,7 +134,7 @@ export class NewAuthComponent  implements OnInit{
       next: (user) => {
         this.isLoading = false;
         // Optionally auto-login after registration
-        this.router.navigate(['/login'], { 
+        this.router.navigate(['/stores'], { 
           queryParams: { registered: true } 
         });
       },
@@ -131,4 +151,29 @@ export class NewAuthComponent  implements OnInit{
     });
   }
 
-}
+  passwordVisibility: { [key: string]: boolean } = {
+    'password': false,
+    'reg-password': false,
+    'confirmPassword': false
+  };
+
+  // Add this method to your NewAuthComponent class
+togglePasswordVisibility(fieldId: string): void {
+  this.passwordVisibility[fieldId] = !this.passwordVisibility[fieldId];
+  
+  const passwordInput = document.getElementById(fieldId) as HTMLInputElement;
+  if (passwordInput) {
+    passwordInput.type = this.passwordVisibility[fieldId] ? 'text' : 'password';
+  }
+  
+  // Update the eye icon
+  const toggleButton = passwordInput?.nextElementSibling as HTMLButtonElement;
+  const icon = toggleButton?.querySelector('i');
+  if (icon) {
+    icon.className = this.passwordVisibility[fieldId] ? 'fas fa-eye-slash' : 'fas fa-eye';
+  }
+
+}}
+ 
+
+

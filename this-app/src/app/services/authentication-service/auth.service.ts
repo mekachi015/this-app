@@ -1,27 +1,27 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { User } from '../../models/user/user';
 import { Router } from '@angular/router';
-import { response } from 'express';
-
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-
-  private apiUrl = 'http://localhost:8080/api'; // Your backend API URL
+  private apiUrl = 'http://localhost:9091/api'; // Your backend API URL
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 
-  constructor(private http: HttpClient, private router : Router) {
-    // Initialize currentUserSubject with user from localStorage if exists
-    const storedUser = localStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<User | null>(
-      storedUser ? JSON.parse(storedUser) : null
-    );
+  constructor(private http: HttpClient, private router: Router) {
+    // Check if we're in a browser environment before accessing localStorage
+    let storedUser = null;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedUserString = localStorage.getItem('currentUser');
+      storedUser = storedUserString ? JSON.parse(storedUserString) : null;
+    }
+
+    this.currentUserSubject = new BehaviorSubject<User | null>(storedUser);
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
@@ -34,50 +34,55 @@ export class AuthService {
     return user && user.token ? user.token : null;
   }
 
-  login(email: string, password: string): Observable<User> {
-    return this.http.post<any>(`${this.apiUrl}/auth/login`, { 
-      username: email, // Using email as username
-      password: password 
-    }).pipe(
-      switchMap(response => {
-        if (response.jwt) {
-          // If the login response already contains user details, use them
-          if (response.user) {
-            const user: User = {
-              ...response.user,
-              token: response.jwt
-            };
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            this.currentUserSubject.next(user);
-            return [user]; // Return as observable
-          }
-          
-          // If not, fetch user details separately
-          return this.getUserDetails(response.jwt).pipe(
-            map(userDetails => {
-              const user: User = {
-                ...userDetails,
-                token: response.jwt
-              };
-              localStorage.setItem('currentUser', JSON.stringify(user));
-              this.currentUserSubject.next(user);
-              return user;
-            })
-          );
-        }
-        throw new Error('No token received');
-      }),
-      catchError(error => {
-        console.error('Login error:', error);
-        return throwError(() => ({
-          message: error.error?.message || 'Invalid credentials',
-          status: error.status
-        }));
+  login(username: string, password: string): Observable<User> {
+    console.log('AuthService.login called with:', { username, password: password });
+
+    return this.http
+      .post<any>(`${this.apiUrl}/auth/login`, {
+        username: username,
+        password: password,
       })
-    );
+      .pipe(
+        tap((response) => console.log('Login response:', response)),
+        map((response) => {
+          if (response.jwt) {
+            // Create user object from the response
+            const user: User = {
+              id: response.id,
+              email: response.email,
+              username: response.username,
+              password: response.password,
+              firstname: response.firstName,
+              lastname: response.lastName,
+              userType: response.userType,
+              token: response.jwt,
+              createdAt: response.createdAt,
+            };
+
+            // Save to localStorage safely
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('currentUser', JSON.stringify(user));
+            }
+
+            this.currentUserSubject.next(user);
+            console.log('User set as current user:', user);
+            return user;
+          }
+          throw new Error('No token received');
+        }),
+        catchError((error) => {
+          console.error('Login error:', error);
+          return throwError(() => ({
+            message: error.error?.message || 'Invalid credentials',
+            status: error.status,
+          }));
+        })
+      );
   }
 
- register(userData: any): Observable<User> {
+  register(userData: any): Observable<User> {
+    console.log('AuthService.register called with:', userData);
+
     // Split fullName into firstName and lastName
     const fullNameParts = userData.fullName.split(' ');
     const firstName = fullNameParts[0];
@@ -90,13 +95,16 @@ export class AuthService {
       email: userData.email,
       phoneNumber: userData.phoneNumber || '',
       password: userData.password,
-      userType: 'CUSTOMER'
+      userType: 'CUSTOMER',
     };
 
-    // Fixed endpoint to match backend
-    return this.http.post<any>(`${this.apiUrl}/auth/register`, registrationData)
+    console.log('Registration data being sent:', registrationData);
+
+    return this.http
+      .post<any>(`${this.apiUrl}/auth/register`, registrationData)
       .pipe(
-        map(response => {
+        tap((response) => console.log('Registration response:', response)),
+        map((response) => {
           // After successful registration, return the user data
           const user: User = {
             id: response.id || response.userId,
@@ -106,35 +114,47 @@ export class AuthService {
             firstname: response.firstName || response.firstname,
             lastname: response.lastName || response.lastname,
             userType: response.userType,
-            token: response.token, // This might not be provided on registration
-            createdAt: response.createdAt
+            token: response.token || response.jwt, // Check for both token formats
+            createdAt: response.createdAt,
           };
+
+          // If registration returns a token, set as current user
+          if (user.token) {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('currentUser', JSON.stringify(user));
+            }
+            this.currentUserSubject.next(user);
+            console.log('User registered and set as current user:', user);
+          }
+
           return user;
         }),
-        catchError(error => {
+        catchError((error) => {
           console.error('Registration error:', error);
           return throwError(() => ({
             message: error.error?.message || 'Registration failed',
-            status: error.status
+            status: error.status,
           }));
         })
       );
   }
 
   logout(): void {
-     // Remove user from local storage and set current user to null
-    localStorage.removeItem('currentUser');
+    // Remove user from local storage and set current user to null
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('currentUser');
+    }
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
   // Helper method to add authorization header
-  getAuthHeaders(): HttpHeaders {
-    const token = this.token;
-    if (token) {
+  getAuthHeaders(token?: string): HttpHeaders {
+    const authToken = token || this.token;
+    if (authToken) {
       return new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
       });
     }
     return new HttpHeaders({ 'Content-Type': 'application/json' });
@@ -142,7 +162,7 @@ export class AuthService {
 
   // Check if user is logged in
   isLoggedIn(): boolean {
-   return !!this.currentUserValue && !!this.token;
+    return !!this.currentUserValue && !!this.token;
   }
 
   // Get user role
@@ -151,11 +171,10 @@ export class AuthService {
     return user ? user.userType : null;
   }
 
-   // Helper method to get user details after login
-  private getUserDetails(email: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/users/profile`, {
-      headers: this.getAuthHeaders()
-    });
-  }
-
+  // // Helper method to get user details after login
+  // private getUserDetails(token: string): Observable<any> {
+  //   return this.http.get<any>(`${this.apiUrl}/users/profile`, {
+  //     headers: this.getAuthHeaders(token),
+  //   });
+  // }
 }
