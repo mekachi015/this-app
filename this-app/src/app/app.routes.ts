@@ -13,23 +13,26 @@ import { DriverComponentComponent } from './pages/driver-component/driver-compon
 import { NewAuthComponent } from './components/auth/new-auth/new-auth.component';
 
 export const routes: Routes = [
-     { path: '', component: AuthenticationPageComponent },
-    { path: 'login', component: NewAuthComponent },
-    { path: 'sign-up', component: NewAuthComponent },
-    { path: 'stores', component: StorePageComponent },
-    { path: 'selected-store', component: SelectedStoreComponent },
-    { path: 'cart', component: CartPageComponent },
-    { path: 'dashboard', component: StoreDashboardComponent },
-    { path: 'profile', component: ProfileComponent }, 
-    { path: 'wishlist', component: WishlistPageComponent }, // Dynamic route for selected store
-    { path: 'driver', component: DriverComponentComponent},
-    {path: 'new', component: NewAuthComponent},
-    { path: '**', redirectTo: 'stores', pathMatch: 'full' } // Wildcard route should be last
-
+  { path: '', component: AuthenticationPageComponent },
+  { path: 'login', component: NewAuthComponent },
+  { path: 'sign-up', component: NewAuthComponent },
+  { path: 'login/admin', component: NewAuthComponent },
+  { path: 'login/driver', component: NewAuthComponent },
+  { path: 'sign-up/admin', component: NewAuthComponent },
+  { path: 'sign-up/driver', component: NewAuthComponent },
+  { path: 'stores', component: StorePageComponent },
+  { path: 'selected-store', component: SelectedStoreComponent },
+  { path: 'cart', component: CartPageComponent },
+  { path: 'dashboard', component: StoreDashboardComponent },
+  { path: 'profile', component: ProfileComponent },
+  { path: 'wishlist', component: WishlistPageComponent }, // Dynamic route for selected store
+  { path: 'driver', component: DriverComponentComponent },
+  { path: 'new', component: NewAuthComponent },
+  { path: '**', redirectTo: 'stores', pathMatch: 'full' }, // Wildcard route should be last
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(routes)],
-    exports: [RouterModule]
-  })
-  export class AppRoutingModule {}
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule {}

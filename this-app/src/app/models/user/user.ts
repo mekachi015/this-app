@@ -6,6 +6,6 @@ export interface User {
     password: string;
     username: string;
     token: string;
-    userType: string;
+    userType: string; // CUSTOMER, DRIVER, ADMIN
     createdAt: string;
 }
