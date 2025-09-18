@@ -99,11 +99,13 @@ public class AuthenticationController {
 
             User newUser = userService.createUser(user);
 
-            // Remove password from response for security
-            newUser.setPassword(null);
+            
             // Generate JWT token for immediate login
             final UserDetails userDetails = userDetailsService.loadUserByUsername(newUser.getUsername());
             final String jwt = jwtUtil.generateToken(userDetails);
+
+            // Remove password from response for security
+            newUser.setPassword(null);
 
             // Create response with token
             AuthenticationResponse response = new AuthenticationResponse();
@@ -229,12 +231,14 @@ public class AuthenticationController {
             user.setUserType(userType);
             User newUser = userService.createUser(user);
 
-            // Remove password from response for security
-            newUser.setPassword(null);
+            
 
             // Generate JWT token for immediate login
             final UserDetails userDetails = userDetailsService.loadUserByUsername(newUser.getUsername());
             final String jwt = jwtUtil.generateToken(userDetails);
+
+            // Remove password from response for security
+            newUser.setPassword(null);
 
             // Create response with token
             AuthenticationResponse response = new AuthenticationResponse();
