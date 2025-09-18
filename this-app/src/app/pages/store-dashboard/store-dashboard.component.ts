@@ -40,4 +40,68 @@ export class StoreDashboardComponent {
       status: 'Cancelled'
     }
   ];
+
+  selectedFile: File | null = null;
+previewUrl: string | ArrayBuffer | null = null;
+isDragOver = false;
+
+// Add these methods to your component class
+onFileSelected(event: any): void {
+  const file = event.target.files[0];
+  this.handleFileSelection(file);
+}
+
+onDrop(event: DragEvent): void {
+  event.preventDefault();
+  this.isDragOver = false;
+  
+  if (event.dataTransfer?.files) {
+    const file = event.dataTransfer.files[0];
+    this.handleFileSelection(file);
+  }
+}
+
+onDragOver(event: DragEvent): void {
+  event.preventDefault();
+  this.isDragOver = true;
+}
+
+handleFileSelection(file: File): void {
+  if (file && this.isImageFile(file)) {
+    this.selectedFile = file;
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.previewUrl = reader.result;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // Handle invalid file type
+    console.error('Please select a valid image file (JPEG or PNG)');
+  }
+}
+
+isImageFile(file: File): boolean {
+  return file.type === 'image/jpeg' || file.type === 'image/png';
+}
+
+uploadFile(): void {
+  if (this.selectedFile) {
+    // Here you would typically send the file to your server
+    console.log('Uploading file:', this.selectedFile.name);
+    
+    // Simulate upload process
+    setTimeout(() => {
+      alert('Upload completed successfully!');
+      this.resetUpload();
+    }, 1500);
+  }
+}
+
+resetUpload(): void {
+  this.selectedFile = null;
+  this.previewUrl = null;
+  this.isDragOver = false;
+}
 }

@@ -1,0 +1,67 @@
+<div class="driver-dashboard">
+  <div class="dashboard-grid">
+    <section class="map-section">
+      <!-- Map implementation will go here -->
+    </section>
+
+    <section class="delivery-card">
+      <div class="card-header">
+        <h2>Current Delivery</h2>
+        <span class="status-badge" [ngClass]="currentDelivery.status.status">
+          {{currentDelivery.status.status | titlecase}}
+        </span>
+      </div>
+
+      <div class="delivery-content">
+        <div class="customer-info">
+          <h3>{{currentDelivery.customerName}}</h3>
+          <p>{{currentDelivery.location.address}}</p>
+          <p>{{currentDelivery.location.city}}, {{currentDelivery.location.postalCode}}</p>
+        </div>
+
+        <div class="items-list">
+          <ul>
+            <li *ngFor="let item of currentDelivery.items">
+              <span>{{item.name}}</span>
+              <span>x{{item.quantity}}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="action-buttons">
+          <button class="primary" 
+                  (click)="startDelivery()"
+                  [disabled]="currentDelivery.status.status !== 'pending'">
+            Start Delivery
+          </button>
+          <button class="primary"
+                  (click)="markAsDelivered()"
+                  [disabled]="currentDelivery.status.status !== 'in-progress'">
+            Complete Delivery
+          </button>
+          <button class="primary" (click)="callCustomer()">
+            Contact Customer
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="delivery-card upcoming-deliveries">
+      <div class="card-header">
+        <h2>Upcoming Deliveries</h2>
+      </div>
+      <div class="delivery-content">
+        <div class="delivery-item" *ngFor="let delivery of upcomingDeliveries">
+          <div class="time-badge">
+            {{delivery.estimatedDeliveryTime | date:'shortTime'}}
+          </div>
+          <div class="delivery-details">
+            <h4>{{delivery.customerName}}</h4>
+            <p>{{delivery.location.address}}</p>
+            <span class="items-count">{{delivery.items.length}} items</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
