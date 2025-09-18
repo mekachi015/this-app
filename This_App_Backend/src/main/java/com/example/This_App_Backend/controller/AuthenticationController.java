@@ -1,7 +1,5 @@
 package com.example.This_App_Backend.controller;
 
-
-
 import java.lang.foreign.Linker.Option;
 import java.util.List;
 import java.util.Map;
@@ -46,45 +44,43 @@ public class AuthenticationController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest){
-       try {
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                authenticationRequest.getUsername(),
-                authenticationRequest.getPassword()
-            )
-        );
-    } catch (BadCredentialsException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(Map.of("message", "Invalid credentials"));
-    }
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authenticationRequest.getUsername(),
+                            authenticationRequest.getPassword()));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid credentials"));
+        }
 
-    final UserDetails userDetails = userDetailsService
-        .loadUserByUsername(authenticationRequest.getUsername());
-    final String jwt = jwtUtil.generateToken(userDetails);
+        final UserDetails userDetails = userDetailsService
+                .loadUserByUsername(authenticationRequest.getUsername());
+        final String jwt = jwtUtil.generateToken(userDetails);
 
-    // Get user details to return in response
-     Optional<User> userOpt = userService.getUserByUsername(authenticationRequest.getUsername());
+        // Get user details to return in response
+        Optional<User> userOpt = userService.getUserByUsername(authenticationRequest.getUsername());
 
-     if (userOpt.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("message", "User not found"));
-    }
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "User not found"));
+        }
 
-    User user = userOpt.get();
-    
-    // Create comprehensive response
-    AuthenticationResponse response = new AuthenticationResponse();
-    response.setJwt(jwt);
-    response.setId(user.getUserId());
-    response.setEmail(user.getEmail());
-    response.setUsername(user.getUsername());
-    response.setFirstName(user.getFirstName());
-    response.setLastName(user.getLastName());
-    response.setUserType(user.getUserType().toString());
-    response.setCreatedAt(user.getCreatedAt());
+        User user = userOpt.get();
 
-    return ResponseEntity.ok(response);
+        // Create comprehensive response
+        AuthenticationResponse response = new AuthenticationResponse();
+        response.setJwt(jwt);
+        response.setId(user.getUserId());
+        response.setEmail(user.getEmail());
+        response.setUsername(user.getUsername());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setUserType(user.getUserType().toString());
+        response.setCreatedAt(user.getCreatedAt());
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
@@ -105,8 +101,22 @@ public class AuthenticationController {
 
             // Remove password from response for security
             newUser.setPassword(null);
+            // Generate JWT token for immediate login
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(newUser.getUsername());
+            final String jwt = jwtUtil.generateToken(userDetails);
 
-            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+            // Create response with token
+            AuthenticationResponse response = new AuthenticationResponse();
+            response.setJwt(jwt);
+            response.setId(newUser.getUserId());
+            response.setEmail(newUser.getEmail());
+            response.setUsername(newUser.getUsername());
+            response.setFirstName(newUser.getFirstName());
+            response.setLastName(newUser.getLastName());
+            response.setUserType(newUser.getUserType().toString());
+            response.setCreatedAt(newUser.getCreatedAt());
+
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(e.getMessage()));
@@ -115,10 +125,10 @@ public class AuthenticationController {
 
     // @GetMapping("/users/profile")
     // public ResponseEntity<User> getUserProfile(Authentication authentication) {
-    //     String username = authentication.getName();
-    //     User user = userService.findByUsername(username);
-    //     user.setPassword(null); // Don't return password
-    //     return ResponseEntity.ok(user);
+    // String username = authentication.getName();
+    // User user = userService.findByUsername(username);
+    // user.setPassword(null); // Don't return password
+    // return ResponseEntity.ok(user);
     // }
 
     // Inner class for error responses
@@ -138,4 +148,109 @@ public class AuthenticationController {
         }
     }
 
+    @PostMapping("/login/driver")
+    public ResponseEntity<?> createDriverAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) {
+        return authenticateUser(authenticationRequest, User.UserType.DRIVER);
+    }
+
+    @PostMapping("/login/admin")
+    public ResponseEntity<?> createAdminAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) {
+        return authenticateUser(authenticationRequest, User.UserType.ADMIN);
+    }
+
+    @PostMapping("/register/driver")
+    public ResponseEntity<?> registerDriver(@RequestBody User user) {
+        return registerUserWithType(user, User.UserType.DRIVER);
+    }
+
+    @PostMapping("/register/admin")
+    public ResponseEntity<?> registerAdmin(@RequestBody User user) {
+        return registerUserWithType(user, User.UserType.ADMIN);
+    }
+
+    private ResponseEntity<?> authenticateUser(AuthenticationRequest authenticationRequest,
+            User.UserType expectedUserType) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authenticationRequest.getUsername(),
+                            authenticationRequest.getPassword()));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid credentials"));
+        }
+
+        final UserDetails userDetails = userDetailsService
+                .loadUserByUsername(authenticationRequest.getUsername());
+        final String jwt = jwtUtil.generateToken(userDetails);
+
+        Optional<User> userOpt = userService.getUserByUsername(authenticationRequest.getUsername());
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "User not found"));
+        }
+
+        User user = userOpt.get();
+
+        // Validate user type
+        if (user.getUserType() != expectedUserType) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Access denied for user type"));
+        }
+
+        AuthenticationResponse response = new AuthenticationResponse();
+        response.setJwt(jwt);
+        response.setId(user.getUserId());
+        response.setEmail(user.getEmail());
+        response.setUsername(user.getUsername());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setUserType(user.getUserType().toString());
+        response.setCreatedAt(user.getCreatedAt());
+
+        return ResponseEntity.ok(response);
+    }
+
+    private ResponseEntity<?> registerUserWithType(User user, User.UserType userType) {
+        try {
+            // Check if user already exists
+            if (userService.existsByEmail(user.getEmail())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ErrorResponse("Email already exists"));
+            }
+
+            if (userService.existsByUsername(user.getUsername())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ErrorResponse("Username already exists"));
+            }
+
+            // Set the user type
+            user.setUserType(userType);
+            User newUser = userService.createUser(user);
+
+            // Remove password from response for security
+            newUser.setPassword(null);
+
+            // Generate JWT token for immediate login
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(newUser.getUsername());
+            final String jwt = jwtUtil.generateToken(userDetails);
+
+            // Create response with token
+            AuthenticationResponse response = new AuthenticationResponse();
+            response.setJwt(jwt);
+            response.setId(newUser.getUserId());
+            response.setEmail(newUser.getEmail());
+            response.setUsername(newUser.getUsername());
+            response.setFirstName(newUser.getFirstName());
+            response.setLastName(newUser.getLastName());
+            response.setUserType(newUser.getUserType().toString());
+            response.setCreatedAt(newUser.getCreatedAt());
+
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage()));
+        }
+    }
 }
