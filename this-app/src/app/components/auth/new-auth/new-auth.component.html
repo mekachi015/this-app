@@ -1,179 +1,160 @@
 <div class="auth-container">
-        <!-- Error message display -->
-        <div class="error-message" *ngIf="errorMessage">
-            <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
-        </div>
-
-        <div class="auth-form">
-            <h2>{{ title }}</h2>
-            <p class="subtitle">{{ subtitle }}</p>
-
-            <form (ngSubmit)="handleSubmit()" [formGroup]="formGroup">
-                <!-- Login Form Fields -->
-                <div *ngIf="isLoginMode">
-                    <div class="form-group">
-                        <label for="email" class="form-label">Username</label>
-                        <input 
-                            type="text" 
-                            id="username" 
-                            class="form-control" 
-                            formControlName="username"
-                            [class.is-invalid]="formGroup.get('username')?.invalid && formGroup.get('username')?.touched"
-                            placeholder="Enter your username">
-                        <div *ngIf="formGroup.get('username')?.invalid && formGroup.get('username')?.touched" class="error-feedback">
-                            <div *ngIf="formGroup.get('username')?.errors?.['required']">Email is required</div>
-                            <div *ngIf="formGroup.get('username')?.errors?.['email']">Please enter a valid email</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="password-input-container">
-                            <input 
-                                type="password" 
-                                id="password" 
-                                class="form-control" 
-                                formControlName="password"
-                                [class.is-invalid]="formGroup.get('password')?.invalid && formGroup.get('password')?.touched"
-                                placeholder="Enter your password">
-                             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('password')">
-                                <i class="fas fa-eye"></i>
-                            </button> 
-                        </div>
-                        <div *ngIf="formGroup.get('password')?.invalid && formGroup.get('password')?.touched" class="error-feedback">
-                            <div *ngIf="formGroup.get('password')?.errors?.['required']">Password is required</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Registration Form Fields -->
-                <div *ngIf="!isLoginMode">
-                    <div class="form-group">
-                        <label for="fullName" class="form-label">Full Name</label>
-                        <input 
-                            type="text" 
-                            id="fullName" 
-                            class="form-control" 
-                            formControlName="fullName"
-                            [class.is-invalid]="formGroup.get('fullName')?.invalid && formGroup.get('fullName')?.touched"
-                            placeholder="Enter your full name">
-                        <div *ngIf="formGroup.get('fullName')?.invalid && formGroup.get('fullName')?.touched" class="error-feedback">
-                            <div *ngIf="formGroup.get('fullName')?.errors?.['required']">Full name is required</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="username" class="form-label">Username</label>
-                        <input 
-                            type="text" 
-                            id="username" 
-                            class="form-control" 
-                            formControlName="username"
-                            [class.is-invalid]="formGroup.get('username')?.invalid && formGroup.get('username')?.touched"
-                            placeholder="Choose a username">
-                        <div *ngIf="formGroup.get('username')?.invalid && formGroup.get('username')?.touched" class="error-feedback">
-                            <div *ngIf="formGroup.get('username')?.errors?.['required']">Username is required</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reg-email" class="form-label">Email</label>
-                        <input 
-                            type="email" 
-                            id="reg-email" 
-                            class="form-control" 
-                            formControlName="email"
-                            [class.is-invalid]="formGroup.get('email')?.invalid && formGroup.get('email')?.touched"
-                            placeholder="Enter your email">
-                        <div *ngIf="formGroup.get('email')?.invalid && formGroup.get('email')?.touched" class="error-feedback">
-                            <div *ngIf="formGroup.get('email')?.errors?.['required']">Email is required</div>
-                            <div *ngIf="formGroup.get('email')?.errors?.['email']">Please enter a valid email</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phoneNumber" class="form-label">Phone Number (Optional)</label>
-                        <input 
-                            type="tel" 
-                            id="phoneNumber" 
-                            class="form-control" 
-                            formControlName="phoneNumber"
-                            placeholder="Enter your phone number">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reg-password" class="form-label">Password</label>
-                        <div class="password-input-container">
-                            <input 
-                                type="password" 
-                                id="reg-password" 
-                                class="form-control" 
-                                formControlName="password"
-                                [class.is-invalid]="formGroup.get('password')?.invalid && formGroup.get('password')?.touched"
-                                placeholder="Create a password">
-                            <button type="button" class="password-toggle" (click)="togglePasswordVisibility('reg-password')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                        <div *ngIf="formGroup.get('password')?.invalid && formGroup.get('password')?.touched" class="error-feedback">
-                            <div *ngIf="formGroup.get('password')?.errors?.['required']">Password is required</div>
-                            <div *ngIf="formGroup.get('password')?.errors?.['minlength']">Password must be at least 6 characters</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirmPassword" class="form-label">Confirm Password</label>
-                        <div class="password-input-container">
-                            <input 
-                                type="password" 
-                                id="confirmPassword" 
-                                class="form-control" 
-                                formControlName="confirmPassword"
-                                [class.is-invalid]="(formGroup.get('confirmPassword')?.invalid || formGroup.hasError('passwordMismatch')) && formGroup.get('confirmPassword')?.touched"
-                                placeholder="Confirm your password">
-                            <button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirmPassword')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                        <div *ngIf="(formGroup.get('confirmPassword')?.invalid || formGroup.hasError('passwordMismatch')) && formGroup.get('confirmPassword')?.touched" class="error-feedback">
-                            <div *ngIf="formGroup.get('confirmPassword')?.errors?.['required']">Please confirm your password</div>
-                            <div *ngIf="formGroup.hasError('passwordMismatch')">Passwords do not match</div>
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" class="submit-btn" [disabled]="isLoading">
-                    <span *ngIf="!isLoading">{{ buttonText }}</span>
-                    <span *ngIf="isLoading">
-                        <i class="fas fa-spinner fa-spin"></i> Processing...
-                    </span>
-                </button>
-            </form>
-
-            <div class="divider">
-                <span>Or continue with</span>
-            </div>
-
-            <div class="social-login">
-                <button class="social-btn google">
-                    <i class="fab fa-google"></i>
-                    Google
-                </button>
-                <button class="social-btn facebook">
-                    <i class="fab fa-facebook-f"></i>
-                    Facebook
-                </button>
-            </div>
-
-            <p class="signin-link">
-                <ng-container *ngIf="isLoginMode">
-                    Don't have an account yet?
-                    <a [routerLink]="['/sign-up']">Sign up</a>
-                </ng-container>
-                <ng-container *ngIf="!isLoginMode">
-                    Already have an account?
-                    <a [routerLink]="['/login']">Log in</a>
-                </ng-container>
-            </p>
-        </div>
+    <!-- Error message display -->
+    <div class="error-message" *ngIf="errorMessage">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>{{ errorMessage }}</span>
     </div>
+
+    <div class="auth-form">
+        <h2>{{ title }}</h2>
+        <p class="subtitle">{{ subtitle }}</p>
+
+        <form (ngSubmit)="handleSubmit()" [formGroup]="formGroup">
+            <!-- Login Form Fields -->
+            <div *ngIf="isLoginMode">
+                <div class="form-group">
+                    <label for="email" class="form-label">Username</label>
+                    <input type="text" id="username" class="form-control" formControlName="username"
+                        [class.is-invalid]="formGroup.get('username')?.invalid && formGroup.get('username')?.touched"
+                        placeholder="Enter your username">
+                    <div *ngIf="formGroup.get('username')?.invalid && formGroup.get('username')?.touched"
+                        class="error-feedback">
+                        <div *ngIf="formGroup.get('username')?.errors?.['required']">Email is required</div>
+                        <div *ngIf="formGroup.get('username')?.errors?.['email']">Please enter a valid email</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="password" class="form-control" formControlName="password"
+                            [class.is-invalid]="formGroup.get('password')?.invalid && formGroup.get('password')?.touched"
+                            placeholder="Enter your password">
+                        <button type="button" class="password-toggle" (click)="togglePasswordVisibility('password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div *ngIf="formGroup.get('password')?.invalid && formGroup.get('password')?.touched"
+                        class="error-feedback">
+                        <div *ngIf="formGroup.get('password')?.errors?.['required']">Password is required</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Form Fields -->
+            <div *ngIf="!isLoginMode">
+                <div class="form-group">
+                    <label for="fullName" class="form-label">Full Name</label>
+                    <input type="text" id="fullName" class="form-control" formControlName="fullName"
+                        [class.is-invalid]="formGroup.get('fullName')?.invalid && formGroup.get('fullName')?.touched"
+                        placeholder="Enter your full name">
+                    <div *ngIf="formGroup.get('fullName')?.invalid && formGroup.get('fullName')?.touched"
+                        class="error-feedback">
+                        <div *ngIf="formGroup.get('fullName')?.errors?.['required']">Full name is required</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" class="form-control" formControlName="username"
+                        [class.is-invalid]="formGroup.get('username')?.invalid && formGroup.get('username')?.touched"
+                        placeholder="Choose a username">
+                    <div *ngIf="formGroup.get('username')?.invalid && formGroup.get('username')?.touched"
+                        class="error-feedback">
+                        <div *ngIf="formGroup.get('username')?.errors?.['required']">Username is required</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-email" class="form-label">Email</label>
+                    <input type="email" id="reg-email" class="form-control" formControlName="email"
+                        [class.is-invalid]="formGroup.get('email')?.invalid && formGroup.get('email')?.touched"
+                        placeholder="Enter your email">
+                    <div *ngIf="formGroup.get('email')?.invalid && formGroup.get('email')?.touched"
+                        class="error-feedback">
+                        <div *ngIf="formGroup.get('email')?.errors?.['required']">Email is required</div>
+                        <div *ngIf="formGroup.get('email')?.errors?.['email']">Please enter a valid email</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber" class="form-label">Phone Number (Optional)</label>
+                    <input type="tel" id="phoneNumber" class="form-control" formControlName="phoneNumber"
+                        placeholder="Enter your phone number">
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-password" class="form-label">Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="reg-password" class="form-control" formControlName="password"
+                            [class.is-invalid]="formGroup.get('password')?.invalid && formGroup.get('password')?.touched"
+                            placeholder="Create a password">
+                        <button type="button" class="password-toggle"
+                            (click)="togglePasswordVisibility('reg-password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div *ngIf="formGroup.get('password')?.invalid && formGroup.get('password')?.touched"
+                        class="error-feedback">
+                        <div *ngIf="formGroup.get('password')?.errors?.['required']">Password is required</div>
+                        <div *ngIf="formGroup.get('password')?.errors?.['minlength']">Password must be at least 6
+                            characters</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirmPassword" class="form-control"
+                            formControlName="confirmPassword"
+                            [class.is-invalid]="(formGroup.get('confirmPassword')?.invalid || formGroup.hasError('passwordMismatch')) && formGroup.get('confirmPassword')?.touched"
+                            placeholder="Confirm your password">
+                        <button type="button" class="password-toggle"
+                            (click)="togglePasswordVisibility('confirmPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div *ngIf="(formGroup.get('confirmPassword')?.invalid || formGroup.hasError('passwordMismatch')) && formGroup.get('confirmPassword')?.touched"
+                        class="error-feedback">
+                        <div *ngIf="formGroup.get('confirmPassword')?.errors?.['required']">Please confirm your password
+                        </div>
+                        <div *ngIf="formGroup.hasError('passwordMismatch')">Passwords do not match</div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" [disabled]="isLoading">
+                <span *ngIf="!isLoading">{{ buttonText }}</span>
+                <span *ngIf="isLoading">
+                    <i class="fas fa-spinner fa-spin"></i> Processing...
+                </span>
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>Or continue with</span>
+        </div>
+
+        <div class="social-login">
+            <button class="social-btn google">
+                <i class="fab fa-google"></i>
+                Google
+            </button>
+            <button class="social-btn facebook">
+                <i class="fab fa-facebook-f"></i>
+                Facebook
+            </button>
+        </div>
+
+        <p class="signin-link">
+            <ng-container *ngIf="isLoginMode">
+                Don't have an account yet?
+                <a [routerLink]="getSignUpRoute()">Sign up</a>
+            </ng-container>
+            <ng-container *ngIf="!isLoginMode">
+                Already have an account?
+                <a [routerLink]="getLoginRoute()">Log in</a>
+            </ng-container>
+        </p>
+    </div>
+</div>

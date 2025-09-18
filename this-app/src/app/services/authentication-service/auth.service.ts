@@ -34,11 +34,17 @@ export class AuthService {
     return user && user.token ? user.token : null;
   }
 
-  login(username: string, password: string): Observable<User> {
+  login(username: string, password: string, userType: string = 'CUSTOMER'): Observable<User> {
     console.log('AuthService.login called with:', { username, password: password });
 
+    let endpoint = `${this.apiUrl}/auth/login`;
+    if (userType === 'DRIVER') {
+      endpoint = `${this.apiUrl}/auth/login/driver`;
+    } else if (userType === 'ADMIN') {
+      endpoint = `${this.apiUrl}/auth/login/admin`;
+    }
     return this.http
-      .post<any>(`${this.apiUrl}/auth/login`, {
+      .post<any>(endpoint, {
         username: username,
         password: password,
       })
@@ -80,13 +86,43 @@ export class AuthService {
       );
   }
 
-  register(userData: any): Observable<User> {
+  // Specific login methods for different user types
+  loginDriver(username: string, password: string): Observable<User> {
+    return this.login(username, password, 'DRIVER');
+  }
+
+  loginAdmin(username: string, password: string): Observable<User> {
+    return this.login(username, password, 'ADMIN');
+  }
+
+  loginCustomer(username: string, password: string): Observable<User> {
+    return this.login(username, password, 'CUSTOMER');
+  }
+
+  registerDriver(userData: any): Observable<User> {
+    return this.register(userData, 'DRIVER');
+}
+
+registerAdmin(userData: any): Observable<User> {
+    return this.register(userData, 'ADMIN');
+}
+
+
+  register(userData: any, userType: string = 'CUSTOMER'): Observable<User> {
     console.log('AuthService.register called with:', userData);
 
     // Split fullName into firstName and lastName
     const fullNameParts = userData.fullName.split(' ');
     const firstName = fullNameParts[0];
     const lastName = fullNameParts.slice(1).join(' ') || '';
+
+    // Determine the endpoint based on userType
+    let endpoint = `${this.apiUrl}/auth/register`;
+    if (userType === 'DRIVER') {
+        endpoint = `${this.apiUrl}/auth/register/driver`;
+    } else if (userType === 'ADMIN') {
+        endpoint = `${this.apiUrl}/auth/register/admin`;
+    }
 
     const registrationData = {
       firstName: firstName,
@@ -95,13 +131,13 @@ export class AuthService {
       email: userData.email,
       phoneNumber: userData.phoneNumber || '',
       password: userData.password,
-      userType: 'CUSTOMER',
+      userType: userType,
     };
 
     console.log('Registration data being sent:', registrationData);
 
     return this.http
-      .post<any>(`${this.apiUrl}/auth/register`, registrationData)
+      .post<any>(endpoint, registrationData)
       .pipe(
         tap((response) => console.log('Registration response:', response)),
         map((response) => {
