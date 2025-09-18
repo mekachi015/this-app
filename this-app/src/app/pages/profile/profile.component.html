@@ -19,7 +19,9 @@
 </div>
 
 <div class="settings-section">
-  <div *ngFor="let setting of settings" style="display: flex; align-items: flex-start; margin-bottom: 24px;">
+  <div *ngFor="let setting of settings" 
+       (click)="onSettingClick(setting.name)"
+       style="display: flex; align-items: flex-start; margin-bottom: 24px; cursor: pointer;">
     <i [class]="setting.icon" style="font-size: 24px; margin-right: 16px;"></i>
     <div>
       <div style="font-weight: bold;">{{ setting.name }}</div>
