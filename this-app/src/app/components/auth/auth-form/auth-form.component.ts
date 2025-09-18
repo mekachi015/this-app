@@ -13,17 +13,5 @@ import { RouterLink } from '@angular/router';
 })
 export class AuthFormComponent {
 
-  @Input() title: string = '';
-  @Input() subtitle: string = '';
-  @Input() buttonText: string = '';
-  @Input() isLoginMode: boolean = true;  // Add this line
-  @Input() formGroup!: FormGroup;
-  @Output() onSubmit = new EventEmitter<void>();
-  
 
-  handleSubmit() {
-    if (this.formGroup.valid) {
-      this.onSubmit.emit();
-    }
-  }
 }
