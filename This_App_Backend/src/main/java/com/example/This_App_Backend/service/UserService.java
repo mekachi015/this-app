@@ -100,5 +100,8 @@ public class UserService {
     public boolean existsByUsername(String username) {
         return userRepo.existsByUsername(username);
     }
-
+    
+    public User updateUser(User user) {
+    return userRepo.save(user);
+}
 }

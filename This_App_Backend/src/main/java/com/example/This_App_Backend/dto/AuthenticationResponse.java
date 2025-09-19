@@ -18,6 +18,7 @@ public class AuthenticationResponse {
     private String lastName;
     private String userType;
     private LocalDateTime createdAt;
+    private String profilePhotoUrl;
 
     // Default constructor
     public AuthenticationResponse() {}
@@ -29,7 +30,7 @@ public class AuthenticationResponse {
 
     // Full constructor
     public AuthenticationResponse(String jwt, Long id, String email, String username, 
-                                String firstName, String lastName, String userType, LocalDateTime createdAt) {
+                                String firstName, String lastName, String userType, LocalDateTime createdAt, String profilePhotoUrl) {
         this.jwt = jwt;
         this.id = id;
         this.email = email;
@@ -38,6 +39,7 @@ public class AuthenticationResponse {
         this.lastName = lastName;
         this.userType = userType;
         this.createdAt = createdAt;
+        this.profilePhotoUrl = profilePhotoUrl;
     }
 
 }
