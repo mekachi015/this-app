@@ -10,14 +10,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
-@Table(name = "users") //maps user entity to "Users" table
+@Table(name = "users") // maps user entity to "Users" table
 @Data
 @NoArgsConstructor
 @Getter
 @Setter
-//@AllArgsConstructor
+// @AllArgsConstructor
 
 public class User {
 
@@ -25,7 +24,8 @@ public class User {
         CUSTOMER, DRIVER, ADMIN
     }
 
-    @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
 
@@ -35,8 +35,9 @@ public class User {
     @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
 
-    @Column(name = "username", nullable = false, unique = true, length = 50)    
-    private String username; // find a way to generate unique usernames, remeberable names based on first and last name
+    @Column(name = "username", nullable = false, unique = true, length = 50)
+    private String username; // find a way to generate unique usernames, remeberable names based on first and
+                             // last name
 
     @Column(name = "email", unique = true, length = 100)
     private String email;
@@ -48,7 +49,7 @@ public class User {
     private String password; // use jwt for password hashing and security
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "user_type", nullable = false, length = 20)   
+    @Column(name = "user_type", nullable = false, length = 20)
     private UserType userType; // e.g., DRIVER, CUSTOMER, ADMIN declared above
 
     @Column(name = "created_at", updatable = false) // updatable = false means JPA won't try to update this field
@@ -57,11 +58,16 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "profile_photo_url", length = 500)
+    private String profilePhotoUrl;
+
     // --- Relationships ---
 
     // One User can have many User_Addresses
-    // 'mappedBy' indicates that the 'user' field in UserAddress is the owning side of the relationship
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // 'mappedBy' indicates that the 'user' field in UserAddress is the owning side
+    // of the relationship
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
     // private List<User_Addresses> addresses = new ArrayList<>();
 
     // One User can place many Orders
@@ -69,7 +75,8 @@ public class User {
     // private List<Orders> orders = new ArrayList<>();
 
     // One User can have many Payment_Methods
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
     // private List<Payment_Methods> paymentMethods = new ArrayList<>();
 
     // One User can write many Reviews_And_Ratings
@@ -77,29 +84,32 @@ public class User {
     // private List<Review_And_Ratings> reviews = new ArrayList<>();
 
     // One User can have many Wishlists items
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
     // private List<Wishlist> wishlists = new ArrayList<>();
 
     // One User can have many Cart items
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
     // private List<Cart> cartItems = new ArrayList<>();
 
     // One User can be a Store_Owner (One-to-One relationship)
     // 'mappedBy' indicates that the 'user' field in StoreOwner is the owning side
-    // @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch =
+    // FetchType.LAZY)
     // private Store_Owners storeOwner;
 
     // One User can be a Driver (One-to-One relationship)
-    // @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch =
+    // FetchType.LAZY)
     // private Drivers driver;
 
-
-     @PrePersist // Called before an entity is first saved to the database
+    @PrePersist // Called before an entity is first saved to the database
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        //generates user name if none is provided
-        if (this.username == null){
+        // generates user name if none is provided
+        if (this.username == null) {
             this.username = generateUsername();
         }
     }
@@ -109,14 +119,13 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    //Generate a unique username based on the first and last name
-    private String generateUsername(){
+    // Generate a unique username based on the first and last name
+    private String generateUsername() {
         String baseUsername = (firstName.charAt(0) + lastName).toLowerCase();
         String username = baseUsername;
         int count = 1;
 
-
-        //check againts database if the name exist
+        // check againts database if the name exist
 
         return username;
     }

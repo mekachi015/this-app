@@ -1,6 +1,5 @@
 package com.example.This_App_Backend.controller;
 
-import java.lang.foreign.Linker.Option;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,6 +77,7 @@ public class AuthenticationController {
         response.setLastName(user.getLastName());
         response.setUserType(user.getUserType().toString());
         response.setCreatedAt(user.getCreatedAt());
+        response.setProfilePhotoUrl(user.getProfilePhotoUrl());
 
         return ResponseEntity.ok(response);
     }
@@ -117,6 +116,7 @@ public class AuthenticationController {
             response.setLastName(newUser.getLastName());
             response.setUserType(newUser.getUserType().toString());
             response.setCreatedAt(newUser.getCreatedAt());
+            response.setProfilePhotoUrl(user.getProfilePhotoUrl());
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (RuntimeException e) {

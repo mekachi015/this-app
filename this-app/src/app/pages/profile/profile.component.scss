@@ -1,24 +1,94 @@
+// profile.component.scss - Add these new styles to your existing CSS
+
 .user-info-section {
   display: flex;
-  justify-content: center; // Center content horizontally
+  justify-content: center;
   align-items: center;
   padding: 24px 32px 16px 32px;
   background: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
   margin-top: 5rem;
-  gap: 4rem; // Add space between image and name
+  gap: 4rem;
 
-  img {
-    order: 2; // Profile picture on the left
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    object-fit: cover;
+  // Updated profile photo container with change functionality
+  .profile-photo-container {
+    order: 2;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      
+      .photo-overlay {
+        opacity: 1;
+      }
+    }
+
+    img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid #e0e0e0;
+      object-fit: cover;
+      transition: filter 0.2s ease;
+
+      &.changing {
+        filter: brightness(0.7);
+      }
+    }
+
+    .photo-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      color: white;
+      font-size: 10px;
+
+      i {
+        font-size: 16px;
+        margin-bottom: 2px;
+      }
+
+      span {
+        font-size: 8px;
+        font-weight: 500;
+        text-align: center;
+        line-height: 1;
+      }
+    }
+
+    .photo-loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff3366;
+
+      i {
+        font-size: 18px;
+      }
+    }
   }
 
   span {
-    order: 1; // User name on the right
+    order: 1;
     font-weight: bold;
     font-size: 1.2rem;
     color: #222;
@@ -26,11 +96,12 @@
   }
 }
 
+// Rest of your existing styles remain the same...
 .user-summary-section {
   display: flex;
-  justify-content: center; // Center all items horizontally
+  justify-content: center;
   align-items: center;
-  gap: 4rem; // Space between each summary item
+  gap: 4rem;
   margin: 32px 0 24px 0;
   background: #fff;
   padding: 24px 0;
@@ -39,7 +110,7 @@
 
   > div {
     display: flex;
-    flex-direction: column; // Stack icon above label
+    flex-direction: column;
     align-items: center;
     color: #444;
     min-width: 90px;
@@ -108,19 +179,26 @@
 // Responsive adjustments
 @media (max-width: 600px) {
   .user-info-section {
-
+    .profile-photo-container {
+      .photo-overlay {
+        span {
+          font-size: 7px;
+        }
+      }
+    }
     
-   
     span {
       margin-right: 0;
       margin-bottom: 8px;
     }
   }
+  
   .user-summary-section {
     flex-direction: row;
     gap: 50px;
     padding: 18px 0;
   }
+  
   .settings-section {
     margin: 24px 4px 0 4px;
     > div {

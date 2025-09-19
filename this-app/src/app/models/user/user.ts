@@ -6,6 +6,13 @@ export interface User {
     password: string;
     username: string;
     token: string;
-    userType: string; // CUSTOMER, DRIVER, ADMIN
+    userType: UserType | string; // CUSTOMER, DRIVER, ADMIN
+    profilePhotoUrl?: string; // Add this property
     createdAt: string;
+}
+
+export enum UserType {
+  CUSTOMER = 'CUSTOMER',
+  DRIVER = 'DRIVER',
+  ADMIN = 'ADMIN'
 }
