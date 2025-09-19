@@ -34,8 +34,15 @@ export class AuthService {
     return user && user.token ? user.token : null;
   }
 
-  login(username: string, password: string, userType: string = 'CUSTOMER'): Observable<User> {
-    console.log('AuthService.login called with:', { username, password: password });
+  login(
+    username: string,
+    password: string,
+    userType: string = 'CUSTOMER'
+  ): Observable<User> {
+    console.log('AuthService.login called with:', {
+      username,
+      password: password,
+    });
 
     let endpoint = `${this.apiUrl}/auth/login`;
     if (userType === 'DRIVER') {
@@ -101,12 +108,11 @@ export class AuthService {
 
   registerDriver(userData: any): Observable<User> {
     return this.register(userData, 'DRIVER');
-}
+  }
 
-registerAdmin(userData: any): Observable<User> {
+  registerAdmin(userData: any): Observable<User> {
     return this.register(userData, 'ADMIN');
-}
-
+  }
 
   register(userData: any, userType: string = 'CUSTOMER'): Observable<User> {
     console.log('AuthService.register called with:', userData);
@@ -119,9 +125,9 @@ registerAdmin(userData: any): Observable<User> {
     // Determine the endpoint based on userType
     let endpoint = `${this.apiUrl}/auth/register`;
     if (userType === 'DRIVER') {
-        endpoint = `${this.apiUrl}/auth/register/driver`;
+      endpoint = `${this.apiUrl}/auth/register/driver`;
     } else if (userType === 'ADMIN') {
-        endpoint = `${this.apiUrl}/auth/register/admin`;
+      endpoint = `${this.apiUrl}/auth/register/admin`;
     }
 
     const registrationData = {
@@ -136,43 +142,41 @@ registerAdmin(userData: any): Observable<User> {
 
     console.log('Registration data being sent:', registrationData);
 
-    return this.http
-      .post<any>(endpoint, registrationData)
-      .pipe(
-        tap((response) => console.log('Registration response:', response)),
-        map((response) => {
-          // After successful registration, return the user data
-          const user: User = {
-            id: response.id || response.userId,
-            email: response.email,
-            password: response.password,
-            username: response.username,
-            firstname: response.firstName || response.firstname,
-            lastname: response.lastName || response.lastname,
-            userType: response.userType,
-            token: response.token || response.jwt, // Check for both token formats
-            createdAt: response.createdAt,
-          };
+    return this.http.post<any>(endpoint, registrationData).pipe(
+      tap((response) => console.log('Registration response:', response)),
+      map((response) => {
+        // After successful registration, return the user data
+        const user: User = {
+          id: response.id || response.userId,
+          email: response.email,
+          password: response.password,
+          username: response.username,
+          firstname: response.firstName || response.firstname,
+          lastname: response.lastName || response.lastname,
+          userType: response.userType,
+          token: response.token || response.jwt, // Check for both token formats
+          createdAt: response.createdAt,
+        };
 
-          // If registration returns a token, set as current user
-          if (user.token) {
-            if (typeof window !== 'undefined' && window.localStorage) {
-              localStorage.setItem('currentUser', JSON.stringify(user));
-            }
-            this.currentUserSubject.next(user);
-            console.log('User registered and set as current user:', user);
+        // If registration returns a token, set as current user
+        if (user.token) {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('currentUser', JSON.stringify(user));
           }
+          this.currentUserSubject.next(user);
+          console.log('User registered and set as current user:', user);
+        }
 
-          return user;
-        }),
-        catchError((error) => {
-          console.error('Registration error:', error);
-          return throwError(() => ({
-            message: error.error?.message || 'Registration failed',
-            status: error.status,
-          }));
-        })
-      );
+        return user;
+      }),
+      catchError((error) => {
+        console.error('Registration error:', error);
+        return throwError(() => ({
+          message: error.error?.message || 'Registration failed',
+          status: error.status,
+        }));
+      })
+    );
   }
 
   logout(): void {
@@ -213,4 +217,23 @@ registerAdmin(userData: any): Observable<User> {
   //     headers: this.getAuthHeaders(token),
   //   });
   // }
+
+  uploadProfilePhoto(formData: FormData): Observable<{ photoUrl: string }> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    return this.http.post<{ photoUrl: string }>(
+      `${this.apiUrl}/profile/upload-photo`,
+      formData,
+      { headers }
+    );
+  }
+
+  // Helper method to get token
+  private getToken(): string {
+    const user = this.currentUserValue;
+    return user?.token || '';
+  }
 }

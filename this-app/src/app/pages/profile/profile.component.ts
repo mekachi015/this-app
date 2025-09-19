@@ -98,39 +98,35 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private uploadProfilePhoto(file: File): void {
     this.isPhotoChanging = true;
-
-    // Create a FileReader to display preview immediately
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.userPhotoUrl = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-
-    // Here you would typically upload to your backend
-    // Example API call:
-    /*
-    const formData = new FormData();
-    formData.append('profilePhoto', file);
-    
-    this.userService.uploadProfilePhoto(formData).subscribe({
-      next: (response) => {
-        this.userPhotoUrl = response.photoUrl;
-        this.isPhotoChanging = false;
-        // Update user in auth service if needed
-      },
-      error: (error) => {
-        console.error('Error uploading photo:', error);
-        this.isPhotoChanging = false;
-        // Reset to previous photo on error
-        this.userPhotoUrl = this.currentUser?.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
-      }
-    });
-    */
-
-    // Simulate API call for now
-    setTimeout(() => {
+  
+  // Create FormData for file upload
+  const formData = new FormData();
+  formData.append('profilePhoto', file);
+  
+  // Call your auth service or create a profile service
+  console.log(this.userPhotoUrl, 'User url');
+  this.authService.uploadProfilePhoto(formData).subscribe({
+    next: (response: any) => {
+      this.userPhotoUrl = response.photoUrl;
       this.isPhotoChanging = false;
-    }, 2000);
+
+      console.log(this.userPhotoUrl, 'User url after');
+      // Update current user data if needed
+      if (this.currentUser) {
+        this.currentUser.profilePhotoUrl = response.photoUrl;
+        
+      }
+
+    },
+    error: (error) => {
+      console.error('Error uploading photo:', error);
+      this.isPhotoChanging = false;
+      alert('Failed to upload photo. Please try again.');
+      // Reset to previous photo on error
+      this.userPhotoUrl = this.currentUser?.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
+      console.log(this.userPhotoUrl, 'User url');
+    }
+  });
   }
 
   // Update settings based on user type

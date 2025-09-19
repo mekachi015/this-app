@@ -3,7 +3,7 @@
 <div class="user-info-section">
   <!-- Profile photo with click to change functionality -->
   <div class="profile-photo-container" (click)="onProfilePhotoClick()">
-    <img [src]="userPhotoUrl" alt="Profile Photo" [class.changing]="isPhotoChanging">
+    <img [src]="userPhotoUrl || 'assets/profile-photos/profile-picture.jpg'" alt="Profile Photo">
     <div class="photo-overlay">
       <i class="fas fa-camera"></i>
       <span>Change Photo</span>
