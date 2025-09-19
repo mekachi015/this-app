@@ -1,23 +1,82 @@
+<!-- profile.component.html - Add these changes -->
+
 <div class="user-info-section">
-  <img [src]="userPhotoUrl" alt="Profile Photo">
+  <!-- Profile photo with click to change functionality -->
+  <div class="profile-photo-container" (click)="onProfilePhotoClick()">
+    <img [src]="userPhotoUrl" alt="Profile Photo" [class.changing]="isPhotoChanging">
+    <div class="photo-overlay">
+      <i class="fas fa-camera"></i>
+      <span>Change Photo</span>
+    </div>
+    <!-- Loading spinner -->
+    <div class="photo-loading" *ngIf="isPhotoChanging">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+  </div>
   <span>{{ userName }}</span>
+  
+  <!-- Hidden file input -->
+  <input 
+    #fileInput 
+    type="file" 
+    accept="image/*" 
+    (change)="onFileSelected($event)"
+    style="display: none;">
 </div>
 
+<!-- User summary section with conditional content based on user type -->
 <div class="user-summary-section">
-  <div (click)="goToWishlist()" style="cursor: pointer;">
+  <!-- Customer view -->
+  <div *ngIf="userType === UserType.CUSTOMER" (click)="goToWishlist()" style="cursor: pointer;">
     <i class="fas fa-heart"></i>
-    <a>Wishlist</a>
+    <div>Wishlist</div>
   </div>
-  <div>
+  
+  <!-- Common for all user types -->
+  <div *ngIf="userType === UserType.CUSTOMER">
     <i class="fas fa-wallet"></i>
     <div>Wallet</div>
   </div>
-  <div>
+  
+  <div *ngIf="userType === UserType.CUSTOMER">
     <i class="fas fa-box"></i>
     <div>Orders</div>
   </div>
+
+  <!-- Driver specific summary -->
+  <div *ngIf="userType === UserType.DRIVER">
+    <i class="fas fa-route"></i>
+    <div>Active Deliveries</div>
+  </div>
+  
+  <div *ngIf="userType === UserType.DRIVER">
+    <i class="fas fa-dollar-sign"></i>
+    <div>Today's Earnings</div>
+  </div>
+  
+  <div *ngIf="userType === UserType.DRIVER">
+    <i class="fas fa-star"></i>
+    <div>Rating</div>
+  </div>
+
+  <!-- Admin specific summary -->
+  <div *ngIf="userType === UserType.ADMIN">
+    <i class="fas fa-users"></i>
+    <div>Total Users</div>
+  </div>
+  
+  <div *ngIf="userType === UserType.ADMIN">
+    <i class="fas fa-chart-line"></i>
+    <div>System Status</div>
+  </div>
+  
+  <div *ngIf="userType === UserType.ADMIN">
+    <i class="fas fa-bell"></i>
+    <div>Alerts</div>
+  </div>
 </div>
 
+<!-- Settings section remains the same, but now uses dynamic settings -->
 <div class="settings-section">
   <div *ngFor="let setting of settings" 
        (click)="onSettingClick(setting.name)"
