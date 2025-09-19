@@ -7,7 +7,7 @@ export interface User {
     username: string;
     token: string;
     userType: UserType | string; // CUSTOMER, DRIVER, ADMIN
-    profilePhotoUrl?: string; // Add this property
+    profilePhotoUrl: string; // Add this property
     createdAt: string;
 }
 

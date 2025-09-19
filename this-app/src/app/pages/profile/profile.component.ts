@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Import CommonModule for Angular directives
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { of, Subscription, switchMap } from 'rxjs';
 import { User, UserType } from '../../models/user/user';
 import { AuthService } from '../../services/authentication-service/auth.service';
 @Component({
@@ -33,25 +33,77 @@ export class ProfileComponent implements OnInit, OnDestroy {
   userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
   currentUser: User | null = null;
 
+  // ngOnInit(): void {
+  //   this.userSubscription = this.authService.currentUser.subscribe((user) => {
+  //     this.currentUser = user;
+  //     if (user) {
+  //       const firstName = this.initCap(user.firstname);
+  //       const lastName = this.initCap(user.lastname);
+  //       this.userName =
+  //         `${firstName} ${lastName}`.trim() || user.username || 'User';
+  //       // Handle userType conversion from string to enum
+  //       this.userType =
+  //         this.convertStringToUserType(user.userType) || UserType.CUSTOMER;
+  //       this.userPhotoUrl =
+  //         user.profilePhotoUrl + '?t=' + new Date().getTime();
+  //     } else {
+  //       this.userName = 'Guest User';
+  //       this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
+  //       this.userType = UserType.CUSTOMER;
+  //     }
+  //   });
+  // }
+
+  //   ngOnInit(): void {
+  //   this.userSubscription = this.authService.currentUser
+  //     .pipe(
+  //       switchMap(user => user ? this.authService.getLatestUserProfile() : of(null))
+  //     )
+  //     .subscribe(user => {
+  //       this.currentUser = user;
+  //       if (user) {
+  //         const firstName = this.initCap(user.firstname || user.firstname || '');
+  //         const lastName = this.initCap(user.lastname || user.lastname || '');
+  //         this.userName = `${firstName} ${lastName}`.trim() || user.username || 'User';
+  //         this.userPhotoUrl = user.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
+  //       }
+  //     });
+  // }
+
   ngOnInit(): void {
-    this.userSubscription = this.authService.currentUser.subscribe((user) => {
-      this.currentUser = user;
-      if (user) {
-        const firstName = this.initCap(user.firstname);
-        const lastName = this.initCap(user.lastname);
-        this.userName =
-          `${firstName} ${lastName}`.trim() || user.username || 'User';
-        // Handle userType conversion from string to enum
-        this.userType =
-          this.convertStringToUserType(user.userType) || UserType.CUSTOMER;
-        this.userPhotoUrl =
-          user.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
-      } else {
-        this.userName = 'Guest User';
-        this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
-        this.userType = UserType.CUSTOMER;
-      }
-    });
+    // Subscribe to currentUser BehaviorSubject
+    this.userSubscription = this.authService.currentUser
+      .pipe(
+        // If there is a user, fetch latest profile from backend
+        switchMap((user) =>
+          user ? this.authService.getLatestUserProfile() : of(null)
+        )
+      )
+      .subscribe((user) => {
+        this.currentUser = user;
+
+        if (user) {
+          // Handle different backend naming styles safely
+          const firstName = this.initCap(
+            user.firstname || user.firstname || ''
+          );
+          const lastName = this.initCap(user.lastname || user.lastname || '');
+          this.userName =
+            `${firstName} ${lastName}`.trim() || user.firstname || 'User';
+
+          // Convert userType safely
+          this.userType = this.convertStringToUserType(user.userType);
+
+          // Display latest Cloudinary profile photo with cache-busting
+          this.userPhotoUrl = user.profilePhotoUrl
+            ? `${user.profilePhotoUrl}?t=${new Date().getTime()}`
+            : 'assets/profile-photos/profile-picture.jpg';
+        } else {
+          this.userName = 'Guest User';
+          this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
+          this.userType = this.UserType.CUSTOMER;
+        }
+      });
   }
 
   private convertStringToUserType(userTypeString: string | UserType): UserType {
@@ -98,35 +150,46 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private uploadProfilePhoto(file: File): void {
     this.isPhotoChanging = true;
-  
-  // Create FormData for file upload
-  const formData = new FormData();
-  formData.append('profilePhoto', file);
-  
-  // Call your auth service or create a profile service
-  console.log(this.userPhotoUrl, 'User url');
-  this.authService.uploadProfilePhoto(formData).subscribe({
-    next: (response: any) => {
-      this.userPhotoUrl = response.photoUrl;
-      this.isPhotoChanging = false;
 
-      console.log(this.userPhotoUrl, 'User url after');
-      // Update current user data if needed
-      if (this.currentUser) {
-        this.currentUser.profilePhotoUrl = response.photoUrl;
-        
-      }
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
 
-    },
-    error: (error) => {
-      console.error('Error uploading photo:', error);
-      this.isPhotoChanging = false;
-      alert('Failed to upload photo. Please try again.');
-      // Reset to previous photo on error
-      this.userPhotoUrl = this.currentUser?.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
-      console.log(this.userPhotoUrl, 'User url');
-    }
-  });
+    // Call your auth service or create a profile service
+    console.log(this.userPhotoUrl, 'User url');
+    this.authService.uploadProfilePhoto(formData).subscribe({
+      next: (response: any) => {
+        this.userPhotoUrl = response.photoUrl;
+        this.isPhotoChanging = false;
+
+        console.log(this.userPhotoUrl, 'User url after');
+        // Update current user data if needed
+        if (this.currentUser) {
+          this.currentUser.profilePhotoUrl = response.photoUrl;
+
+          // persist change in localStorage
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem(
+              'currentUser',
+              JSON.stringify(this.currentUser)
+            );
+          }
+
+          //update AuthService BehaviorSubject
+          this.authService['currentUserSubject'].next(this.currentUser);
+        }
+      },
+      error: (error) => {
+        console.error('Error uploading photo:', error);
+        this.isPhotoChanging = false;
+        alert('Failed to upload photo. Please try again.');
+        // Reset to previous photo on error
+        this.userPhotoUrl =
+          this.currentUser?.profilePhotoUrl ||
+          'assets/profile-photos/profile-picture.jpg';
+        console.log(this.userPhotoUrl, 'User url');
+      },
+    });
   }
 
   // Update settings based on user type
@@ -311,8 +374,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  private initCap(str: string): string {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  }
+  private initCap(str?: string): string {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
 }

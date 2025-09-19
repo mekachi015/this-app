@@ -68,6 +68,7 @@ export class AuthService {
               firstname: response.firstName,
               lastname: response.lastName,
               userType: response.userType,
+              profilePhotoUrl: response.profilePhotoUrl,
               token: response.jwt,
               createdAt: response.createdAt,
             };
@@ -154,6 +155,7 @@ export class AuthService {
           firstname: response.firstName || response.firstname,
           lastname: response.lastName || response.lastname,
           userType: response.userType,
+          profilePhotoUrl: response.profilePhotoUrl,
           token: response.token || response.jwt, // Check for both token formats
           createdAt: response.createdAt,
         };
@@ -178,6 +180,11 @@ export class AuthService {
       })
     );
   }
+
+  getLatestUserProfile(): Observable<User> {
+  const headers = this.getAuthHeaders();
+  return this.http.get<User>(`${this.apiUrl}/profile/me`, { headers });
+}
 
   logout(): void {
     // Remove user from local storage and set current user to null
