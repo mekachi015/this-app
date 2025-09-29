@@ -33,25 +33,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
   userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
   currentUser: User | null = null;
 
-  // ngOnInit(): void {
-  //   this.userSubscription = this.authService.currentUser.subscribe((user) => {
-  //     this.currentUser = user;
-  //     if (user) {
-  //       const firstName = this.initCap(user.firstname);
-  //       const lastName = this.initCap(user.lastname);
-  //       this.userName =
-  //         `${firstName} ${lastName}`.trim() || user.username || 'User';
-  //       // Handle userType conversion from string to enum
-  //       this.userType =
-  //         this.convertStringToUserType(user.userType) || UserType.CUSTOMER;
-  //       this.userPhotoUrl =
-  //         user.profilePhotoUrl + '?t=' + new Date().getTime();
-  //     } else {
-  //       this.userName = 'Guest User';
-  //       this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
-  //       this.userType = UserType.CUSTOMER;
-  //     }
-  //   });
+  ngOnInit(): void {
+    this.userSubscription = this.authService.currentUser.subscribe((user) => {
+      this.currentUser = user;
+      if (user) {
+        const firstName = this.initCap(user.firstname);
+        const lastName = this.initCap(user.lastname);
+        this.userName =
+          `${firstName} ${lastName}`.trim() || user.username || 'User';
+        // Handle userType conversion from string to enum
+        this.userType =
+          this.convertStringToUserType(user.userType) || UserType.CUSTOMER;
+        this.userPhotoUrl =
+          user.profilePhotoUrl + '?t=' + new Date().getTime();
+      } else {
+        this.userName = 'Guest User';
+        this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
+        this.userType = UserType.CUSTOMER;
+      }
+    });
   // }
 
   //   ngOnInit(): void {
@@ -70,40 +70,40 @@ export class ProfileComponent implements OnInit, OnDestroy {
   //     });
   // }
 
-  ngOnInit(): void {
-    // Subscribe to currentUser BehaviorSubject
-    this.userSubscription = this.authService.currentUser
-      .pipe(
-        // If there is a user, fetch latest profile from backend
-        switchMap((user) =>
-          user ? this.authService.getLatestUserProfile() : of(null)
-        )
-      )
-      .subscribe((user) => {
-        this.currentUser = user;
+  // ngOnInit(): void {
+  //   // Subscribe to currentUser BehaviorSubject
+  //   this.userSubscription = this.authService.currentUser
+  //     .pipe(
+  //       // If there is a user, fetch latest profile from backend
+  //       switchMap((user) =>
+  //         user ? this.authService.getLatestUserProfile() : of(null)
+  //       )
+  //     )
+  //     .subscribe((user) => {
+  //       this.currentUser = user;
 
-        if (user) {
-          // Handle different backend naming styles safely
-          const firstName = this.initCap(
-            user.firstname || user.firstname || ''
-          );
-          const lastName = this.initCap(user.lastname || user.lastname || '');
-          this.userName =
-            `${firstName} ${lastName}`.trim() || user.firstname || 'User';
+  //       if (user) {
+  //         // Handle different backend naming styles safely
+  //         const firstName = this.initCap(
+  //           user.firstname || user.firstname || ''
+  //         );
+  //         const lastName = this.initCap(user.lastname || user.lastname || '');
+  //         this.userName =
+  //           `${firstName} ${lastName}`.trim() || user.firstname || 'User';
 
-          // Convert userType safely
-          this.userType = this.convertStringToUserType(user.userType);
+  //         // Convert userType safely
+  //         this.userType = this.convertStringToUserType(user.userType);
 
-          // Display latest Cloudinary profile photo with cache-busting
-          this.userPhotoUrl = user.profilePhotoUrl
-            ? `${user.profilePhotoUrl}?t=${new Date().getTime()}`
-            : 'assets/profile-photos/profile-picture.jpg';
-        } else {
-          this.userName = 'Guest User';
-          this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
-          this.userType = this.UserType.CUSTOMER;
-        }
-      });
+  //         // Display latest Cloudinary profile photo with cache-busting
+  //         this.userPhotoUrl = user.profilePhotoUrl
+  //           ? `${user.profilePhotoUrl}?t=${new Date().getTime()}`
+  //           : 'assets/profile-photos/profile-picture.jpg';
+  //       } else {
+  //         this.userName = 'Guest User';
+  //         this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
+  //         this.userType = this.UserType.CUSTOMER;
+  //       }
+  //     });
   }
 
   private convertStringToUserType(userTypeString: string | UserType): UserType {
