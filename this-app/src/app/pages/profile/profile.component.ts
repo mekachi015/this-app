@@ -27,7 +27,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   UserType = UserType; // Expose enum to template
   isPhotoChanging = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private authService: AuthService) { }
 
   userName = 'Guest User';
   userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
@@ -52,58 +52,58 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.userType = UserType.CUSTOMER;
       }
     });
-  // }
+    // }
 
-  //   ngOnInit(): void {
-  //   this.userSubscription = this.authService.currentUser
-  //     .pipe(
-  //       switchMap(user => user ? this.authService.getLatestUserProfile() : of(null))
-  //     )
-  //     .subscribe(user => {
-  //       this.currentUser = user;
-  //       if (user) {
-  //         const firstName = this.initCap(user.firstname || user.firstname || '');
-  //         const lastName = this.initCap(user.lastname || user.lastname || '');
-  //         this.userName = `${firstName} ${lastName}`.trim() || user.username || 'User';
-  //         this.userPhotoUrl = user.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
-  //       }
-  //     });
-  // }
+    //   ngOnInit(): void {
+    //   this.userSubscription = this.authService.currentUser
+    //     .pipe(
+    //       switchMap(user => user ? this.authService.getLatestUserProfile() : of(null))
+    //     )
+    //     .subscribe(user => {
+    //       this.currentUser = user;
+    //       if (user) {
+    //         const firstName = this.initCap(user.firstname || user.firstname || '');
+    //         const lastName = this.initCap(user.lastname || user.lastname || '');
+    //         this.userName = `${firstName} ${lastName}`.trim() || user.username || 'User';
+    //         this.userPhotoUrl = user.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
+    //       }
+    //     });
+    // }
 
-  // ngOnInit(): void {
-  //   // Subscribe to currentUser BehaviorSubject
-  //   this.userSubscription = this.authService.currentUser
-  //     .pipe(
-  //       // If there is a user, fetch latest profile from backend
-  //       switchMap((user) =>
-  //         user ? this.authService.getLatestUserProfile() : of(null)
-  //       )
-  //     )
-  //     .subscribe((user) => {
-  //       this.currentUser = user;
+    // ngOnInit(): void {
+    //   // Subscribe to currentUser BehaviorSubject
+    //   this.userSubscription = this.authService.currentUser
+    //     .pipe(
+    //       // If there is a user, fetch latest profile from backend
+    //       switchMap((user) =>
+    //         user ? this.authService.getLatestUserProfile() : of(null)
+    //       )
+    //     )
+    //     .subscribe((user) => {
+    //       this.currentUser = user;
 
-  //       if (user) {
-  //         // Handle different backend naming styles safely
-  //         const firstName = this.initCap(
-  //           user.firstname || user.firstname || ''
-  //         );
-  //         const lastName = this.initCap(user.lastname || user.lastname || '');
-  //         this.userName =
-  //           `${firstName} ${lastName}`.trim() || user.firstname || 'User';
+    //       if (user) {
+    //         // Handle different backend naming styles safely
+    //         const firstName = this.initCap(
+    //           user.firstname || user.firstname || ''
+    //         );
+    //         const lastName = this.initCap(user.lastname || user.lastname || '');
+    //         this.userName =
+    //           `${firstName} ${lastName}`.trim() || user.firstname || 'User';
 
-  //         // Convert userType safely
-  //         this.userType = this.convertStringToUserType(user.userType);
+    //         // Convert userType safely
+    //         this.userType = this.convertStringToUserType(user.userType);
 
-  //         // Display latest Cloudinary profile photo with cache-busting
-  //         this.userPhotoUrl = user.profilePhotoUrl
-  //           ? `${user.profilePhotoUrl}?t=${new Date().getTime()}`
-  //           : 'assets/profile-photos/profile-picture.jpg';
-  //       } else {
-  //         this.userName = 'Guest User';
-  //         this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
-  //         this.userType = this.UserType.CUSTOMER;
-  //       }
-  //     });
+    //         // Display latest Cloudinary profile photo with cache-busting
+    //         this.userPhotoUrl = user.profilePhotoUrl
+    //           ? `${user.profilePhotoUrl}?t=${new Date().getTime()}`
+    //           : 'assets/profile-photos/profile-picture.jpg';
+    //       } else {
+    //         this.userName = 'Guest User';
+    //         this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
+    //         this.userType = this.UserType.CUSTOMER;
+    //       }
+    //     });
   }
 
   private convertStringToUserType(userTypeString: string | UserType): UserType {
@@ -375,7 +375,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private initCap(str?: string): string {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
 }
