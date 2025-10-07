@@ -17,14 +17,18 @@ import java.util.List;
 @AllArgsConstructor
 public class Store_Owners {
 
-    @Id
+   @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "owner_id")
     private Integer ownerId;
 
-    @OneToOne // One store owner entity links to one user entity
-    @JoinColumn(name = "user_id", unique = true, nullable = false) // Foreign key to Users table
-    private User user; // Link to the User entity
+    @OneToOne
+    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    private User user;
+
+    // Update the mapping to reference the storeOwner field in Stores
+    @OneToMany(mappedBy = "storeOwner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Stores> stores = new ArrayList<>();
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -35,8 +39,8 @@ public class Store_Owners {
     // --- Relationships ---
 
     // One Store_Owner can own many Stores
-    @OneToMany(mappedBy = "store_Owners", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Stores> stores = new ArrayList<>();
+    // @OneToMany(mappedBy = "owner_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<Stores> stores = new ArrayList<>();
 
 
 
