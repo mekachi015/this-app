@@ -32,176 +32,140 @@
   </header>
 
   <!-- Store Management Section (Admin Only) -->
-  <section class="management-section" *ngIf="isAdmin">
-    <div class="section-header">
-      <h2>Store Management</h2>
-      <button class="btn-primary" (click)="showStoreForm = true" *ngIf="!showStoreForm && !editingStore">
-        <i class="fas fa-plus"></i> Create Store
-      </button>
+  <section class="management-section" *ngIf="isAdmin && selectedStore">
+  <div class="section-header">
+    <h2>Products - {{ selectedStore.storeName }}</h2>
+    <button class="btn-primary" (click)="showProductForm = true" *ngIf="!showProductForm">
+      <i class="fas fa-plus"></i> Add Product
+    </button>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="products-grid" *ngIf="products.length > 0">
+    <div class="product-card" *ngFor="let product of products">
+      <div class="product-image">
+        <img [src]="product.imageUrl || 'assets/default-product.png'" [alt]="product.productName">
+      </div>
+      <div class="product-info">
+        <h4>{{ product.productName }}</h4>
+        <p class="product-description">{{ product.productDescription }}</p>
+        <div class="product-details">
+          <span class="product-price">R{{ product.productPrice }}</span>
+          <span class="product-stock">{{ product.stockQuantity }} in stock</span>
+          <span class="product-category">{{ product.category }}</span>
+        </div>
+        <div class="product-actions">
+          <button class="btn-warning">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button class="btn-danger" (click)="deleteProduct(product.productId || 0)">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty Products State -->
+  <div class="empty-state" *ngIf="products.length === 0 && !showProductForm">
+    <i class="fas fa-box-open"></i>
+    <h3>No Products</h3>
+    <p>Start adding products to your store</p>
+    <button class="btn-primary" (click)="showProductForm = true">
+      Add Your First Product
+    </button>
+  </div>
+
+  <!-- Product Form -->
+  <div class="form-card" *ngIf="showProductForm">
+    <div class="form-header">
+      <h3>Add New Product</h3>
+      <button class="close-btn" (click)="resetProductForm()">&times;</button>
     </div>
 
-    <!-- Store Creation/Edit Form -->
-    <div class="form-card" *ngIf="showStoreForm">
-      <div class="form-header">
-        <h3>{{ editingStore ? 'Edit Store' : 'Create New Store' }}</h3>
-        <button class="close-btn" (click)="cancelEditStore()">&times;</button>
-      </div>
-      
-      <!-- Store Logo Upload -->
+    <form (ngSubmit)="createProduct()" #productForm="ngForm" class="product-form">
+      <!-- Product Image Upload -->
       <div class="upload-card">
-        <div class="upload-header">
-          <h2>Store Logo</h2>
-          <p>Upload a logo for your store</p>
-        </div>
-        <div
-          class="upload-area"
-          (click)="fileInput.click()"
-          (drop)="onDrop($event)"
-          (dragover)="onDragOver($event)"
-          [class.drag-over]="isDragOver"
-        >
-          <div class="upload-content" *ngIf="!selectedFile && !editingStore?.storeLogo; else previewTemplate">
+        <div class="upload-area"
+             (drop)="onDrop($event)"
+             (dragover)="onDragOver($event)"
+             [class.drag-over]="isDragOver">
+          <div class="upload-content" *ngIf="!selectedFile && !previewUrl">
             <i class="fas fa-cloud-upload-alt"></i>
-            <p>Drag & drop store logo here</p>
-            <span class="upload-or">or</span>
-            <button type="button" class="browse-btn">Browse Files</button>
-            <p class="upload-hint">Supports JPG, PNG up to 5MB</p>
+            <p>Drag & drop product image here</p>
+            <span>or</span>
+            <input type="file" 
+                   #fileInput
+                   (change)="onFileSelected($event)"
+                   accept="image/*"
+                   style="display: none">
+            <button type="button" (click)="fileInput.click()">Choose File</button>
           </div>
-
-          <ng-template #previewTemplate>
-            <div class="preview-container">
-              <img [src]="editingStore?.storeLogo || previewUrl" alt="Preview" class="image-preview" />
-              <div class="preview-actions">
-                <button
-                  type="button"
-                  class="action-btn replace-btn"
-                  (click)="$event.stopPropagation(); resetUpload()"
-                >
-                  <i class="fas fa-sync-alt"></i> Replace
-                </button>
-              </div>
-            </div>
-          </ng-template>
-
-          <input
-            #fileInput
-            type="file"
-            hidden
-            (change)="onFileSelected($event)"
-            accept="image/jpeg, image/png"
-          />
-        </div>
-
-        <div class="upload-actions" *ngIf="selectedFile">
-          <button class="upload-btn" (click)="uploadFile()" [disabled]="isLoading">
-            {{ isLoading ? 'Uploading...' : 'Upload Logo' }}
-          </button>
-          <button class="cancel-btn" (click)="resetUpload()" [disabled]="isLoading">Cancel</button>
+          <img *ngIf="previewUrl" [src]="previewUrl" alt="Preview">
         </div>
       </div>
 
-      <form (ngSubmit)="editingStore ? updateStore() : createStore()" class="store-form">
-        <div class="form-group">
-          <label for="storeName">Store Name</label>
-          <input type="text" id="storeName" 
-                 [ngModel]="editingStore ? editingStore.storeName : newStore.storeName" 
-                 (ngModelChange)="editingStore ? editingStore.storeName = $event : newStore.storeName = $event"
-                 name="storeName" required>
-        </div>
-        <div class="form-group">
-          <label for="storeDescription">Description</label>
-          <textarea id="storeDescription" 
-                    [ngModel]="editingStore ? editingStore.storeDescription : newStore.storeDescription" 
-                    (ngModelChange)="editingStore ? editingStore.storeDescription = $event : newStore.storeDescription = $event"
-                    name="storeDescription" required></textarea>
-        </div>
-        <div class="form-group">
-          <label for="storeAddress">Address</label>
-          <input type="text" id="storeAddress" 
-                 [ngModel]="editingStore ? editingStore.storeAddress : newStore.storeAddress" 
-                 (ngModelChange)="editingStore ? editingStore.storeAddress = $event : newStore.storeAddress = $event"
-                 name="storeAddress" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="storeEmail">Contact Email</label>
-            <input type="email" id="storeEmail" 
-                   [ngModel]="editingStore ? editingStore.storeEmail : newStore.storeEmail" 
-                   (ngModelChange)="editingStore ? editingStore.storeEmail = $event : newStore.storeEmail = $event"
-                   name="storeEmail" required>
-          </div>
-          <div class="form-group">
-            <label for="storePhone">Contact Phone</label>
-            <input type="tel" id="storePhone" 
-                   [ngModel]="editingStore ? editingStore.storePhoneNumber : newStore.storePhoneNumber" 
-                   (ngModelChange)="editingStore ? editingStore.storePhoneNumber = $event : newStore.storePhoneNumber = $event"
-                   name="storePhone" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="businessHours">Business Hours</label>
-          <input type="text" id="businessHours" 
-                 [ngModel]="editingStore ? editingStore.storeBusinessHours : newStore.storeBusinessHours" 
-                 (ngModelChange)="editingStore ? editingStore.storeBusinessHours = $event : newStore.storeBusinessHours = $event"
-                 name="businessHours" placeholder="e.g., Mon-Fri 9AM-6PM">
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-primary" [disabled]="isLoading">
-            {{ isLoading ? 'Processing...' : (editingStore ? 'Update Store' : 'Create Store') }}
-          </button>
-          <button type="button" class="btn-secondary" (click)="cancelEditStore()" [disabled]="isLoading">Cancel</button>
-        </div>
-      </form>
-    </div>
+      <div class="form-group">
+        <label for="productName">Product Name</label>
+        <input type="text" 
+               id="productName"
+               name="productName"
+               [(ngModel)]="newProduct.productName"
+               required>
+      </div>
 
-    <!-- Stores List -->
-    <div class="stores-grid" *ngIf="stores.length > 0 && !showStoreForm">
-      <div class="store-card" *ngFor="let store of stores">
-        <div class="store-header">
-          <div class="store-logo" *ngIf="store.storeLogo">
-            <img [src]="store.storeLogo" [alt]="store.storeName">
-          </div>
-          <h4>{{ store.storeName }}</h4>
-          <div class="store-actions">
-            <button class="btn-success" (click)="selectStoreForProduct(store)">
-              <i class="fas fa-plus"></i> Add Product
-            </button>
-            <button class="btn-warning" (click)="editStore(store)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn-danger" (click)="deleteStore(store)" [disabled]="isLoading">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
+      <div class="form-group">
+        <label for="productDescription">Description</label>
+        <textarea id="productDescription"
+                  name="productDescription"
+                  [(ngModel)]="newProduct.productDescription"
+                  required></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="productPrice">Price</label>
+          <input type="number"
+                 id="productPrice"
+                 name="productPrice"
+                 [(ngModel)]="newProduct.productPrice"
+                 required>
         </div>
-        <p class="store-description">{{ store.storeDescription }}</p>
-        <div class="store-details">
-          <p><i class="fas fa-map-marker-alt"></i> {{ store.storeAddress }}</p>
-          <p><i class="fas fa-envelope"></i> {{ store.storeEmail }}</p>
-          <p><i class="fas fa-phone"></i> {{ store.storePhoneNumber }}</p>
-          <p><i class="fas fa-clock"></i> {{ store.storeBusinessHours }}</p>
-        </div>
-        <div class="store-stats">
-          <span class="product-count">
-            {{ getProductCount(store.storeId?.toString()) }} products
-          </span>
-          <button class="btn-outline" (click)="openStoreLogoUpload(store)">
-            <i class="fas fa-camera"></i> Upload Logo
-          </button>
+
+        <div class="form-group">
+          <label for="stockQuantity">Stock Quantity</label>
+          <input type="number"
+                 id="stockQuantity"
+                 name="stockQuantity"
+                 [(ngModel)]="newProduct.stockQuantity"
+                 required>
         </div>
       </div>
-    </div>
 
-    <!-- Empty State -->
-    <div class="empty-state" *ngIf="stores.length === 0 && !showStoreForm && !isLoading">
-      <i class="fas fa-store"></i>
-      <h3>No Stores Created</h3>
-      <p>Create your first store to start adding products</p>
-      <button class="btn-primary" (click)="showStoreForm = true">
-        Create Your First Store
-      </button>
-    </div>
-  </section>
+      <div class="form-group">
+        <label for="category">Category</label>
+        <input type="text"
+               id="category"
+               name="category"
+               [(ngModel)]="newProduct.category">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" 
+                class="btn-primary"
+                [disabled]="!productForm.form.valid || isLoading">
+          {{ isLoading ? 'Creating...' : 'Create Product' }}
+        </button>
+        <button type="button" 
+                class="btn-secondary"
+                (click)="resetProductForm()"
+                [disabled]="isLoading">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
 
   <!-- Product Creation Section -->
   <section class="management-section" *ngIf="isAdmin && showProductForm && selectedStore">
@@ -224,7 +188,7 @@
           (dragover)="onDragOver($event)"
           [class.drag-over]="isDragOver"
         >
-          <div class="upload-content" *ngIf="!selectedFile && !newProduct.image; else productPreviewTemplate">
+          <div class="upload-content" *ngIf="!selectedFile && !newProduct.imageUrl; else productPreviewTemplate">
             <i class="fas fa-cloud-upload-alt"></i>
             <p>Drag & drop product image here</p>
             <span class="upload-or">or</span>
@@ -234,7 +198,7 @@
 
           <ng-template #productPreviewTemplate>
             <div class="preview-container">
-              <img [src]="newProduct.image || previewUrl" alt="Preview" class="image-preview" />
+              <img [src]="newProduct.imageUrl || previewUrl" alt="Preview" class="image-preview" />
               <div class="preview-actions">
                 <button
                   type="button"
@@ -267,7 +231,7 @@
           <div class="form-group">
             <label for="productName">Product Name</label>
             <input type="text" id="productName" 
-                   [(ngModel)]="newProduct.name" 
+                   [(ngModel)]="newProduct.productName" 
                    name="productName" required>
           </div>
           <div class="form-group">
@@ -281,25 +245,25 @@
           <div class="form-group">
             <label for="productPrice">Price (R)</label>
             <input type="number" id="productPrice" 
-                   [(ngModel)]="newProduct.price" 
+                   [(ngModel)]="newProduct.productPrice" 
                    name="productPrice" step="0.01" required>
           </div>
           <div class="form-group">
             <label for="productStock">Stock Quantity</label>
             <input type="number" id="productStock" 
-                   [(ngModel)]="newProduct.stock" 
+                   [(ngModel)]="newProduct.stockQuantity" 
                    name="productStock" required>
           </div>
         </div>
         <div class="form-group">
           <label for="productDescription">Description</label>
           <textarea id="productDescription" 
-                    [(ngModel)]="newProduct.description" 
+                    [(ngModel)]="newProduct.productDescription" 
                     name="productDescription" required></textarea>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn-primary" [disabled]="!newProduct.image">Create Product</button>
+          <button type="submit" class="btn-primary" [disabled]="!newProduct.imageUrl">Create Product</button>
           <button type="button" class="btn-secondary" (click)="resetProductForm()">Cancel</button>
         </div>
       </form>
@@ -307,7 +271,7 @@
   </section>
 
   <!-- Products List -->
-  <section class="management-section" *ngIf="isAdmin && products.length > 0">
+  <!-- <section class="management-section" *ngIf="isAdmin && products.length > 0">
     <div class="section-header">
       <h2>Products Management</h2>
     </div>
@@ -318,7 +282,7 @@
           <img [src]="product.image || 'assets/default-product.png'" [alt]="product.name">
         </div>
         <div class="product-info">
-          <h4>{{ product.name }}</h4>
+          <h4>{{ p }}</h4>
           <p class="product-description">{{ product.description }}</p>
           <div class="product-details">
             <span class="product-price">R{{ product.price.toFixed(2) }}</span>
@@ -333,7 +297,7 @@
         </div>
       </div>
     </div>
-  </section>
+  </section> -->
 
   <!-- Non-Admin Message -->
   <div *ngIf="!isAdmin" class="access-denied">

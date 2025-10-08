@@ -5,6 +5,11 @@ import { AuthService } from '../../services/authentication-service/auth.service'
 import {Store} from "../../models/store-admin-models/store-admin/Store";
 import { StoreAdminServiceService } from '../../services/store-admin-service/store-admin-service.service';
 import { StoreDTO } from '../../models/store-admin-models/store-admin/StoreDTO';
+import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
+import { ProductService } from '../../services/product-service/product.service';
+import { Product } from '../../models/store-admin-models/product-admin/product';
+
+
 interface Order {
   id: string;
   customer: string;
@@ -13,30 +18,6 @@ interface Order {
   status: 'Completed' | 'Pending' | 'Cancelled';
 }
 
-// interface Store {
-//   id?: string;
-//   name: string;
-//   description: string;
-//   address: string;
-//   contactEmail: string;
-//   contactPhone: string;
-//   businessHours: string;
-//   logo?: string;
-//   createdAt?: Date;
-//   ownerId?: string;
-// }
-
-interface Product {
-  id?: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  image: string;
-  stock: number;
-  storeId?: string;
-  createdAt?: Date;
-}
 
 @Component({
   selector: 'app-store-dashboard',
@@ -82,11 +63,11 @@ export class StoreDashboardComponent implements OnInit {
   products: Product[] = [];
   isLoading: boolean = false;
   errorMessage: string = '';
+  selectedStore: any;
   
   // Forms
   showStoreForm: boolean = false;
   showProductForm: boolean = false;
-  selectedStore: Store | null = null;
   editingStore: Store | null = null;
   
   newStore: Store = {
@@ -102,17 +83,18 @@ export class StoreDashboardComponent implements OnInit {
     updatedAt: new Date()
   };
 
-  newProduct: Product = {
-    name: '',
-    description: '',
-    price: 0,
+  newProduct: CreateProductDTO = {
+    productName: '',
+    productDescription: '',
+    productPrice: 0,
+    stockQuantity: 0,
     category: '',
-    image: '',
-    stock: 0
   };
 
   // Make authService public for template access
-  constructor(public authService: AuthService, private storeAdminService: StoreAdminServiceService) {}
+  constructor(public authService: AuthService, 
+    private storeAdminService: StoreAdminServiceService, 
+    private productService: ProductService) {}
 
   ngOnInit() {
     this.checkAdminStatus();
@@ -129,24 +111,6 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   loadStores() {
-    // if (this.isAdmin) {
-    //   // Mock data - replace with actual API call
-    //   this.stores = [
-    //     {
-    //       id: '1',
-    //       name: 'Main Store',
-    //       description: 'Primary store location',
-    //       address: '123 Main St, City',
-    //       contactEmail: 'store@example.com',
-    //       contactPhone: '+27 11 123 4567',
-    //       businessHours: 'Mon-Fri 9AM-6PM',
-    //       logo: '',
-    //       createdAt: new Date(),
-    //       ownerId: '1'
-    //     }
-    //   ];
-    // }
-
     this.isLoading = true;
     this.errorMessage = '';
 
@@ -167,29 +131,29 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   loadProducts() {
-    if (this.isAdmin && this.stores.length > 0) {
+    if (!this.selectedStore?.storeId) {
       // Mock data - replace with actual API call
-      this.products = [
-        {
-          id: '1',
-          name: 'Sample Product',
-          description: 'A sample product description',
-          price: 299.99,
-          category: 'Electronics',
-          image: '',
-          stock: 50,
-          storeId: '1',
-          createdAt: new Date()
+      this.isLoading = true;
+      this.productService.getStoreProducts(this.selectedStore.storeId).subscribe({
+        next: (products) => {
+          this.products = products;
+          this.isLoading = false;
+        },
+
+        error: (error) => {
+          console.error('Error loading products:', error);
+          this.errorMessage = 'Failed to load products. Please try again later.';
+          this.isLoading = false;
         }
-      ];
+      });
     }
   }
 
   // Helper method to get product count for a store
-  getProductCount(storeId: string | undefined): number {
-    if (!storeId) return 0;
-    return this.products.filter(p => p.storeId === storeId).length;
-  }
+  // getProductCount(storeId: string | undefined): number {
+  //   if (!storeId) return 0;
+  //   return this.products.filter(p => p.id === storeId).length;
+  // }
 
   // File upload methods
   onFileSelected(event: any): void {
@@ -231,22 +195,6 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   uploadFile(): void {
-    // if (this.selectedFile) {
-    //   console.log('Uploading file:', this.selectedFile.name);
-      
-    //   // Simulate upload process
-    //   setTimeout(() => {
-    //     if (this.uploadContext === 'store' && this.editingStore) {
-    //       this.editingStore.logo = this.previewUrl as string;
-    //       alert('Store logo uploaded successfully!');
-    //     } else if (this.uploadContext === 'product') {
-    //       this.newProduct.image = this.previewUrl as string;
-    //       alert('Product image uploaded successfully!');
-    //     }
-    //     this.resetUpload();
-    //   }, 1500);
-    // }
-
     if (this.selectedFile && this.uploadContext === 'store' && this.editingStore?.storeId) {
       this.isLoading = true;
       this.errorMessage = '';
@@ -278,7 +226,7 @@ export class StoreDashboardComponent implements OnInit {
       });
     } else if (this.uploadContext === 'product') {
       // Handle product image upload when product service is implemented
-      this.newProduct.image = this.previewUrl as string;
+      this.newProduct.imageUrl = this.previewUrl as string;
       alert('Product image set successfully!');
       this.resetUpload();
     }
@@ -332,15 +280,6 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   updateStore() {
-    // if (this.isAdmin && this.editingStore) {
-    //   const index = this.stores.findIndex(s => s.id === this.editingStore!.id);
-    //   if (index !== -1) {
-    //     this.stores[index] = { ...this.editingStore };
-    //     this.cancelEditStore();
-    //     alert('Store updated successfully!');
-    //   }
-    // }
-
     if (!this.isAdmin || !this.editingStore?.storeId) return;
     
     this.isLoading = true;
@@ -398,28 +337,46 @@ export class StoreDashboardComponent implements OnInit {
 
   // Product management methods
   createProduct() {
-    if (this.isAdmin && this.selectedStore) {
-      const product: Product = {
-        ...this.newProduct,
-        id: Date.now().toString(),
-        storeId: this.selectedStore.storeId?.toString(),
-        createdAt: new Date()
-      };
-      
-      this.products.push(product);
-      this.resetProductForm();
-      alert('Product created successfully!');
-    }
+    if (!this.selectedStore?.storeId) return;
+
+    this.isLoading = true;
+    this.productService.createProduct(this.selectedStore.storeId, this.newProduct).subscribe({
+      next: (product) => {
+        if (this.selectedFile) {
+          this.uploadFile;
+        } else {
+          this.handleProductCreated();
+        }
+      },
+      error: (error) => {
+        console.error('Error creating product:', error);
+        this.errorMessage = 'Failed to create product';
+        this.isLoading = false;
+      }
+    });
+  }
+
+    private uploadProductImage(productId: number) {
+    if (!this.selectedFile) return;
+
+    this.productService.uploadProductImage(productId, this.selectedFile).subscribe({
+      next: () => this.handleProductCreated(),
+      error: (error) => {
+        console.error('Error uploading image:', error);
+        this.errorMessage = 'Product created but failed to upload image';
+        this.handleProductCreated();
+      }
+    });
   }
 
   resetProductForm() {
     this.newProduct = {
-      name: '',
-      description: '',
-      price: 0,
+      productName: '',
+      productDescription: '',
+      productPrice: 0,
       category: '',
-      image: '',
-      stock: 0
+      imageUrl: '',
+      stockQuantity: 0
     };
     this.showProductForm = false;
     this.resetUpload();
@@ -438,11 +395,6 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   deleteStore(store: Store) {
-    // if (confirm(`Are you sure you want to delete ${store.name}?`)) {
-    //   this.stores = this.stores.filter(s => s.id !== store.id);
-    //   this.products = this.products.filter(p => p.storeId !== store.id);
-    // }
-
     if (!confirm(`Are you sure you want to delete ${store.storeName}?`)) return;
     if (!store.storeId) return;
     
@@ -454,7 +406,7 @@ export class StoreDashboardComponent implements OnInit {
     this.storeAdminService.deleteStore(storeId).subscribe({
       next: () => {
         this.stores = this.stores.filter(s => s.storeId !== store.storeId);
-        this.products = this.products.filter(p => p.storeId !== store.storeId?.toString());
+        this.products = this.products.filter(p => p.stores?.storeId !== store.storeId);
         alert('Store deleted successfully!');
         this.isLoading = false;
       },
@@ -466,9 +418,28 @@ export class StoreDashboardComponent implements OnInit {
     });
   }
 
-  deleteProduct(product: Product) {
-    if (confirm(`Are you sure you want to delete ${product.name}?`)) {
-      this.products = this.products.filter(p => p.id !== product.id);
-    }
+  deleteProduct(productId: number) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    this.isLoading = true;
+    this.productService.deleteProduct(productId).subscribe({
+      next: () => {
+        this.products = this.products.filter(p => p.productId !== productId);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error deleting product:', error);
+        this.errorMessage = 'Failed to delete product';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // Handle actions after product creation
+  handleProductCreated(): void {
+    this.loadProducts();
+    this.resetProductForm();
+    alert('Product created successfully!');
+    this.isLoading = false;
   }
 }
