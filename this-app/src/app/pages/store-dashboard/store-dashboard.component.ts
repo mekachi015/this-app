@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/authentication-service/auth.service';
-
+import {Store} from "../../models/store-admin-models/store-admin/Store";
+import { StoreAdminServiceService } from '../../services/store-admin-service/store-admin-service.service';
+import { StoreDTO } from '../../models/store-admin-models/store-admin/StoreDTO';
 interface Order {
   id: string;
   customer: string;
@@ -11,18 +13,18 @@ interface Order {
   status: 'Completed' | 'Pending' | 'Cancelled';
 }
 
-interface Store {
-  id?: string;
-  name: string;
-  description: string;
-  address: string;
-  contactEmail: string;
-  contactPhone: string;
-  businessHours: string;
-  logo?: string;
-  createdAt?: Date;
-  ownerId?: string;
-}
+// interface Store {
+//   id?: string;
+//   name: string;
+//   description: string;
+//   address: string;
+//   contactEmail: string;
+//   contactPhone: string;
+//   businessHours: string;
+//   logo?: string;
+//   createdAt?: Date;
+//   ownerId?: string;
+// }
 
 interface Product {
   id?: string;
@@ -78,6 +80,8 @@ export class StoreDashboardComponent implements OnInit {
   isAdmin: boolean = false;
   stores: Store[] = [];
   products: Product[] = [];
+  isLoading: boolean = false;
+  errorMessage: string = '';
   
   // Forms
   showStoreForm: boolean = false;
@@ -86,12 +90,16 @@ export class StoreDashboardComponent implements OnInit {
   editingStore: Store | null = null;
   
   newStore: Store = {
-    name: '',
-    description: '',
-    address: '',
-    contactEmail: '',
-    contactPhone: '',
-    businessHours: ''
+    ownerId: '',
+    storeName: '',
+    storeDescription: '',
+    storeAddress: '',
+    storeEmail: '',
+    storePhoneNumber: '',
+    storeBusinessHours: '',
+    storeLogo: '',
+    createdAt: new Date(),
+    updatedAt: new Date()
   };
 
   newProduct: Product = {
@@ -104,11 +112,14 @@ export class StoreDashboardComponent implements OnInit {
   };
 
   // Make authService public for template access
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService, private storeAdminService: StoreAdminServiceService) {}
 
   ngOnInit() {
     this.checkAdminStatus();
-    this.loadStores();
+     if (!this.isAdmin) {
+      this.errorMessage = 'Access denied. Admin privileges required.';
+      return;
+    }
     this.loadProducts();
   }
 
@@ -118,23 +129,41 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   loadStores() {
-    if (this.isAdmin) {
-      // Mock data - replace with actual API call
-      this.stores = [
-        {
-          id: '1',
-          name: 'Main Store',
-          description: 'Primary store location',
-          address: '123 Main St, City',
-          contactEmail: 'store@example.com',
-          contactPhone: '+27 11 123 4567',
-          businessHours: 'Mon-Fri 9AM-6PM',
-          logo: '',
-          createdAt: new Date(),
-          ownerId: '1'
-        }
-      ];
-    }
+    // if (this.isAdmin) {
+    //   // Mock data - replace with actual API call
+    //   this.stores = [
+    //     {
+    //       id: '1',
+    //       name: 'Main Store',
+    //       description: 'Primary store location',
+    //       address: '123 Main St, City',
+    //       contactEmail: 'store@example.com',
+    //       contactPhone: '+27 11 123 4567',
+    //       businessHours: 'Mon-Fri 9AM-6PM',
+    //       logo: '',
+    //       createdAt: new Date(),
+    //       ownerId: '1'
+    //     }
+    //   ];
+    // }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.storeAdminService.getAllStores().subscribe({
+      next:(backendStores) => {
+        this.stores = backendStores.map(store => 
+          this.storeAdminService.toComponentStore(store)
+        );
+        this.isLoading = false;
+        this.loadProducts();
+      },
+      error : (error) => {
+        console.error('Error fetching stores:', error);
+        this.errorMessage = 'Failed to load stores. Please try again later.';
+        this.isLoading = false;
+      }
+    });
   }
 
   loadProducts() {
@@ -202,20 +231,56 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   uploadFile(): void {
-    if (this.selectedFile) {
-      console.log('Uploading file:', this.selectedFile.name);
+    // if (this.selectedFile) {
+    //   console.log('Uploading file:', this.selectedFile.name);
       
-      // Simulate upload process
-      setTimeout(() => {
-        if (this.uploadContext === 'store' && this.editingStore) {
-          this.editingStore.logo = this.previewUrl as string;
+    //   // Simulate upload process
+    //   setTimeout(() => {
+    //     if (this.uploadContext === 'store' && this.editingStore) {
+    //       this.editingStore.logo = this.previewUrl as string;
+    //       alert('Store logo uploaded successfully!');
+    //     } else if (this.uploadContext === 'product') {
+    //       this.newProduct.image = this.previewUrl as string;
+    //       alert('Product image uploaded successfully!');
+    //     }
+    //     this.resetUpload();
+    //   }, 1500);
+    // }
+
+    if (this.selectedFile && this.uploadContext === 'store' && this.editingStore?.storeId) {
+      this.isLoading = true;
+      this.errorMessage = '';
+      
+      const storeId = typeof this.editingStore.storeId === 'string' 
+    ? parseInt(this.editingStore.storeId) 
+    : this.editingStore.storeId;
+
+    if (isNaN(storeId)) {
+    this.errorMessage = 'Invalid store ID';
+    return;
+  }
+      
+      this.storeAdminService.uploadStoreLogo(storeId, this.selectedFile).subscribe({
+        next: (logoUrl) => {
+          if (this.editingStore) {
+            this.editingStore.storeLogo = logoUrl;
+          }
           alert('Store logo uploaded successfully!');
-        } else if (this.uploadContext === 'product') {
-          this.newProduct.image = this.previewUrl as string;
-          alert('Product image uploaded successfully!');
+          this.resetUpload();
+          this.loadStores(); // Reload to get updated data
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error uploading logo:', error);
+          this.errorMessage = 'Failed to upload logo. Please try again.';
+          this.isLoading = false;
         }
-        this.resetUpload();
-      }, 1500);
+      });
+    } else if (this.uploadContext === 'product') {
+      // Handle product image upload when product service is implemented
+      this.newProduct.image = this.previewUrl as string;
+      alert('Product image set successfully!');
+      this.resetUpload();
     }
   }
 
@@ -227,29 +292,79 @@ export class StoreDashboardComponent implements OnInit {
 
   // Store management methods
   createStore() {
-    if (this.isAdmin) {
-      const store: Store = {
-        ...this.newStore,
-        id: Date.now().toString(),
-        createdAt: new Date(),
-        ownerId: this.authService.currentUserValue?.id
-      };
-      
-      this.stores.push(store);
-      this.resetStoreForm();
-      alert('Store created successfully!');
+    if (!this.authService.isLoggedIn()) {
+      this.errorMessage = 'Please log in to create a store.';
+      return;
     }
+
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser || !currentUser.id) {
+      this.errorMessage = 'User information not found.';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const storeData = {
+      ...this.newStore,
+      ownerId: currentUser.id
+    };
+
+    console.log('Creating store with data:', storeData);
+
+    this.storeAdminService.createStore(storeData).subscribe({
+      next: (response) => {
+        console.log('Store created successfully:', response);
+        this.stores.push(this.storeAdminService.toComponentStore(response));
+        this.showStoreForm = false;
+        this.resetStoreForm();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error creating store:', error);
+        this.errorMessage = error.error?.message || 'Failed to create store. Please check your permissions.';
+        this.isLoading = false;
+      }
+    });
+
+    console.log('Creating store with data:', this.newStore);
   }
 
   updateStore() {
-    if (this.isAdmin && this.editingStore) {
-      const index = this.stores.findIndex(s => s.id === this.editingStore!.id);
-      if (index !== -1) {
-        this.stores[index] = { ...this.editingStore };
+    // if (this.isAdmin && this.editingStore) {
+    //   const index = this.stores.findIndex(s => s.id === this.editingStore!.id);
+    //   if (index !== -1) {
+    //     this.stores[index] = { ...this.editingStore };
+    //     this.cancelEditStore();
+    //     alert('Store updated successfully!');
+    //   }
+    // }
+
+    if (!this.isAdmin || !this.editingStore?.storeId) return;
+    
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    const storeId = parseInt(this.editingStore.storeId.toString());
+    const storeDTO: StoreDTO = this.storeAdminService.toStoreDTO(this.editingStore);
+    
+    this.storeAdminService.updateStore(storeId, storeDTO).subscribe({
+      next: (updatedStore) => {
+        const index = this.stores.findIndex(s => s.storeId === this.editingStore!.storeId);
+        if (index !== -1) {
+          this.stores[index] = this.storeAdminService.toComponentStore(updatedStore);
+        }
         this.cancelEditStore();
         alert('Store updated successfully!');
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error updating store:', error);
+        this.errorMessage = 'Failed to update store. Please try again.';
+        this.isLoading = false;
       }
-    }
+    });
   }
 
   editStore(store: Store) {
@@ -264,15 +379,21 @@ export class StoreDashboardComponent implements OnInit {
 
   resetStoreForm() {
     this.newStore = {
-      name: '',
-      description: '',
-      address: '',
-      contactEmail: '',
-      contactPhone: '',
-      businessHours: ''
+    ownerId: '',
+    storeName: '',
+    storeDescription: '',
+    storeAddress: '',
+    storeEmail: '',
+    storePhoneNumber: '',
+    storeBusinessHours: '',
+    storeLogo: '',
+    createdAt: new Date(),
+    updatedAt: new Date()
     };
+
     this.showStoreForm = false;
     this.editingStore = null;
+    this.errorMessage = '';
   }
 
   // Product management methods
@@ -281,7 +402,7 @@ export class StoreDashboardComponent implements OnInit {
       const product: Product = {
         ...this.newProduct,
         id: Date.now().toString(),
-        storeId: this.selectedStore.id,
+        storeId: this.selectedStore.storeId?.toString(),
         createdAt: new Date()
       };
       
@@ -317,10 +438,32 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   deleteStore(store: Store) {
-    if (confirm(`Are you sure you want to delete ${store.name}?`)) {
-      this.stores = this.stores.filter(s => s.id !== store.id);
-      this.products = this.products.filter(p => p.storeId !== store.id);
-    }
+    // if (confirm(`Are you sure you want to delete ${store.name}?`)) {
+    //   this.stores = this.stores.filter(s => s.id !== store.id);
+    //   this.products = this.products.filter(p => p.storeId !== store.id);
+    // }
+
+    if (!confirm(`Are you sure you want to delete ${store.storeName}?`)) return;
+    if (!store.storeId) return;
+    
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    const storeId = parseInt(store.storeId?.toString());
+    
+    this.storeAdminService.deleteStore(storeId).subscribe({
+      next: () => {
+        this.stores = this.stores.filter(s => s.storeId !== store.storeId);
+        this.products = this.products.filter(p => p.storeId !== store.storeId?.toString());
+        alert('Store deleted successfully!');
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error deleting store:', error);
+        this.errorMessage = 'Failed to delete store. Please try again.';
+        this.isLoading = false;
+      }
+    });
   }
 
   deleteProduct(product: Product) {

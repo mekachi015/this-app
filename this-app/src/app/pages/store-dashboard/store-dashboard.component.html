@@ -1,4 +1,17 @@
 <div class="dashboard-container">
+  <!-- Loading Indicator -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    <span>{{ errorMessage }}</span>
+    <button (click)="errorMessage = ''">&times;</button>
+  </div>
+
   <!-- Header Section -->
   <header class="dashboard-header">
     <div class="header-content">
@@ -47,7 +60,7 @@
           (dragover)="onDragOver($event)"
           [class.drag-over]="isDragOver"
         >
-          <div class="upload-content" *ngIf="!selectedFile && !editingStore?.logo; else previewTemplate">
+          <div class="upload-content" *ngIf="!selectedFile && !editingStore?.storeLogo; else previewTemplate">
             <i class="fas fa-cloud-upload-alt"></i>
             <p>Drag & drop store logo here</p>
             <span class="upload-or">or</span>
@@ -57,7 +70,7 @@
 
           <ng-template #previewTemplate>
             <div class="preview-container">
-              <img [src]="editingStore?.logo || previewUrl" alt="Preview" class="image-preview" />
+              <img [src]="editingStore?.storeLogo || previewUrl" alt="Preview" class="image-preview" />
               <div class="preview-actions">
                 <button
                   type="button"
@@ -80,8 +93,10 @@
         </div>
 
         <div class="upload-actions" *ngIf="selectedFile">
-          <button class="upload-btn" (click)="uploadFile()">Upload Logo</button>
-          <button class="cancel-btn" (click)="resetUpload()">Cancel</button>
+          <button class="upload-btn" (click)="uploadFile()" [disabled]="isLoading">
+            {{ isLoading ? 'Uploading...' : 'Upload Logo' }}
+          </button>
+          <button class="cancel-btn" (click)="resetUpload()" [disabled]="isLoading">Cancel</button>
         </div>
       </div>
 
@@ -89,52 +104,52 @@
         <div class="form-group">
           <label for="storeName">Store Name</label>
           <input type="text" id="storeName" 
-                 [ngModel]="editingStore ? editingStore.name : newStore.name" 
-                 (ngModelChange)="editingStore ? editingStore.name = $event : newStore.name = $event"
+                 [ngModel]="editingStore ? editingStore.storeName : newStore.storeName" 
+                 (ngModelChange)="editingStore ? editingStore.storeName = $event : newStore.storeName = $event"
                  name="storeName" required>
         </div>
         <div class="form-group">
           <label for="storeDescription">Description</label>
           <textarea id="storeDescription" 
-                    [ngModel]="editingStore ? editingStore.description : newStore.description" 
-                    (ngModelChange)="editingStore ? editingStore.description = $event : newStore.description = $event"
+                    [ngModel]="editingStore ? editingStore.storeDescription : newStore.storeDescription" 
+                    (ngModelChange)="editingStore ? editingStore.storeDescription = $event : newStore.storeDescription = $event"
                     name="storeDescription" required></textarea>
         </div>
         <div class="form-group">
           <label for="storeAddress">Address</label>
           <input type="text" id="storeAddress" 
-                 [ngModel]="editingStore ? editingStore.address : newStore.address" 
-                 (ngModelChange)="editingStore ? editingStore.address = $event : newStore.address = $event"
+                 [ngModel]="editingStore ? editingStore.storeAddress : newStore.storeAddress" 
+                 (ngModelChange)="editingStore ? editingStore.storeAddress = $event : newStore.storeAddress = $event"
                  name="storeAddress" required>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="storeEmail">Contact Email</label>
             <input type="email" id="storeEmail" 
-                   [ngModel]="editingStore ? editingStore.contactEmail : newStore.contactEmail" 
-                   (ngModelChange)="editingStore ? editingStore.contactEmail = $event : newStore.contactEmail = $event"
+                   [ngModel]="editingStore ? editingStore.storeEmail : newStore.storeEmail" 
+                   (ngModelChange)="editingStore ? editingStore.storeEmail = $event : newStore.storeEmail = $event"
                    name="storeEmail" required>
           </div>
           <div class="form-group">
             <label for="storePhone">Contact Phone</label>
             <input type="tel" id="storePhone" 
-                   [ngModel]="editingStore ? editingStore.contactPhone : newStore.contactPhone" 
-                   (ngModelChange)="editingStore ? editingStore.contactPhone = $event : newStore.contactPhone = $event"
+                   [ngModel]="editingStore ? editingStore.storePhoneNumber : newStore.storePhoneNumber" 
+                   (ngModelChange)="editingStore ? editingStore.storePhoneNumber = $event : newStore.storePhoneNumber = $event"
                    name="storePhone" required>
           </div>
         </div>
         <div class="form-group">
           <label for="businessHours">Business Hours</label>
           <input type="text" id="businessHours" 
-                 [ngModel]="editingStore ? editingStore.businessHours : newStore.businessHours" 
-                 (ngModelChange)="editingStore ? editingStore.businessHours = $event : newStore.businessHours = $event"
+                 [ngModel]="editingStore ? editingStore.storeBusinessHours : newStore.storeBusinessHours" 
+                 (ngModelChange)="editingStore ? editingStore.storeBusinessHours = $event : newStore.storeBusinessHours = $event"
                  name="businessHours" placeholder="e.g., Mon-Fri 9AM-6PM">
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-primary">
-            {{ editingStore ? 'Update Store' : 'Create Store' }}
+          <button type="submit" class="btn-primary" [disabled]="isLoading">
+            {{ isLoading ? 'Processing...' : (editingStore ? 'Update Store' : 'Create Store') }}
           </button>
-          <button type="button" class="btn-secondary" (click)="cancelEditStore()">Cancel</button>
+          <button type="button" class="btn-secondary" (click)="cancelEditStore()" [disabled]="isLoading">Cancel</button>
         </div>
       </form>
     </div>
@@ -143,10 +158,10 @@
     <div class="stores-grid" *ngIf="stores.length > 0 && !showStoreForm">
       <div class="store-card" *ngFor="let store of stores">
         <div class="store-header">
-          <div class="store-logo" *ngIf="store.logo">
-            <img [src]="store.logo" [alt]="store.name">
+          <div class="store-logo" *ngIf="store.storeLogo">
+            <img [src]="store.storeLogo" [alt]="store.storeName">
           </div>
-          <h4>{{ store.name }}</h4>
+          <h4>{{ store.storeName }}</h4>
           <div class="store-actions">
             <button class="btn-success" (click)="selectStoreForProduct(store)">
               <i class="fas fa-plus"></i> Add Product
@@ -154,21 +169,21 @@
             <button class="btn-warning" (click)="editStore(store)">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="btn-danger" (click)="deleteStore(store)">
+            <button class="btn-danger" (click)="deleteStore(store)" [disabled]="isLoading">
               <i class="fas fa-trash"></i>
             </button>
           </div>
         </div>
-        <p class="store-description">{{ store.description }}</p>
+        <p class="store-description">{{ store.storeDescription }}</p>
         <div class="store-details">
-          <p><i class="fas fa-map-marker-alt"></i> {{ store.address }}</p>
-          <p><i class="fas fa-envelope"></i> {{ store.contactEmail }}</p>
-          <p><i class="fas fa-phone"></i> {{ store.contactPhone }}</p>
-          <p><i class="fas fa-clock"></i> {{ store.businessHours }}</p>
+          <p><i class="fas fa-map-marker-alt"></i> {{ store.storeAddress }}</p>
+          <p><i class="fas fa-envelope"></i> {{ store.storeEmail }}</p>
+          <p><i class="fas fa-phone"></i> {{ store.storePhoneNumber }}</p>
+          <p><i class="fas fa-clock"></i> {{ store.storeBusinessHours }}</p>
         </div>
         <div class="store-stats">
           <span class="product-count">
-            {{ getProductCount(store.id) }} products
+            {{ getProductCount(store.storeId?.toString()) }} products
           </span>
           <button class="btn-outline" (click)="openStoreLogoUpload(store)">
             <i class="fas fa-camera"></i> Upload Logo
@@ -178,7 +193,7 @@
     </div>
 
     <!-- Empty State -->
-    <div class="empty-state" *ngIf="stores.length === 0 && !showStoreForm">
+    <div class="empty-state" *ngIf="stores.length === 0 && !showStoreForm && !isLoading">
       <i class="fas fa-store"></i>
       <h3>No Stores Created</h3>
       <p>Create your first store to start adding products</p>
@@ -191,7 +206,7 @@
   <!-- Product Creation Section -->
   <section class="management-section" *ngIf="isAdmin && showProductForm && selectedStore">
     <div class="section-header">
-      <h2>Add Product to {{ selectedStore?.name }}</h2>
+      <h2>Add Product to {{ selectedStore?.storeName }}</h2>
       <button class="close-btn" (click)="resetProductForm()">&times;</button>
     </div>
 
@@ -368,7 +383,7 @@
       </div>
       <div class="stat-info">
         <h3>Products</h3>
-        <p class="stat-value">89</p>
+        <p class="stat-value">{{ products.length }}</p>
         <p class="stat-change neutral">0% <span>vs last week</span></p>
       </div>
     </div>
