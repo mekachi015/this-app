@@ -2,9 +2,7 @@ package com.example.This_App_Backend.entity;
 
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,12 +13,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Store_Owners {
 
    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "owner_id")
-    private Integer ownerId;
+    private Long ownerId;
 
     @OneToOne
     @JoinColumn(name = "user_id", unique = true, nullable = false)
@@ -55,4 +55,8 @@ public class Store_Owners {
         this.updatedAt = LocalDateTime.now();
     }
 
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
 }
