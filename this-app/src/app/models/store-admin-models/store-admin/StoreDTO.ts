@@ -1,4 +1,5 @@
 export interface StoreDTO {
+  storeId?: number;
   storeName: string;
   storeDescription: string;
   storeAddress: string;

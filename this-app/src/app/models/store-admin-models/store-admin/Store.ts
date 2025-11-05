@@ -1,5 +1,5 @@
 export interface Store {
-  storeId?: string | number;
+  storeId?: number;
   storeName: string;
   storeDescription: string;
   storeAddress: string;

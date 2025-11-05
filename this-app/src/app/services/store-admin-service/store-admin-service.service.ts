@@ -83,16 +83,30 @@ export class StoreAdminServiceService {
     });
   }
 
+   // Get all stores for logged-in user
+  getUserStores(): Observable<Store[]> {
+    const headers = this.getAuthenticatedHeaders();
+    return this.http.get<Store[]>(`${this.apiUrl}/my-stores`, {
+      headers,
+      withCredentials: true
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching user stores:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   //Helper method to convert component store model to storeDto
   toStoreDTO(store: any): StoreDTO {
-    return{
-      storeName: store.name,
-      storeDescription: store.description,
-      storeAddress: store.address,
-      storeEmail: store.contactEmail,
-      storePhoneNumber: store.contactPhone,
-      storeBusinessHours: store.businessHours
-    };
+     return {
+    storeName: store.storeName,
+    storeDescription: store.storeDescription, 
+    storeAddress: store.storeAddress,
+    storeEmail: store.storeEmail,
+    storePhoneNumber: store.storePhoneNumber,
+    storeBusinessHours: store.storeBusinessHours
+  };
   }
 
   toComponentStore(backendStore: Store): any{
