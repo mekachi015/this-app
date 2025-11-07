@@ -2,6 +2,7 @@ package com.example.This_App_Backend.dto.StoresDTO;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -16,5 +17,7 @@ public class StoreDTO {
     private String storeBusinessHours;
     private String storeLogo;
     private Long ownerId;
+
+    private transient MultipartFile storeLogoFile;
 
 }

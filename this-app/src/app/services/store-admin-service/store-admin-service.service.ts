@@ -36,6 +36,32 @@ export class StoreAdminServiceService {
     );
   }
 
+  createStoreWithLogo(storeDto: StoreDTO, logoFile: File): Observable<Store>{
+    const formData = new FormData();
+
+    formData.append('storeData', new Blob([JSON.stringify(storeDto)],
+     {type : 'application/json'}));
+
+     if (logoFile){
+      formData.append('logo', logoFile);
+     }
+     
+     const token = this.authService.token;
+     const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+     });
+
+    return this.http.post<Store>(this.apiUrl, formData, { 
+    headers,
+    withCredentials: true 
+  }).pipe(
+    catchError(error => {
+      console.error('Store creation error:', error);
+      return throwError(() => error);
+    })
+  );
+  }
+
    updateStore(id: number, storeDto: StoreDTO): Observable<Store> {
     const headers = this.authService.getAuthHeaders();
     return this.http.put<Store>(`${this.apiUrl}/${id}`, storeDto, { 
@@ -86,16 +112,24 @@ export class StoreAdminServiceService {
    // Get all stores for logged-in user
   getUserStores(): Observable<Store[]> {
     const headers = this.getAuthenticatedHeaders();
-    return this.http.get<Store[]>(`${this.apiUrl}/my-stores`, {
-      headers,
-      withCredentials: true
-    }).pipe(
-      catchError(error => {
-        console.error('Error fetching user stores:', error);
-        return throwError(() => error);
-      })
-    );
+  return this.http.get<Store[]>(`${this.apiUrl}/my-stores`, {
+    headers,
+    withCredentials: true
+  }).pipe(
+    catchError(error => {
+      console.error('Error fetching user stores:', error);
+      return throwError(() => error);
+    })
+  );
   }
+
+  getStoresByUserId(userId: number): Observable<Store[]> {
+  const headers = this.getAuthenticatedHeaders();
+  return this.http.get<Store[]>(`${this.apiUrl}/my-stores/${userId}`, {
+    headers,
+    withCredentials: true
+  });
+}
 
   //Helper method to convert component store model to storeDto
   toStoreDTO(store: any): StoreDTO {
@@ -105,7 +139,8 @@ export class StoreAdminServiceService {
     storeAddress: store.storeAddress,
     storeEmail: store.storeEmail,
     storePhoneNumber: store.storePhoneNumber,
-    storeBusinessHours: store.storeBusinessHours
+    storeBusinessHours: store.storeBusinessHours,
+    ownwerId: store.ownerId
   };
   }
 
@@ -120,7 +155,7 @@ export class StoreAdminServiceService {
       businessHours: backendStore.storeBusinessHours,
       logo: backendStore.storeLogo,
       createdAt: new Date(backendStore.createdAt),
-      ownerId: null // This would come from storeOwner if needed
+      ownerId: backendStore.ownerId // This would come from storeOwner if needed
     };
   }
 

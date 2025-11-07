@@ -41,36 +41,39 @@
       </button>
     </div>
 
-   <!-- Stores Grid -->
-  <div class="stores-grid" *ngIf="stores.length > 0">
-    <div class="store-card" *ngFor="let store of stores">
-      <div class="store-logo">
-        <img [src]="store.storeLogo || 'assets/default-store.png'" [alt]="store.storeName">
+  
+  <!-- Stores Grid -->
+<div class="stores-grid" *ngIf="stores.length > 0">
+  <div class="store-card" *ngFor="let store of stores" 
+       [class.selected]="selectedStore?.storeId === store.storeId"
+       (click)="onStoreSelected(store)">
+    <div class="store-logo">
+      <img [src]="store.storeLogo || 'assets/default-store.png'" [alt]="store.storeName">
+    </div>
+    <div class="store-info">
+      <h4>{{ store.storeName }}</h4>
+      <p>{{ store.storeDescription }}</p>
+      <div class="store-details">
+        <span><i class="fas fa-map-marker-alt"></i> {{ store.storeAddress }}</span>
+        <span><i class="fas fa-envelope"></i> {{ store.storeEmail }}</span>
+        <span><i class="fas fa-phone"></i> {{ store.storePhoneNumber }}</span>
+        <span><i class="fas fa-clock"></i> {{ store.storeBusinessHours }}</span>
       </div>
-      <div class="store-info">
-        <h4>{{ store.storeName }}</h4>
-        <p>{{ store.storeDescription }}</p>
-        <div class="store-details">
-          <span><i class="fas fa-map-marker-alt"></i> {{ store.storeAddress }}</span>
-          <span><i class="fas fa-envelope"></i> {{ store.storeEmail }}</span>
-          <span><i class="fas fa-phone"></i> {{ store.storePhoneNumber }}</span>
-          <span><i class="fas fa-clock"></i> {{ store.storeBusinessHours }}</span>
-        </div>
-        <div class="store-actions">
-          <button class="btn-warning" (click)="editStore(store)">
-            <i class="fas fa-edit"></i> Edit
-          </button>
-          <button class="btn-primary" (click)="selectStoreForProduct(store)">
-            <i class="fas fa-box"></i> Manage Products
-          </button>
-          <button class="btn-danger" (click)="deleteStore(+store.storeId!)">
-            <i class="fas fa-trash"></i> Delete
-          </button>
-        </div>
+      <div class="store-actions">
+        <button class="btn-warning" (click)="editStore(store); $event.stopPropagation()">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button class="btn-primary" (click)="selectStoreForProduct(store); $event.stopPropagation()">
+          <i class="fas fa-box"></i> Manage Products
+        </button>
+        <button class="btn-danger" (click)="deleteStore(+store.storeId!); $event.stopPropagation()">
+          <i class="fas fa-trash"></i> Delete
+        </button>
       </div>
     </div>
   </div>
-  
+</div>
+
     <!-- Empty State -->
     <div class="empty-state" *ngIf="stores.length === 0 && !showStoreForm">
       <i class="fas fa-store"></i>
@@ -160,10 +163,12 @@
   </section>
   <!-- Product Creation Section -->
   <section class="management-section" *ngIf="isAdmin && showProductForm && selectedStore">
-    <div class="section-header">
-      <h2>Add Product to {{ selectedStore?.storeName || '' }}</h2>
-      <button class="close-btn" (click)="resetProductForm()">&times;</button>
-    </div>
+   <div class="section-header">
+    <h2>Products for {{ selectedStore.storeName }}</h2>
+    <button class="btn-primary" (click)="showProductForm = true" *ngIf="!showProductForm">
+      <i class="fas fa-plus"></i> Add New Product
+    </button>
+  </div>
 
     <div class="form-card">
       <!-- Product Image Upload -->
@@ -259,6 +264,15 @@
         </div>
       </form>
     </div>
+
+    <div class="empty-state" *ngIf="products.length === 0 && !showProductForm">
+    <i class="fas fa-box-open"></i>
+    <h3>No Products Added</h3>
+    <p>Start by adding products to {{ selectedStore.storeName }}</p>
+    <button class="btn-primary" (click)="showProductForm = true">
+      Add Your First Product
+    </button>
+  </div>
   </section>
 
   <!-- Products List -->

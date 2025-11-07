@@ -62,12 +62,13 @@ export class StoreDashboardComponent implements OnInit {
   storeEmail: '',
   storePhoneNumber: '',
   storeBusinessHours: '',
-  storeLogo: ''
+  storeLogo: '',
+  ownerId: null
   };
 
   // Default models
   newStore: Store = {
-    ownerId: '',
+    ownerId: undefined,
     storeName: '',
     storeDescription: '',
     storeAddress: '',
@@ -134,28 +135,44 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   createStore(): void {
-    this.isLoading = true;
-    const storeDto: StoreDTO = this.storeAdminService.toStoreDTO(this.storeModel);
-
-    this.storeAdminService.createStore(storeDto).subscribe({
-      next: (store) => {
-        this.stores.push(store);
-        this.resetStoreForm();
-        this.isLoading = false;
-        alert('Store created successfully!');
-      },
-      error: () => {
-        this.errorMessage = 'Failed to create store. Please try again.';
-        this.isLoading = false;
-      }
-    });
-    console.log('Creating store with data:', storeDto);
+    this.createStoreWithLogo();
   }
+
+  createStoreWithLogo(): void {
+  if (!this.storeModel.storeName) {
+    this.errorMessage = 'Store name is required';
+    return;
+  }
+
+  this.isLoading = true;
+
+   const logoFile = this.selectedFile || new File([""], "empty.png", { type: "image/png" });
+
+  // Use the simple method that takes individual form fields
+  this.storeAdminService.createStoreWithLogo(
+    this.storeModel, 
+    logoFile
+  ).subscribe({
+    next: (store) => {
+      this.stores.push(store);
+      this.resetStoreForm();
+      this.isLoading = false;
+      alert('Store created successfully!');
+      this.loadStores(); // Reload stores list
+    },
+    error: (error) => {
+      this.errorMessage = 'Failed to create store: ' + error.message;
+      this.isLoading = false;
+    }
+  });
+}
+
 
   editStore(store: Store): void {
     this.editingStore = store;
     this.storeModel = this.storeAdminService.toComponentStore(store);
     this.showStoreForm = true;
+    this.uploadContext = 'store';
   }
 
   updateStore(): void {
@@ -205,6 +222,12 @@ export class StoreDashboardComponent implements OnInit {
     };
     this.editingStore = null;
     this.showStoreForm = false;
+  }
+
+  // Add method to handle store selection
+  onStoreSelected(store: Store): void {
+    this.selectedStore = store;
+    this.loadProducts();
   }
 
   // ---------------------- Product Management ----------------------

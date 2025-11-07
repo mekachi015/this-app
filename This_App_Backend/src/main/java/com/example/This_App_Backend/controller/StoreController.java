@@ -8,6 +8,7 @@ import jakarta.annotation.security.PermitAll;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -33,13 +34,21 @@ public class StoreController {
      * Create a new store (Authenticated users only)
      * POST /api/stores
      */
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createStore(
-            @RequestBody StoreDTO storeDTO,
+            @RequestPart("storeData") StoreDTO storeDTO,
+            @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
             Authentication authentication) {
         try {
             String username = authentication.getName();
-            Stores store = storeService.createStore(storeDTO, username);
+            Stores store;
+
+            if (logoFile != null && !logoFile.isEmpty()) {
+                store = storeService.createStore(storeDTO, username, logoFile);
+            } else {
+                store = storeService.createStore(storeDTO, username, null);
+            }
+
             StoreDTO responseDTO = storeService.convertToDTO(store);
             return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
         } catch (Exception e) {
@@ -69,7 +78,7 @@ public class StoreController {
 
     /**
      * Get a specific store owned by the logged-in user
-     * GET /api/stores/my-stores/{id}
+     * GET /api/stores/my-stores/{id} - owner id
      */
     @GetMapping("/my-stores/{userId}")
     public ResponseEntity<?> getStoresByUserId(@PathVariable Integer userId) {

@@ -9,5 +9,5 @@ export interface Store {
   storeLogo?: string;
   createdAt: Date;
   updatedAt: Date;
-  ownerId?: string;
+  ownerId?: number;
 }

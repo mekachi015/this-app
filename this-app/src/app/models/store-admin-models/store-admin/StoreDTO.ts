@@ -6,4 +6,6 @@ export interface StoreDTO {
   storeEmail: string;
   storePhoneNumber: string;
   storeBusinessHours: string;
+  storeLogo?: string;
+  ownwerId?: number;
 }
