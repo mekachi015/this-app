@@ -86,9 +86,9 @@ export class StoreAdminServiceService {
     });
   }
 
-  getStoreById(id: number): Observable<Store> {
+  getStoreById(storeId: number): Observable<Store> {
     const headers = this.authService.getAuthHeaders();
-    return this.http.get<Store>(`${this.apiUrl}/${id}`, { 
+    return this.http.get<Store>(`${this.apiUrl}/${storeId}`, { 
       headers,
       withCredentials: true 
     });

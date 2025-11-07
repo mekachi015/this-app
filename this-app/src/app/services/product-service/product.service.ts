@@ -23,6 +23,18 @@ export class ProductService {
   });
   }
 
+  //Create a product with image using multipart form data
+  createProductWithImage(storeId: number, formData: FormData): Observable<Product>{
+    const headers = this.authService.getAuthHeaders();
+
+    headers.delete('Content-Type'); // Let browser set the content type for file upload
+
+    return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, formData, {
+      headers,
+      withCredentials: true
+    });
+  }
+
   getStoreProducts(storeId: number): Observable<Product[]> {
     const headers = this.authService.getAuthHeaders();
     return this.http.get<Product[]>(`${this.apiUrl}/store/${storeId}`, { 

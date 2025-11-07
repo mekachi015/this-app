@@ -11,6 +11,7 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { WishlistPageComponent } from './pages/wishlist-page/wishlist-page.component';
 import { DriverComponentComponent } from './pages/driver-component/driver-component.component';
 import { NewAuthComponent } from './components/auth/new-auth/new-auth.component';
+import { ProductManagementComponent } from './pages/product-management/product-management.component';
 
 export const routes: Routes = [
   { path: '', component: AuthenticationPageComponent },
@@ -29,6 +30,7 @@ export const routes: Routes = [
   { path: 'driver', component: DriverComponentComponent },
   { path: 'new', component: NewAuthComponent },
   { path: '**', redirectTo: 'stores', pathMatch: 'full' }, // Wildcard route should be last
+  { path: 'product-management', component: ProductManagementComponent}
 ];
 
 @NgModule({

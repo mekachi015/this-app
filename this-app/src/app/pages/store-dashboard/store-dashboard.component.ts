@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import {Store} from "../../models/store-admin-models/store-admin/Store";
 import { StoreAdminServiceService } from '../../services/store-admin-service/store-admin-service.service';
-import { StoreDTO } from '../../models/store-admin-models/store-admin/StoreDTO';
+import { Router } from '@angular/router'; 
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { ProductService } from '../../services/product-service/product.service';
 import { Product } from '../../models/store-admin-models/product-admin/product';
@@ -91,7 +91,8 @@ export class StoreDashboardComponent implements OnInit {
   constructor(
     public authService: AuthService,
     private storeAdminService: StoreAdminServiceService,
-    private productService: ProductService
+    private productService: ProductService,
+    private router: Router
   ) {}
 
   // ---------------------- Lifecycle ----------------------
@@ -104,6 +105,12 @@ export class StoreDashboardComponent implements OnInit {
     }
 
     this.loadStores();
+  }
+
+  navigateToProductManagement(store: Store): void {
+    if (store.storeId){
+      this.router.navigate(['/product-management', store.storeId]);
+    }
   }
 
   // ---------------------- Auth ----------------------

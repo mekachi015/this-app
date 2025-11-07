@@ -1,0 +1,83 @@
+<div class="product-management-container" *ngIf="!isLoading; else loading">
+   <h2 *ngIf="store?.storeName">{{ store?.storeName }} - Product Management</h2>
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="btn primary" (click)="showProductForm = true; resetProductForm()">+ Add Product</button>
+    <button class="btn secondary" (click)="goBackToStores()">← Back to Dashboard</button>
+  </div>
+
+  <!-- Product Grid -->
+  <div *ngIf="products.length > 0; else noProducts" class="product-grid">
+    <div class="product-card" *ngFor="let product of products">
+      <img [src]="product.imageUrl || 'assets/placeholder.png'" [alt]="product.productName" />
+      <div class="info">
+        <h3>{{ product.productName }}</h3>
+        <p class="description">{{ product.productDescription }}</p>
+        <p class="price">R{{ product.productPrice.toFixed(2) }}</p>
+        <p class="stock">Stock: {{ product.stockQuantity }}</p>
+        <p class="category">Category: {{ product.category }}</p>
+      </div>
+      <div class="actions">
+        <button class="btn edit" (click)="editProduct(product)">Edit</button>
+        <button class="btn delete" (click)="deleteProduct(product.productId!)">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Form Modal -->
+  <div class="modal" *ngIf="showProductForm">
+    <div class="modal-content">
+      <h3>{{ editingProduct ? 'Edit Product' : 'Add New Product' }}</h3>
+
+      <form (ngSubmit)="editingProduct ? updateProduct() : createProduct()">
+        <label>Product Name</label>
+        <input type="text" [(ngModel)]="productModel.productName" name="productName" required />
+
+        <label>Description</label>
+        <textarea [(ngModel)]="productModel.productDescription" name="productDescription" required></textarea>
+
+        <label>Price</label>
+        <input type="number" [(ngModel)]="productModel.productPrice" name="productPrice" min="0" required />
+
+        <label>Stock Quantity</label>
+        <input type="number" [(ngModel)]="productModel.stockQuantity" name="stockQuantity" min="0" required />
+
+        <label>Category</label>
+        <input type="text" [(ngModel)]="productModel.category" name="category" required />
+
+        <!-- Image Upload -->
+        <div class="upload-area"
+             (drop)="onDrop($event)"
+             (dragover)="onDragOver($event)"
+             [class.drag-over]="isDragOver">
+          <p *ngIf="!previewUrl">Drag & Drop or Click to Upload Product Image</p>
+          <input type="file" (change)="onFileSelected($event)" />
+          <img *ngIf="previewUrl" [src]="previewUrl" alt="Preview" />
+        </div>
+
+        <!-- Form Buttons -->
+        <div class="form-actions">
+          <button class="btn primary" type="submit">{{ editingProduct ? 'Update' : 'Create' }}</button>
+          <button class="btn cancel" type="button" (click)="resetProductForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loading>
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+</ng-template>
+
+<!-- No Products Template -->
+<ng-template #noProducts>
+  <div class="no-products">
+    <p>No products found. Click “+ Add Product” to create one.</p>
+  </div>
+</ng-template>
