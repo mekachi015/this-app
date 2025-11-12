@@ -75,7 +75,11 @@ public class ProductService {
         return savedProduct;
     }
 
-    public List<Products> getProductsByStore(Long storeId){
+    public List<Products> getProductsByStore(Long storeId, String ownerUsername){
+
+        User user = userRepo.findByUsername(ownerUsername)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         Stores store = storeService.getStoreById(storeId);
         return productRepo.findByStore(store);
     }

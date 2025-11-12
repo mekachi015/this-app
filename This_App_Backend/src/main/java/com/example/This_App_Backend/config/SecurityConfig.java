@@ -33,7 +33,9 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll() // Allow H2 console
                 .requestMatchers("/api/stores/**").permitAll() 
                 .requestMatchers( "/api/stores/**").permitAll()
+                    .requestMatchers("/api/products/**").hasRole("ADMIN")
                 .requestMatchers("/api/stores/**").hasRole("ADMIN")
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

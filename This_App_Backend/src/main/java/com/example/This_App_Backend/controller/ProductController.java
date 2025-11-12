@@ -49,13 +49,27 @@ public class ProductController {
      * GET /api/products/store/{storeId}
      */
     @GetMapping("/store/{storeId}")
-    public ResponseEntity<?> getStoreProducts(@PathVariable Long storeId) {
+    public ResponseEntity<?> getStoreProducts(@PathVariable Long storeId, Authentication authentication) {
+
         try {
-            List<Products> products = productService.getProductsByStore(storeId);
+            String username = authentication.getName();
+            List<Products> products = productService.getProductsByStore(storeId, username);
 
-            
-            return ResponseEntity.ok(products);
+            // map to DTOs
+            List<ProductsDTO> productDTOs = products.stream().map(product -> {
+                ProductsDTO dto = new ProductsDTO();
+                dto.setProductId(product.getProductId());
+                dto.setProductName(product.getProductName());
+                dto.setProductDescription(product.getProductDescription());
+                dto.setProductPrice(product.getProductPrice().doubleValue());
+                dto.setCategory(product.getCategory());
+                dto.setImageUrl(product.getImageUrl());
+                dto.setStockQuantity(product.getStockQuantity());
+                dto.setStoreId(product.getStore().getStoreId());
+                return dto;
+            }).toList();
 
+            return ResponseEntity.ok(productDTOs);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Error fetching products: " + e.getMessage());
