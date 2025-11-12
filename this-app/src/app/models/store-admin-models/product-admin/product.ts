@@ -1,6 +1,6 @@
 export interface Product {
     productId?: number;
-    storeName?: string;
+    //storeName?: string;
     productName: string;
     productDescription?: string;
     productPrice: number;
@@ -11,7 +11,6 @@ export interface Product {
     dimensions?: string;
     createdAt?: Date;
     updatedAt?: Date,
-    stores: {
-        storeId?: number;
-    }
+    storeId?: number;
+    ownerId?: number;
 }

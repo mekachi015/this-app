@@ -7,4 +7,5 @@ export interface CreateProductDTO {
     weight?: number;
     dimensions?: string;
     imageUrl?: string;
+    storeId: number;
 }

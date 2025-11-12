@@ -16,10 +16,8 @@
     </button>
     <button 
       *ngFor="let item of sidebarItems" 
-      class="sidebar-item" 
-      [routerLink]="item.route"
-      [routerLinkActive]="'active'"
-      [routerLinkActiveOptions]="{exact: true}">
+      class="sidebar-item"
+      (click)="handleNavigation(item)">
       <i class="fas fa-{{item.icon}}"></i>
       <span>{{item.label}}</span>
     </button>

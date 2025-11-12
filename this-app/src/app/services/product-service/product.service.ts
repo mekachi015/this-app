@@ -5,6 +5,7 @@ import { Product } from '../../models/store-admin-models/product-admin/product';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { UpdateProductDTO } from '../../models/store-admin-models/product-admin/UpdateProductDTO'; 
 import { AuthService } from '../authentication-service/auth.service';
+import { Store } from '../../models/store-admin-models/store-admin/Store';
 
 @Injectable({
   providedIn: 'root'
@@ -15,12 +16,39 @@ export class ProductService {
 
   private apiUrl = 'http://localhost:9091/api/products';
 
-  createProduct(storeId: number, productData: CreateProductDTO): Observable<Product> {
+
+  //Get products for a specific store using the id
+  getStoreById(storeId: number): Observable<Product> {
+      const headers = this.authService.getAuthHeaders();
+      return this.http.get<Product>(`${this.apiUrl}/store/${storeId}`, { 
+        headers,
+        withCredentials: true 
+        
+      });
+    }
+  
+ createProduct(storeId: number, productData: CreateProductDTO, logoFile: File | null): Observable<Product> {
+    const formData = new FormData();
+
+    // 1. Append the product data as a JSON string for the "productData" part.
+    // This MUST match the @RequestPart("productData") in your controller.
+    formData.append('productData', new Blob([JSON.stringify(productData)], {
+      type: 'application/json'
+    }));
+
+    // 2. Append the file for the "logoFile" part.
+    // This MUST match the @RequestPart("logoFile") in your controller.
+    if (logoFile) {
+      formData.append('logoFile', logoFile, logoFile.name);
+    }
+
     const headers = this.authService.getAuthHeaders();
-    return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, productData, { 
+    headers.delete('Content-Type'); // Let the browser set the correct multipart/form-data boundary
+
+    return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, formData, {
       headers,
-    withCredentials: true 
-  });
+      withCredentials: true
+    });
   }
 
   //Create a product with image using multipart form data
@@ -40,7 +68,7 @@ export class ProductService {
     return this.http.get<Product[]>(`${this.apiUrl}/store/${storeId}`, { 
       headers, 
       withCredentials: true
-     });
+    });
   }
 
   updateProduct(productId: number, productData: UpdateProductDTO): Observable<Product> {

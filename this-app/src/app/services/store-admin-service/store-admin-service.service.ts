@@ -11,6 +11,7 @@ import { AuthService } from "../authentication-service/auth.service";
 export class StoreAdminServiceService {
 
   private apiUrl = 'http://localhost:9091/api/stores';
+  private apiStoreProductsUrl = 'http://localhost:9091/api/products/store';
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
@@ -86,13 +87,23 @@ export class StoreAdminServiceService {
     });
   }
 
+  // getStoreById(storeId: number): Observable<Store> {
+  //   const headers = this.authService.getAuthHeaders();
+  //   return this.http.get<Store>(`${this.apiUrl}/${storeId}`, { 
+  //     headers,
+  //     withCredentials: true 
+  //   });
+  // }
+
   getStoreById(storeId: number): Observable<Store> {
     const headers = this.authService.getAuthHeaders();
-    return this.http.get<Store>(`${this.apiUrl}/${storeId}`, { 
+    return this.http.get<Store>(`${this.apiStoreProductsUrl}/${storeId}`, { 
       headers,
       withCredentials: true 
     });
   }
+
+
 
  uploadStoreLogo(id: number, file: File): Observable<string> {
     const formData = new FormData();

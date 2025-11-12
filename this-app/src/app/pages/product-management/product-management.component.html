@@ -1,10 +1,10 @@
 <div class="product-management-container" *ngIf="!isLoading; else loading">
-   <h2 *ngIf="store?.storeName">{{ store?.storeName }} - Product Management</h2>
+   <h2 *ngIf="store?.storeId">{{ store?.storeName }} - Product Management</h2>
   <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
 
   <!-- Action Bar -->
   <div class="action-bar">
-    <button class="btn primary" (click)="showProductForm = true; resetProductForm()">+ Add Product</button>
+    <button class="btn primary" (click)="showProductForm = true">+ Add Product</button>
     <button class="btn secondary" (click)="goBackToStores()">← Back to Dashboard</button>
   </div>
 
@@ -31,7 +31,7 @@
     <div class="modal-content">
       <h3>{{ editingProduct ? 'Edit Product' : 'Add New Product' }}</h3>
 
-      <form (ngSubmit)="editingProduct ? updateProduct() : createProduct()">
+      <form #productForm="ngForm" (ngSubmit)="onSubmit()">
         <label>Product Name</label>
         <input type="text" [(ngModel)]="productModel.productName" name="productName" required />
 
@@ -39,7 +39,7 @@
         <textarea [(ngModel)]="productModel.productDescription" name="productDescription" required></textarea>
 
         <label>Price</label>
-        <input type="number" [(ngModel)]="productModel.productPrice" name="productPrice" min="0" required />
+        <input type="number" [(ngModel)]="productModel.productPrice" name="productPrice" min="0" step="0.01" required />
 
         <label>Stock Quantity</label>
         <input type="number" [(ngModel)]="productModel.stockQuantity" name="stockQuantity" min="0" required />
@@ -47,14 +47,30 @@
         <label>Category</label>
         <input type="text" [(ngModel)]="productModel.category" name="category" required />
 
-        <!-- Image Upload -->
+        <!-- Image Upload - FIX: Make file input clickable -->
+        <label>Product Image</label>
         <div class="upload-area"
              (drop)="onDrop($event)"
              (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave($event)"
+             (click)="fileInput.click()"
              [class.drag-over]="isDragOver">
-          <p *ngIf="!previewUrl">Drag & Drop or Click to Upload Product Image</p>
-          <input type="file" (change)="onFileSelected($event)" />
-          <img *ngIf="previewUrl" [src]="previewUrl" alt="Preview" />
+          <input 
+            #fileInput
+            type="file" 
+            accept="image/jpeg,image/png,image/jpg" 
+            (change)="onFileSelected($event)"
+            style="display: none;" />
+          
+          <div *ngIf="!previewUrl" class="upload-placeholder">
+            <p> Drag & Drop or Click to Upload Product Image</p>
+            <p class="upload-hint">JPG or PNG (Max 5MB)</p>
+          </div>
+          
+          <div *ngIf="previewUrl" class="preview-container">
+            <img [src]="previewUrl" alt="Preview" class="preview-image" />
+            <button type="button" class="btn-remove" (click)="resetUpload(); $event.stopPropagation()">✕ Remove</button>
+          </div>
         </div>
 
         <!-- Form Buttons -->
@@ -78,6 +94,6 @@
 <!-- No Products Template -->
 <ng-template #noProducts>
   <div class="no-products">
-    <p>No products found. Click “+ Add Product” to create one.</p>
+    <p>No products found. Click "+ Add Product" to create one.</p>
   </div>
 </ng-template>

@@ -29,8 +29,8 @@ export const routes: Routes = [
   { path: 'wishlist', component: WishlistPageComponent }, // Dynamic route for selected store
   { path: 'driver', component: DriverComponentComponent },
   { path: 'new', component: NewAuthComponent },
+  { path: 'product-management/:id', component: ProductManagementComponent},
   { path: '**', redirectTo: 'stores', pathMatch: 'full' }, // Wildcard route should be last
-  { path: 'product-management', component: ProductManagementComponent}
 ];
 
 @NgModule({

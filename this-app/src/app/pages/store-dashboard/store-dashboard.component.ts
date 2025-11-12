@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/authentication-service/auth.service';
-import {Store} from "../../models/store-admin-models/store-admin/Store";
+import { Store } from "../../models/store-admin-models/store-admin/Store";
 import { StoreAdminServiceService } from '../../services/store-admin-service/store-admin-service.service';
-import { Router } from '@angular/router'; 
+import { Router } from '@angular/router';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { ProductService } from '../../services/product-service/product.service';
 import { Product } from '../../models/store-admin-models/product-admin/product';
@@ -28,7 +28,7 @@ interface Order {
   styleUrl: './store-dashboard.component.scss'
 })
 export class StoreDashboardComponent implements OnInit {
- // Example recent orders (static for now)
+  // Example recent orders (static for now)
   recentOrders: Order[] = [
     { id: 'ORD-001', customer: 'John Doe', products: '2 items', total: 4999.99, status: 'Completed' },
     { id: 'ORD-002', customer: 'Jane Smith', products: '1 item', total: 2500.00, status: 'Pending' },
@@ -56,14 +56,14 @@ export class StoreDashboardComponent implements OnInit {
 
   // Store model for form binding
   storeModel: any = {
-  storeName: '',
-  storeDescription: '',
-  storeAddress: '',
-  storeEmail: '',
-  storePhoneNumber: '',
-  storeBusinessHours: '',
-  storeLogo: '',
-  ownerId: null
+    storeName: '',
+    storeDescription: '',
+    storeAddress: '',
+    storeEmail: '',
+    storePhoneNumber: '',
+    storeBusinessHours: '',
+    storeLogo: '',
+    ownerId: null
   };
 
   // Default models
@@ -85,7 +85,8 @@ export class StoreDashboardComponent implements OnInit {
     productDescription: '',
     productPrice: 0,
     stockQuantity: 0,
-    category: ''
+    category: '',
+    storeId: 0
   };
 
   constructor(
@@ -93,7 +94,7 @@ export class StoreDashboardComponent implements OnInit {
     private storeAdminService: StoreAdminServiceService,
     private productService: ProductService,
     private router: Router
-  ) {}
+  ) { }
 
   // ---------------------- Lifecycle ----------------------
   ngOnInit() {
@@ -108,9 +109,18 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   navigateToProductManagement(store: Store): void {
-    if (store.storeId){
-      this.router.navigate(['/product-management', store.storeId]);
-    }
+     if (store.storeId) {
+    this.router.navigate(['/product-management', store.storeId])
+      .then(() => {
+        console.log('Navigating to product management for store:', store.storeName);
+        console.log('Navigating to product management for store:', store.storeId);
+
+      })
+      .catch(error => {
+        console.error('Navigation error:', error);
+        this.errorMessage = 'Failed to navigate to product management';
+      });
+  }
   }
 
   // ---------------------- Auth ----------------------
@@ -146,33 +156,33 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   createStoreWithLogo(): void {
-  if (!this.storeModel.storeName) {
-    this.errorMessage = 'Store name is required';
-    return;
-  }
-
-  this.isLoading = true;
-
-   const logoFile = this.selectedFile || new File([""], "empty.png", { type: "image/png" });
-
-  // Use the simple method that takes individual form fields
-  this.storeAdminService.createStoreWithLogo(
-    this.storeModel, 
-    logoFile
-  ).subscribe({
-    next: (store) => {
-      this.stores.push(store);
-      this.resetStoreForm();
-      this.isLoading = false;
-      alert('Store created successfully!');
-      this.loadStores(); // Reload stores list
-    },
-    error: (error) => {
-      this.errorMessage = 'Failed to create store: ' + error.message;
-      this.isLoading = false;
+    if (!this.storeModel.storeName) {
+      this.errorMessage = 'Store name is required';
+      return;
     }
-  });
-}
+
+    this.isLoading = true;
+
+    const logoFile = this.selectedFile || new File([""], "empty.png", { type: "image/png" });
+
+    // Use the simple method that takes individual form fields
+    this.storeAdminService.createStoreWithLogo(
+      this.storeModel,
+      logoFile
+    ).subscribe({
+      next: (store) => {
+        this.stores.push(store);
+        this.resetStoreForm();
+        this.isLoading = false;
+        alert('Store created successfully!');
+        this.loadStores(); // Reload stores list
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to create store: ' + error.message;
+        this.isLoading = false;
+      }
+    });
+  }
 
 
   editStore(store: Store): void {
@@ -258,7 +268,7 @@ export class StoreDashboardComponent implements OnInit {
     if (!this.selectedStore?.storeId) return;
 
     this.isLoading = true;
-    this.productService.createProduct(Number(this.selectedStore.storeId), this.newProduct).subscribe({
+    this.productService.createProduct(Number(this.selectedStore.storeId), this.newProduct, this.selectedFile).subscribe({
       next: (product) => {
         if (this.selectedFile) {
           this.uploadProductImage(Number(product.productId));
@@ -314,7 +324,8 @@ export class StoreDashboardComponent implements OnInit {
       productDescription: '',
       productPrice: 0,
       stockQuantity: 0,
-      category: ''
+      category: '',
+      storeId: this.selectedStore?.storeId ?? 0
     };
     this.showProductForm = false;
     this.resetUpload();

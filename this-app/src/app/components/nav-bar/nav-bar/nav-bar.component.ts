@@ -1,11 +1,14 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/authentication-service/auth.service';
+import { Router } from '@angular/router';
 
 interface SidebarItem {
   icon: string;
   label: string;
   route: string;
+  requiredRole?: string;
 }
 
 @Component({
@@ -16,6 +19,9 @@ interface SidebarItem {
   styleUrl: './nav-bar.component.scss'
 })
 export class NavBarComponent {
+
+  constructor(private router: Router, private authService: AuthService) {}
+
   sidebarVisible: boolean = false;
 
    sidebarItems: SidebarItem[] = [
@@ -29,5 +35,27 @@ export class NavBarComponent {
   toggleSidebar(): void {
     this.sidebarVisible = !this.sidebarVisible;
     console.log('Sidebar visibility:', this.sidebarVisible); // Debug log
+  }
+
+  async handleNavigation(item: SidebarItem): Promise<void> {
+    const isLoggedIn = this.authService.isLoggedIn();
+    const userRole = this.authService.getUserRole();
+
+    // If user is not logged in
+    if (!isLoggedIn) {
+      console.log('User not logged in, redirecting to login...');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // If route has a required role, check it
+    if (item.requiredRole && userRole !== item.requiredRole) {
+      alert(`Unauthorized access. You are logged in as ${userRole}`);
+      return;
+    }
+
+    // Otherwise proceed with navigation
+    this.router.navigate([item.route]);
+    this.toggleSidebar();
   }
 }
