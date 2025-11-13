@@ -190,7 +190,7 @@ public class ProductService {
         entity.setProductDescription(dto.getProductDescription());
         entity.setCategory(dto.getCategory());
         entity.setStockQuantity(dto.getStockQuantity());
-        entity.setStoreId(dto.getStoreId()); // Assuming Product entity stores this        // ... etc.
+      //  entity.setStoreId(dto.getStoreId()); // Assuming Product entity stores this        // ... etc.
 
         // --- FIX IS HERE ---
         // Convert Double from DTO to BigDecimal for Entity
