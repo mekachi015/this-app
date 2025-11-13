@@ -30,6 +30,21 @@ public class FileStorageService {
         }
     }
 
+//    //start of product image download
+//    public String storeProductPhoto(MultipartFile file, Long storeId, Long productId )throws IOException{
+//        try {
+//            Map<String, Object> uploadParams = ObjectUtils.asMap(
+//                    "folder", "product_photos",
+//                    "public_id", "store_" + storeId,
+//                    "overwrite", true,
+//                    "resource_type", "image");
+//            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadParams);
+//            return (String) uploadResult.get("secure_url");
+//        } catch (IOException e){
+//            throw new IOException("Cloudinary upload failed" + e.getMessage(), e);
+//        }
+//    }
+
     // Generic method for any image upload
     public String uploadImage(MultipartFile file, String folder, String publicId) throws IOException {
         Map<String, Object> uploadParams = ObjectUtils.asMap(
