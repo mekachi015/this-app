@@ -28,34 +28,50 @@ export class ProductService {
     }
   
  createProduct(storeId: number, productData: CreateProductDTO, logoFile: File | null): Observable<Product> {
-    const formData = new FormData();
+     const formData = new FormData();
 
-    // 1. Append the product data as a JSON string for the "productData" part.
-    // This MUST match the @RequestPart("productData") in your controller.
-    formData.append('productData', new Blob([JSON.stringify(productData)], {
-      type: 'application/json'
-    }));
+  // Remove imageUrl from the data being sent (backend will set it)
+  const { imageUrl, ...productDataWithoutImage } = productData;
 
-    // 2. Append the file for the "logoFile" part.
-    // This MUST match the @RequestPart("logoFile") in your controller.
-    if (logoFile) {
-      formData.append('logoFile', logoFile, logoFile.name);
-    }
+  // Send productData as a plain JSON string (matches @RequestParam("productData") in backend)
+  formData.append('productData', JSON.stringify(productDataWithoutImage));
 
-    const headers = this.authService.getAuthHeaders();
-    headers.delete('Content-Type'); // Let the browser set the correct multipart/form-data boundary
+  // Append the file (matches @RequestPart("logoFile") in backend)
+  if (logoFile) {
+    formData.append('logoFile', logoFile, logoFile.name);
+  }
 
-    return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, formData, {
-      headers,
-      withCredentials: true
-    });
+  const headers = this.authService.getAuthHeaders();
+  // CRITICAL: Remove Content-Type header to let browser set multipart boundary
+  headers.delete('Content-Type');
+
+  console.log('Sending product data:', productDataWithoutImage);
+  console.log('Sending file:', logoFile);
+
+  return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, formData, {
+    headers,
+    withCredentials: true
+  });
   }
 
   //Create a product with image using multipart form data
-  createProductWithImage(storeId: number, formData: FormData): Observable<Product>{
-    const headers = this.authService.getAuthHeaders();
+  createProductWithImage(storeId: number,  productData: CreateProductDTO, logoFile: File | null): Observable<Product>{
+     const formData = new FormData();
 
-    headers.delete('Content-Type'); // Let browser set the content type for file upload
+  // Remove imageUrl from the data being sent (backend will set it)
+  const { imageUrl, ...productDataWithoutImage } = productData;
+
+  // Send productData as a plain JSON string (matches @RequestParam("productData") in backend)
+  formData.append('productData', JSON.stringify(productDataWithoutImage));
+
+  // Append the file (matches @RequestPart("logoFile") in backend)
+  if (logoFile) {
+    formData.append('logoFile', logoFile, logoFile.name);
+  }
+
+  const headers = this.authService.getAuthHeaders();
+
+  headers.delete('Content-Type');
 
     return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, formData, {
       headers,

@@ -121,52 +121,38 @@ export class ProductManagementComponent implements OnInit {
       this.updateProduct();
     } else {
       this.createProduct();
+      console.log('On submit call, Creating product with model:', this.productModel);
+      console.log('selected store id:', this.productModel.storeId);
+      this.showProductForm = false; 
     }
   }
 
   // FIX: Create product
   createProduct(): void {
-    if (!this.store?.storeId) {
-      this.errorMessage = 'Store information is not available';
-      return;
-    }
 
-    this.isLoading = true;
-    const formData = new FormData();
+     if (!this.store?.storeId) {
+    this.errorMessage = 'Store information is not available';
+    return;
+  }
 
-    // Include store ID in the product data
-    const productData = {
-      ...this.productModel,
-      storeId: this.store.storeId
-    };
-
-    // Create product data blob
-    const productDataBlob = new Blob(
-      [JSON.stringify(productData)],
-      { type: 'application/json' }
-    );
-
-    formData.append('productData', productDataBlob);
-
-    // Add image if selected
-    if (this.selectedFile) {
-      formData.append('logoFile', this.selectedFile);
-    }
-
-    this.productService.createProductWithImage(this.store.storeId, formData).subscribe({
+  this.isLoading = true;
+  
+  // Just pass the model and file - service handles FormData construction
+  this.productService.createProductWithImage(this.store.storeId, this.productModel, this.selectedFile)
+    .subscribe({
       next: (product) => {
+        console.log('✅ Product created', product);
         this.products.push(product);
         this.resetProductForm();
         this.isLoading = false;
-        // Show success message
-        alert('Product created successfully!');
       },
-      error: (error) => {
-        this.errorMessage = 'Failed to create product: ' + error.message;
+      error: (err) => {
+        console.error('❌ Product creation failed', err);
+        this.errorMessage = err.error?.error || err.message || 'Error creating product';
         this.isLoading = false;
-        console.error('Create product error:', error);
       }
     });
+    console.log('Create product call, Creating product with model:', this.productModel);
   }
 
 
@@ -178,7 +164,7 @@ export class ProductManagementComponent implements OnInit {
       productPrice: product.productPrice,
       stockQuantity: product.stockQuantity,
       category: product.category,
-      imageUrl: product.imageUrl,
+      //imageUrl: product.imageUrl,
       storeId: product.storeId || 0
     };
     //this.previewUrl = product.imageUrl; // Show existing image

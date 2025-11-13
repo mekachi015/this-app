@@ -147,9 +147,9 @@ export class ProductManagementComponent implements OnInit {
       stockQuantity: product.stockQuantity,
       category: product.category,
       imageUrl: product.imageUrl,
-      storeId: product.stores.storeId || 0
+      storeId: product.storeId || 0
     };
-    this.previewUrl = product.imageUrl; // Show existing image
+    //this.previewUrl = product.imageUrl; // Show existing image
     this.showProductForm = true;
   }
 

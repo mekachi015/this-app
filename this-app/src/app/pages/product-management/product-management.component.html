@@ -1,5 +1,6 @@
 <div class="product-management-container" *ngIf="!isLoading; else loading">
    <h2 *ngIf="store?.storeId">{{ store?.storeName }} - Product Management</h2>
+   <h2 *ngIf="store?.storeId">{{ store?.storeName }} - Product Management</h2>
   <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
 
   <!-- Action Bar -->
