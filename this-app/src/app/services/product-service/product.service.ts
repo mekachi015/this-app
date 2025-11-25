@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Product } from '../../models/store-admin-models/product-admin/product';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
@@ -11,109 +11,119 @@ import { Store } from '../../models/store-admin-models/store-admin/Store';
   providedIn: 'root'
 })
 export class ProductService {
+private baseUrl = 'http://localhost:9091/api/products/redefine';
 
-  constructor(private http: HttpClient, private authService: AuthService) { }
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
-  private apiUrl = 'http://localhost:9091/api/products';
-
-
-  //Get products for a specific store using the id
-  getStoreById(storeId: number): Observable<Product> {
-      const headers = this.authService.getAuthHeaders();
-      return this.http.get<Product>(`${this.apiUrl}/store/${storeId}`, { 
-        headers,
-        withCredentials: true 
-        
-      });
-    }
+  /**
+   * Create a new product for a specific store
+   * POST: /api/products/redefine/users/{userId}/stores/{storeId}
+   */
+  createProduct(
+ storeId: number,
+  productData: CreateProductDTO,
+  logoFile: File | null
+): Observable<Product> {
+  const formData = new FormData();
   
- createProduct(storeId: number, productData: CreateProductDTO, logoFile: File | null): Observable<Product> {
-     const formData = new FormData();
-
-  // Remove imageUrl from the data being sent (backend will set it)
-  const { imageUrl, ...productDataWithoutImage } = productData;
-
-  // Send productData as a plain JSON string (matches @RequestParam("productData") in backend)
-  formData.append('productData', JSON.stringify(productDataWithoutImage));
-
-  // Append the file (matches @RequestPart("logoFile") in backend)
+  formData.append('storeId', storeId.toString());
+  formData.append('productName', productData.productName);
+  formData.append('productDescription', productData.productDescription);
+  formData.append('productPrice', productData.productPrice.toString());
+  formData.append('stockQuantity', productData.stockQuantity.toString());
+  formData.append('category', productData.category);
+  
   if (logoFile) {
-    formData.append('logoFile', logoFile, logoFile.name);
+    formData.append('logoFile', logoFile);
   }
 
-  const headers = this.authService.getAuthHeaders();
-  // CRITICAL: Remove Content-Type header to let browser set multipart boundary
-  headers.delete('Content-Type');
+  // Get ONLY the auth token - NO Content-Type!
+  const token = this.authService.token;
+  
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+    // ⚠️ DO NOT set Content-Type here!
+  });
 
-  console.log('Sending product data:', productDataWithoutImage);
-  console.log('Sending file:', logoFile);
+  const url = `${this.baseUrl}/post/products`;
 
-  return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, formData, {
+  console.log('🔑 Token exists:', !!token);
+  console.log('📍 URL:', url);
+
+  return this.http.post<Product>(url, formData, {
     headers,
     withCredentials: true
   });
-  }
+}
 
-  //Create a product with image using multipart form data
-  createProductWithImage(storeId: number,  productData: CreateProductDTO, logoFile: File | null): Observable<Product>{
-     const formData = new FormData();
-
-  // Remove imageUrl from the data being sent (backend will set it)
-  const { imageUrl, ...productDataWithoutImage } = productData;
-
-  // Send productData as a plain JSON string (matches @RequestParam("productData") in backend)
-  formData.append('productData', JSON.stringify(productDataWithoutImage));
-
-  // Append the file (matches @RequestPart("logoFile") in backend)
-  if (logoFile) {
-    formData.append('logoFile', logoFile, logoFile.name);
-  }
-
-  const headers = this.authService.getAuthHeaders();
-
-  headers.delete('Content-Type');
-
-    return this.http.post<Product>(`${this.apiUrl}/store/${storeId}`, formData, {
-      headers,
-      withCredentials: true
-    });
-  }
-
-  getStoreProducts(storeId: number): Observable<Product[]> {
-    const headers = this.authService.getAuthHeaders();
-    return this.http.get<Product[]>(`${this.apiUrl}/store/${storeId}`, { 
-      headers, 
-      withCredentials: true
-    });
-  }
-
-  updateProduct(productId: number, productData: UpdateProductDTO): Observable<Product> {
-    const headers = this.authService.getAuthHeaders();
-    return this.http.put<Product>(`${this.apiUrl}/${productId}`, productData, { 
-      headers,
-      withCredentials: true 
-    });
-  }
-
-  deleteProduct(productId: number): Observable<void> {
-    const headers = this.authService.getAuthHeaders();
-    return this.http.delete<void>(`${this.apiUrl}/${productId}`, {
-      headers,
-      withCredentials: true
-    });
-  }
-
-  uploadProductImage(productId: number, file: File): Observable<string> {
+  /**
+   * Update an existing product
+   * PUT: /api/products/redefine/users/{userId}/stores/{storeId}/{productId}
+   */
+  updateProduct(
+    userId: number,
+    storeId: number,
+    productId: number,
+    productData: CreateProductDTO,
+    logoFile: File | null
+  ): Observable<Product> {
     const formData = new FormData();
-    formData.append('file', file);
-    
+
+    // Append each field individually
+    formData.append('productName', productData.productName);
+    formData.append('productDescription', productData.productDescription);
+    formData.append('productPrice', productData.productPrice.toString());
+    formData.append('stockQuantity', productData.stockQuantity.toString());
+    formData.append('category', productData.category);
+
+    // Append the logo file if provided
+    if (logoFile) {
+      formData.append('logoFile', logoFile, logoFile.name);
+    }
+
     const headers = this.authService.getAuthHeaders();
-    headers.delete('Content-Type'); // Let browser set the content type for file upload
-    
-    return this.http.post(`${this.apiUrl}/${productId}/image`, formData, {
+    headers.delete('Content-Type');
+
+    const url = `${this.baseUrl}/users/${userId}/stores/${storeId}/${productId}`;
+
+    console.log('Updating product:', {
+      url,
+      productId,
+      productData,
+      hasFile: !!logoFile
+    });
+
+    return this.http.put<Product>(url, formData, {
       headers,
-      withCredentials: true,
-      responseType: 'text'
+      withCredentials: true
+    });
+  }
+
+  /**
+   * Get all products for a store
+   * Note: You'll need to add this endpoint to your backend if it doesn't exist
+   */
+  getStoreProducts(userId: number, storeId: number): Observable<Product[]> {
+    const headers = this.authService.getAuthHeaders();
+    const url = `${this.baseUrl}/users/${userId}/stores/${storeId}`;
+    return this.http.get<Product[]>(url, {
+      headers,
+      withCredentials: true
+    });
+  }
+  /**
+   * Delete a product
+   * Note: You'll need to add this endpoint to your backend if it doesn't exist
+   */
+   deleteProduct(userId: number, storeId: number, productId: number): Observable<void> {
+    const headers = this.authService.getAuthHeaders();
+    const url = `${this.baseUrl}/users/${userId}/stores/${storeId}/${productId}`;
+    return this.http.delete<void>(url, {
+      headers,
+      withCredentials: true
     });
   }
 }

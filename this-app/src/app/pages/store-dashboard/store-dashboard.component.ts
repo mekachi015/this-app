@@ -86,7 +86,8 @@ export class StoreDashboardComponent implements OnInit {
     productPrice: 0,
     stockQuantity: 0,
     category: '',
-    storeId: 0
+    storeId: 0,
+    userId: 0
   };
 
   constructor(
@@ -104,6 +105,7 @@ export class StoreDashboardComponent implements OnInit {
       this.errorMessage = 'Access denied. Admin privileges required.';
       return;
     }
+
 
     this.loadStores();
   }
@@ -139,7 +141,7 @@ export class StoreDashboardComponent implements OnInit {
         // Automatically select first store if available
         if (this.stores.length > 0) {
           this.selectedStore = this.stores[0];
-          this.loadProducts();
+         // this.loadProducts();
         }
 
         console.log('Loaded stores:', stores);
@@ -244,79 +246,88 @@ export class StoreDashboardComponent implements OnInit {
   // Add method to handle store selection
   onStoreSelected(store: Store): void {
     this.selectedStore = store;
-    this.loadProducts();
+   // this.loadProducts();
   }
 
   // ---------------------- Product Management ----------------------
-  loadProducts(): void {
-    if (!this.selectedStore?.storeId) return;
-    this.isLoading = true;
+  // loadProducts(): void {
+  //   if (!this.selectedStore?.storeId) return;
+  //   this.isLoading = true;
 
-    this.productService.getStoreProducts(Number(this.selectedStore.storeId)).subscribe({
-      next: (products) => {
-        this.products = products;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Failed to load products.';
-        this.isLoading = false;
-      }
-    });
+  //   this.productService.getStoreProducts(Number(this.selectedStore.storeId)).subscribe({
+  //     next: (products) => {
+  //       this.products = products;
+  //       this.isLoading = false;
+  //     },
+  //     error: () => {
+  //       this.errorMessage = 'Failed to load products.';
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
+
+   createProduct(): void {
+  //    if (!this.selectedStore?.storeId) return;
+
+  // // You must get the current user ID for the ProductService
+  // const currentUser = this.authService.currentUserValue;
+  // const userId = Number(currentUser?.id);
+  // if (!userId || isNaN(userId)) {
+  //   this.errorMessage = 'User ID is missing or invalid';
+  //   return;
+  // }
+
+  // this.isLoading = true;
+  // this.productService.createProduct(
+  //   userId,
+  //   Number(this.selectedStore.storeId),
+  //   this.newProduct,
+  //   this.selectedFile
+  // ).subscribe({
+  //   next: (product) => {
+  //     this.handleProductCreated();
+  //   },
+  //   error: () => {
+  //     this.errorMessage = 'Failed to create product.';
+  //     this.isLoading = false;
+  //   }
+  // });
   }
 
-  createProduct(): void {
-    if (!this.selectedStore?.storeId) return;
+  // private uploadProductImage(productId: number): void {
+  //   if (!this.selectedFile) return;
 
-    this.isLoading = true;
-    this.productService.createProduct(Number(this.selectedStore.storeId), this.newProduct, this.selectedFile).subscribe({
-      next: (product) => {
-        if (this.selectedFile) {
-          this.uploadProductImage(Number(product.productId));
-        } else {
-          this.handleProductCreated();
-        }
-      },
-      error: () => {
-        this.errorMessage = 'Failed to create product.';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  private uploadProductImage(productId: number): void {
-    if (!this.selectedFile) return;
-
-    this.productService.uploadProductImage(productId, this.selectedFile).subscribe({
-      next: () => this.handleProductCreated(),
-      error: () => {
-        this.errorMessage = 'Product created but image upload failed.';
-        this.handleProductCreated();
-      }
-    });
-  }
+  //   this.productService.uploadProductImage(productId, this.selectedFile).subscribe({
+  //     next: () => this.handleProductCreated(),
+  //     error: () => {
+  //       this.errorMessage = 'Product created but image upload failed.';
+  //       this.handleProductCreated();
+  //     }
+  //   });
+  // }
 
   handleProductCreated(): void {
-    this.loadProducts();
+   // this.loadProducts();
     this.resetProductForm();
     alert('Product created successfully!');
     this.isLoading = false;
   }
 
-  deleteProduct(productId: number): void {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+  // deleteProduct(productId: number): void {
+  //   if (!confirm('Are you sure you want to delete this product?')) return;
 
-    this.isLoading = true;
-    this.productService.deleteProduct(productId).subscribe({
-      next: () => {
-        this.products = this.products.filter(p => p.productId !== productId);
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Failed to delete product.';
-        this.isLoading = false;
-      }
-    });
-  }
+  //   this.isLoading = true;
+  //   this.productService.deleteProduct(productId,storeId).subscribe({
+  //     next: () => {
+  //       this.products = this.products.filter(p => p.productId !== productId);
+  //       this.isLoading = false;
+  //     },
+  //     error: () => {
+  //       this.errorMessage = 'Failed to delete product.';
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
 
   resetProductForm(): void {
     this.newProduct = {
@@ -325,7 +336,8 @@ export class StoreDashboardComponent implements OnInit {
       productPrice: 0,
       stockQuantity: 0,
       category: '',
-      storeId: this.selectedStore?.storeId ?? 0
+      storeId: this.selectedStore?.storeId ?? 0,
+      userId: 0
     };
     this.showProductForm = false;
     this.resetUpload();

@@ -12,5 +12,5 @@ export interface Product {
     createdAt?: Date;
     updatedAt?: Date,
     storeId?: number;
-    ownerId?: number;
+    userId?: number;
 }

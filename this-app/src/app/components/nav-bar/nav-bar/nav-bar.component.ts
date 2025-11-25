@@ -41,18 +41,18 @@ export class NavBarComponent {
     const isLoggedIn = this.authService.isLoggedIn();
     const userRole = this.authService.getUserRole();
 
-    // If user is not logged in
-    if (!isLoggedIn) {
-      console.log('User not logged in, redirecting to login...');
-      this.router.navigate(['/login']);
-      return;
-    }
+    // // If user is not logged in
+    // if (!isLoggedIn) {
+    //   console.log('User not logged in, redirecting to login...');
+    //   this.router.navigate(['/login']);
+    //   return;
+    // }
 
-    // If route has a required role, check it
-    if (item.requiredRole && userRole !== item.requiredRole) {
-      alert(`Unauthorized access. You are logged in as ${userRole}`);
-      return;
-    }
+    // // // If route has a required role, check it
+    // // if (item.requiredRole && userRole !== item.requiredRole) {
+    // //   alert(`Unauthorized access. You are logged in as ${userRole}`);
+    // //   return;
+    // // }
 
     // Otherwise proceed with navigation
     this.router.navigate([item.route]);

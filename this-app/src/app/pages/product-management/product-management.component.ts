@@ -18,27 +18,35 @@ import { Store } from '../../models/store-admin-models/store-admin/Store';
 })
 export class ProductManagementComponent implements OnInit {
 
+// Store and User data
   store: Store | null = null;
+  currentUserId: number | null = null;
+  storeOwnerId: number | null = null;
+  
+  // Product data
   products: Product[] = [];
+  editingProduct: Product | null = null;
+
+  // UI state
   isLoading = false;
   errorMessage = '';
   showProductForm = false;
-  editingProduct: Product | null = null;
 
-  //File management properties
+  // File upload
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
   isDragOver = false;
 
+  // Product form model - initialize with empty values
   productModel: CreateProductDTO = {
     productName: '',
     productDescription: '',
     productPrice: 0,
     stockQuantity: 0,
     category: '',
-    imageUrl: '',
-    storeId: 0 
-  }
+    storeId: 0,
+    userId: 0
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -49,70 +57,79 @@ export class ProductManagementComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Get current user ID
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser?.id) {
+      this.errorMessage = 'User not authenticated';
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.currentUserId = Number(currentUser.id);
+
+    // Get store ID from route
     this.route.params.subscribe(params => {
       const storeId = +params['id'];
-     if (isNaN(storeId) || storeId <= 0) {
+      if (isNaN(storeId) || storeId <= 0) {
         this.errorMessage = 'Invalid Store ID';
         console.error('Invalid storeId:', params['id']);
         return;
       }
       
+      // Assign storeId to productModel immediately
+      this.productModel.storeId = storeId;
+      console.log('✅ Set productModel.storeId to:', this.productModel.storeId);
+      
       this.loadStore(storeId);
-    });
+        });
   }
+
+
+
 
   // ---------------------- Store Loading ----------------------
   loadStore(storeId: number): void {
-    console.log('Loading store with ID:', storeId);
-    
-    // FIX: Use the correct service method to get store info
-    this.isLoading = true;
-    this.storeAdminService.getStoreById(storeId).subscribe({
-    //this.productService.getStoreById(storeId).subscribe({
-      next: (store) => {
-        console.log('Store loaded successfully:', store);
-        this.store = store;
-        
-        console.log('Store ID:', storeId);
-        // FIX: Ensure storeId is valid before setting
-        const validStoreId = Number(storeId);
-        if (isNaN(validStoreId)) {
-          this.errorMessage = 'Invalid store data received';
-          this.isLoading = false;
-          return;
-        }
-        
-        this.productModel.storeId = validStoreId;
-        console.log('Set productModel.storeId to:', this.productModel.storeId);
-        console.log('Set productModel.storeId to:', this.productModel.storeId);
-        this.loadProducts(validStoreId);
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = 'Error loading store: ' + error.message;
-        this.isLoading = false;
-        console.error('Store loading error:', error);
+  console.log('Loading store with ID:', storeId);
+  
+  this.isLoading = true;
+  this.errorMessage = '';
+  
+  this.storeAdminService.getStoreById(storeId).subscribe({
+    next: (store) => {
+      console.log('Store loaded successfully: for products', store);
+      this.store = store;
+      this.storeOwnerId = this.currentUserId?? null; // Get the store owner ID
+      this.productModel.storeId = storeId;
+      console.log('Set storeOwnerId to:', this.storeOwnerId);
+      
+      if (store.storeId) {
+        this.loadProducts(store.storeId, this.currentUserId!);
       }
-    });
-  }
+      this.isLoading = false;
+    },
+    error: (error) => {
+      this.errorMessage = 'Error loading store: ' + (error.error?.message || error.message);
+      this.isLoading = false;
+      console.error('Store loading error:', error);
+    }
+  });
+}
 
   // ---------------------- Product Management ----------------------
-  loadProducts(storeId: number): void {
+  loadProducts(storeId: number,currentUser: number): void {
     console.log('Loading products for store ID:', storeId);
-    //this.productService.getStoreById(storeId).subscribe({
-    this.productService.getStoreProducts(storeId).subscribe({
+    
+    this.productService.getStoreProducts(storeId,currentUser).subscribe({
       next: (products) => {
         this.products = products;
         console.log('Loaded products:', products);
       },
       error: (error) => {
-        this.errorMessage = 'Error loading products';
+        this.errorMessage = 'Error loading products: ' + (error.error?.message || error.message);
         console.error('Product loading error:', error);
       }
     });
   }
 
-  // Handle form submission
   onSubmit(): void {
     console.log('Form submitted!');
     console.log('Editing product:', this.editingProduct);
@@ -121,69 +138,98 @@ export class ProductManagementComponent implements OnInit {
       this.updateProduct();
     } else {
       this.createProduct();
-      console.log('On submit call, Creating product with model:', this.productModel);
-      console.log('selected store id:', this.productModel.storeId);
-      this.showProductForm = false; 
     }
   }
 
-  // FIX: Create product
-  createProduct(): void {
-
-     if (!this.store?.storeId) {
-    this.errorMessage = 'Store information is not available';
+ createProduct(): void {
+  console.log('Creating product for store ID:', this.productModel.storeId);
+  console.log('Current user:', this.currentUserId);
+  this.productModel.userId = this.currentUserId || 0;
+  if (!this.productModel?.storeId) {
+    this.errorMessage = 'Store ID is missing';
     return;
   }
 
-  this.isLoading = true;
-  
-  // Just pass the model and file - service handles FormData construction
-  this.productService.createProductWithImage(this.store.storeId, this.productModel, this.selectedFile)
-    .subscribe({
-      next: (product) => {
-        console.log('✅ Product created', product);
-        this.products.push(product);
-        this.resetProductForm();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('❌ Product creation failed', err);
-        this.errorMessage = err.error?.error || err.message || 'Error creating product';
-        this.isLoading = false;
-      }
-    });
-    console.log('Create product call, Creating product with model:', this.productModel);
+  if (!this.storeOwnerId) {
+    this.errorMessage = 'Store owner ID is missing';
+    return;
   }
 
+  // Validate required fields
+  if (!this.productModel.productName || !this.productModel.category) {
+    this.errorMessage = 'Product name and category are required';
+    return;
+  }
+
+ this.isLoading = true;
+  this.errorMessage = '';
+  
+  // Only pass storeId, not userId anymore
+  this.productService.createProduct(
+    this.productModel.storeId,
+    this.productModel,
+    this.selectedFile
+  ).subscribe({
+    next: (product) => {
+      console.log('✅ Product created successfully:', product);
+      this.products.push(product);
+      this.resetProductForm();
+      this.isLoading = false;
+      alert('Product created successfully!');
+    },
+    error: (error) => {
+      console.error('❌ Product creation failed:', error);
+      this.errorMessage = error.error?.message || error.message || 'Error creating product';
+      this.isLoading = false;
+    }
+  });
+}
 
   editProduct(product: Product): void {
     this.editingProduct = product;
     this.productModel = {
       productName: product.productName,
-      productDescription: product.productDescription,
+      productDescription: product.productDescription || '',
       productPrice: product.productPrice,
       stockQuantity: product.stockQuantity,
-      category: product.category,
-      //imageUrl: product.imageUrl,
-      storeId: product.storeId || 0
+      category: product.category || '',
+      storeId: product.storeId ?? 0,
+      userId: this.currentUserId || 0
     };
-    //this.previewUrl = product.imageUrl; // Show existing image
+    this.previewUrl = product.imageUrl || null;
     this.showProductForm = true;
   }
 
-  // FIX: Update product
   updateProduct(): void {
     if (!this.editingProduct?.productId) {
       this.errorMessage = 'Product ID is missing';
       return;
     }
 
+    if (!this.store?.storeId) {
+      this.errorMessage = 'Store ID is missing';
+      return;
+    }
+
+    if (!this.currentUserId) {
+      this.errorMessage = 'User ID is missing';
+      return;
+    }
+
+    console.log('Updating product:', this.editingProduct.productId);
+    
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Use the same DTO structure as create
-    this.productService.updateProduct(Number(this.editingProduct.productId), this.productModel).subscribe({
+    this.productService.updateProduct(
+      this.currentUserId,
+      this.store.storeId,
+      this.editingProduct.productId,
+      this.productModel,
+      this.selectedFile
+    ).subscribe({
       next: (updatedProduct) => {
+        console.log('✅ Product updated successfully:', updatedProduct);
         const index = this.products.findIndex(p => p.productId === updatedProduct.productId);
         if (index !== -1) {
           this.products[index] = updatedProduct;
@@ -193,28 +239,29 @@ export class ProductManagementComponent implements OnInit {
         alert('Product updated successfully!');
       },
       error: (error) => {
-        this.errorMessage = 'Failed to update product: ' + (error.error?.message || error.message);
-        console.error('Update product error:', error);
+        console.error('❌ Product update failed:', error);
+        this.errorMessage = error.error?.message || error.message || 'Failed to update product';
         this.isLoading = false;
       }
     });
   }
 
-  deleteProduct(productId: number): void {
+  deleteProduct(productId: number,userId: number, storeId: number): void {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.productService.deleteProduct(productId).subscribe({
+    this.productService.deleteProduct(productId, userId, storeId).subscribe({
       next: () => {
+        console.log('✅ Product deleted successfully');
         this.products = this.products.filter(p => p.productId !== productId);
         this.isLoading = false;
         alert('Product deleted successfully!');
       },
       error: (error) => {
-        this.errorMessage = 'Failed to delete product: ' + (error.error?.message || error.message);
-        console.error('Delete product error:', error);
+        console.error('❌ Product deletion failed:', error);
+        this.errorMessage = error.error?.message || error.message || 'Failed to delete product';
         this.isLoading = false;
       }
     });
@@ -227,8 +274,8 @@ export class ProductManagementComponent implements OnInit {
       productPrice: 0,
       stockQuantity: 0,
       category: '',
-      imageUrl: '',
-      storeId: 0
+      storeId: this.store?.storeId || 0,
+      userId: this.currentUserId || 0
     };
     this.editingProduct = null;
     this.showProductForm = false;
@@ -239,7 +286,9 @@ export class ProductManagementComponent implements OnInit {
   // ---------------------- File Upload ----------------------
   onFileSelected(event: any): void {
     const file = event.target.files[0];
-    this.handleFileSelection(file);
+    if (file) {
+      this.handleFileSelection(file);
+    }
   }
 
   onDrop(event: DragEvent): void {
@@ -261,29 +310,33 @@ export class ProductManagementComponent implements OnInit {
   }
 
   handleFileSelection(file: File): void {
-    // Check file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       this.errorMessage = 'File size must be less than 5MB';
       return;
     }
 
-    if (file && this.isImageFile(file)) {
-      this.selectedFile = file;
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrl = reader.result;
-        // Don't set imageUrl here - it will be set by the backend
-      };
-      reader.onerror = () => {
-        this.errorMessage = 'Error reading file';
-      };
-      reader.readAsDataURL(file);
-      this.errorMessage = '';
-      console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
-    } else {
-      this.errorMessage = 'Please select a valid image file (JPEG or PNG).';
+    // Validate file type
+    if (!this.isImageFile(file)) {
+      this.errorMessage = 'Please select a valid image file (JPEG or PNG)';
+      return;
     }
+
+    this.selectedFile = file;
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      this.previewUrl = reader.result;
+      this.errorMessage = '';
+    };
+    
+    reader.onerror = () => {
+      this.errorMessage = 'Error reading file';
+    };
+    
+    reader.readAsDataURL(file);
+    console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
   }
 
   isImageFile(file: File): boolean {

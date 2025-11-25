@@ -195,17 +195,32 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  // Helper method to add authorization header
-  getAuthHeaders(token?: string): HttpHeaders {
-    const authToken = token || this.token;
-    if (authToken) {
-      return new HttpHeaders({
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      });
-    }
-    return new HttpHeaders({ 'Content-Type': 'application/json' });
+getAuthHeadersForMultipart(token?: string): HttpHeaders {
+  const authToken = token || this.token;
+  if (authToken) {
+    return new HttpHeaders({
+      'Authorization': `Bearer ${authToken}`
+      // No Content-Type - browser sets it for multipart
+    });
   }
+  return new HttpHeaders();
+}
+
+// Or modify existing method to accept a flag
+getAuthHeaders(token?: string, includeContentType: boolean = true): HttpHeaders {
+  const authToken = token || this.token;
+  const headers: any = {};
+  
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  
+  if (includeContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  return new HttpHeaders(headers);
+}
 
   // Check if user is logged in
   isLoggedIn(): boolean {
