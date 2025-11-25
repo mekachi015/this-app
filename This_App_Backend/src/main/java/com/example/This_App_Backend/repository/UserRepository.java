@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.example.This_App_Backend.entity.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
     //Find user by user name
     Optional<User> findByUsername(String username);
@@ -18,7 +18,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
 
     //find by email or username
-    
+
+    //Find by user id
+    Optional<User> findByUserId(Long userId);
 
     // find user by type
     List<User> findByUserType(User.UserType userType);

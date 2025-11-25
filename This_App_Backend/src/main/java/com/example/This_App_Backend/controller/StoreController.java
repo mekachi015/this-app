@@ -81,7 +81,7 @@ public class StoreController {
      * GET /api/stores/my-stores/{id} - owner id
      */
     @GetMapping("/my-stores/{userId}")
-    public ResponseEntity<?> getStoresByUserId(@PathVariable Integer userId) {
+    public ResponseEntity<?> getStoresByUserId(@PathVariable Long userId) {
         try {
             List<Stores> stores = storeService.getStoresByUserId(userId);
             List<StoreDTO> storeDTOs = stores.stream()

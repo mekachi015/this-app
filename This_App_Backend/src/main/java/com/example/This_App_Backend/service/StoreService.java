@@ -147,8 +147,8 @@ public class StoreService {
     /**
      * Get all stores for a specific user by their user ID
      */
-    public List<Stores> getStoresByUserId(Integer userId) {
-        User user = userRepo.findById(userId)
+    public List<Stores> getStoresByUserId(Long userId) {
+        User user = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Store_Owners storeOwner = storeOwnerRepo.findByUser(user)

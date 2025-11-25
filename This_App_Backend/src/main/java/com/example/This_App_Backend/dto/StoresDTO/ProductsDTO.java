@@ -14,5 +14,6 @@ public class ProductsDTO {
     private String imageUrl;
     private Integer stockQuantity;
     private Long storeId;
-    private Long ownerId;
+    //private Long ownerId;
+    private Long userId;
 }
