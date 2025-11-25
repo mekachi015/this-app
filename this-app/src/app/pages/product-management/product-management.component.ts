@@ -18,7 +18,7 @@ import { Store } from '../../models/store-admin-models/store-admin/Store';
 })
 export class ProductManagementComponent implements OnInit {
 
-// Store and User data
+  // Store and User data
   store: Store | null = null;
   currentUserId: number | null = null;
   storeOwnerId: number | null = null;
@@ -80,11 +80,8 @@ export class ProductManagementComponent implements OnInit {
       console.log('✅ Set productModel.storeId to:', this.productModel.storeId);
       
       this.loadStore(storeId);
-        });
+    });
   }
-
-
-
 
   // ---------------------- Store Loading ----------------------
   loadStore(storeId: number): void {
@@ -97,13 +94,14 @@ export class ProductManagementComponent implements OnInit {
     next: (store) => {
       console.log('Store loaded successfully: for products', store);
       this.store = store;
-      this.storeOwnerId = this.currentUserId?? null; // Get the store owner ID
+      this.storeOwnerId = this.currentUserId ?? null;
       this.productModel.storeId = storeId;
-      console.log('Set storeOwnerId to:', this.storeOwnerId);
       
-      if (store.storeId) {
-        this.loadProducts(store.storeId, this.currentUserId!);
-      }
+      // FIX: Don't call loadProducts() - the store IS the products!
+      // this.products is already set by the store response
+      this.products = Array.isArray(store) ? store : []; // ADD THIS LINE
+      console.log('✅ Products set from store:', this.products);
+      
       this.isLoading = false;
     },
     error: (error) => {
@@ -115,17 +113,25 @@ export class ProductManagementComponent implements OnInit {
 }
 
   // ---------------------- Product Management ----------------------
-  loadProducts(storeId: number,currentUser: number): void {
+  loadProducts(storeId: number): void {
     console.log('Loading products for store ID:', storeId);
+
+    this.isLoading = true;
+    this.errorMessage = '';
     
-    this.productService.getStoreProducts(storeId,currentUser).subscribe({
+    this.productService.getStoreProducts(storeId).subscribe({
       next: (products) => {
-        this.products = products;
-        console.log('Loaded products:', products);
+        // Ensure products is always an array
+        this.products = Array.isArray(products) ? products : [];
+        console.log('✅ Loaded products:', this.products);
+        console.log('✅ Products count:', this.products.length);
+        this.isLoading = false;
       },
       error: (error) => {
         this.errorMessage = 'Error loading products: ' + (error.error?.message || error.message);
-        console.error('Product loading error:', error);
+        this.products = []; // Reset to empty array on error
+        this.isLoading = false;
+        console.error('❌ Product loading error:', error);
       }
     });
   }
@@ -141,52 +147,48 @@ export class ProductManagementComponent implements OnInit {
     }
   }
 
- createProduct(): void {
-  console.log('Creating product for store ID:', this.productModel.storeId);
-  console.log('Current user:', this.currentUserId);
-  this.productModel.userId = this.currentUserId || 0;
-  if (!this.productModel?.storeId) {
-    this.errorMessage = 'Store ID is missing';
-    return;
-  }
-
-  if (!this.storeOwnerId) {
-    this.errorMessage = 'Store owner ID is missing';
-    return;
-  }
-
-  // Validate required fields
-  if (!this.productModel.productName || !this.productModel.category) {
-    this.errorMessage = 'Product name and category are required';
-    return;
-  }
-
- this.isLoading = true;
-  this.errorMessage = '';
-  
-  // Only pass storeId, not userId anymore
-  this.productService.createProduct(
-    this.productModel.storeId,
-    this.productModel,
-    this.selectedFile
-  ).subscribe({
-    next: (product) => {
-      console.log('✅ Product created successfully:', product);
-      this.products.push(product);
-      this.resetProductForm();
-      this.isLoading = false;
-      alert('Product created successfully!');
-    },
-    error: (error) => {
-      console.error('❌ Product creation failed:', error);
-      this.errorMessage = error.error?.message || error.message || 'Error creating product';
-      this.isLoading = false;
+  createProduct(): void {
+    console.log('Creating product for store ID:', this.productModel.storeId);
+    console.log('Current user:', this.currentUserId);
+    
+    // Validate storeId
+    if (!this.productModel?.storeId) {
+      this.errorMessage = 'Store ID is missing';
+      return;
     }
-  });
-}
+
+    // Validate required fields
+    if (!this.productModel.productName || !this.productModel.category) {
+      this.errorMessage = 'Product name and category are required';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    this.productService.createProduct(
+      this.productModel.storeId,
+      this.productModel,
+      this.selectedFile
+    ).subscribe({
+      next: (product) => {
+        console.log('✅ Product created successfully:', product);
+        // Add the new product to the array
+        this.products = [...this.products, product];
+        this.resetProductForm();
+        this.isLoading = false;
+        alert('Product created successfully!');
+      },
+      error: (error) => {
+        console.error('❌ Product creation failed:', error);
+        this.errorMessage = error.error?.message || error.message || 'Error creating product';
+        this.isLoading = false;
+      }
+    });
+  }
 
   editProduct(product: Product): void {
-    this.editingProduct = product;
+    this.editingProduct = { ...product }; // Create a copy
     this.productModel = {
       productName: product.productName,
       productDescription: product.productDescription || '',
@@ -230,10 +232,10 @@ export class ProductManagementComponent implements OnInit {
     ).subscribe({
       next: (updatedProduct) => {
         console.log('✅ Product updated successfully:', updatedProduct);
-        const index = this.products.findIndex(p => p.productId === updatedProduct.productId);
-        if (index !== -1) {
-          this.products[index] = updatedProduct;
-        }
+        // Update the product in the array immutably
+        this.products = this.products.map(p => 
+          p.productId === updatedProduct.productId ? updatedProduct : p
+        );
         this.resetProductForm();
         this.isLoading = false;
         alert('Product updated successfully!');
@@ -246,25 +248,26 @@ export class ProductManagementComponent implements OnInit {
     });
   }
 
-  deleteProduct(productId: number,userId: number, storeId: number): void {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+  deleteProduct(productId: number, userId: number, storeId: number): void {
+    // if (!confirm('Are you sure you want to delete this product?')) return;
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    // this.isLoading = true;
+    // this.errorMessage = '';
 
-    this.productService.deleteProduct(productId, userId, storeId).subscribe({
-      next: () => {
-        console.log('✅ Product deleted successfully');
-        this.products = this.products.filter(p => p.productId !== productId);
-        this.isLoading = false;
-        alert('Product deleted successfully!');
-      },
-      error: (error) => {
-        console.error('❌ Product deletion failed:', error);
-        this.errorMessage = error.error?.message || error.message || 'Failed to delete product';
-        this.isLoading = false;
-      }
-    });
+    // this.productService.deleteProduct(storeId, productId).subscribe({
+    //   next: () => {
+    //     console.log('✅ Product deleted successfully');
+    //     // Remove product from array immutably
+    //     this.products = this.products.filter(p => p.productId !== productId);
+    //     this.isLoading = false;
+    //     alert('Product deleted successfully!');
+    //   },
+    //   error: (error) => {
+    //     console.error('❌ Product deletion failed:', error);
+    //     this.errorMessage = error.error?.message || error.message || 'Failed to delete product';
+    //     this.isLoading = false;
+    //   }
+    // });
   }
 
   resetProductForm(): void {
@@ -353,5 +356,21 @@ export class ProductManagementComponent implements OnInit {
 
   goBackToStores(): void {
     this.router.navigate(['/dashboard']);
+  }
+
+  // ---------------------- Statistics ----------------------
+  getTotalStock(): number {
+    return this.products.reduce((total, product) => total + (product.stockQuantity || 0), 0);
+  }
+
+  getCategoriesCount(): number {
+    const categories = new Set(this.products.map(product => product.category).filter(Boolean));
+    return categories.size;
+  }
+
+  getAveragePrice(): number {
+    if (this.products.length === 0) return 0;
+    const total = this.products.reduce((sum, product) => sum + (product.productPrice || 0), 0);
+    return total / this.products.length;
   }
 }

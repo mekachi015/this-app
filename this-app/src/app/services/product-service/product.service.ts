@@ -106,24 +106,23 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
    * Get all products for a store
    * Note: You'll need to add this endpoint to your backend if it doesn't exist
    */
-  getStoreProducts(userId: number, storeId: number): Observable<Product[]> {
-    const headers = this.authService.getAuthHeaders();
-    const url = `${this.baseUrl}/users/${userId}/stores/${storeId}`;
-    return this.http.get<Product[]>(url, {
+  getStoreProducts(storeId: number): Observable<Product[]> {
+   const token = this.authService.token;
+
+   const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+   })
+
+   const url = `${this.baseUrl}/stores/${storeId}/products`;
+
+   return this.http.get<Product[]>(url, {
       headers,
       withCredentials: true
-    });
+   });
   }
-  /**
-   * Delete a product
-   * Note: You'll need to add this endpoint to your backend if it doesn't exist
-   */
-   deleteProduct(userId: number, storeId: number, productId: number): Observable<void> {
-    const headers = this.authService.getAuthHeaders();
-    const url = `${this.baseUrl}/users/${userId}/stores/${storeId}/${productId}`;
-    return this.http.delete<void>(url, {
-      headers,
-      withCredentials: true
-    });
+  
+  deleteProduct(storeId: number, productId: number){
+    return (console.log('Deleting product not implemented yet'));
   }
 }
