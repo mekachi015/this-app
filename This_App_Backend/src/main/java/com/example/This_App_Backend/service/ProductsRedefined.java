@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @Transactional
@@ -112,6 +113,14 @@ public class ProductsRedefined {
 
         return savedProduct;
     }
+
+    //get all products for a specific store
+    public List<Products> getAllProductsByStore(Long storeId){
+        Stores store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("Store not found with id: " + storeId));
+        return productsRepository.findByStore(store);
+    }
+
 
 
 }

@@ -10,4 +10,5 @@ import com.example.This_App_Backend.entity.Stores;
 public interface ProductsRepository extends JpaRepository <Products, Long>{
     List<Products> findByStore(Stores store);
   // List<Products> findProductsForStore(Long storeId);
+
 }
