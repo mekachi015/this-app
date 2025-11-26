@@ -10,7 +10,8 @@
     <div class="stores-scroll">
       <app-store-card 
         *ngFor="let store of featuredStores" 
-        [store]="store">
+        [store]="store"
+        (storeSelected)="navigateToStoreProducts(store)">
       </app-store-card>
     </div>
   </div>
@@ -21,7 +22,8 @@
     <div class="nearby-stores">
       <app-near-you 
         *ngFor="let store of nearbyStores" 
-        [store]="store">
+        [store]="store"
+        (storeSelected)="navigateToStoreProducts($event)">
       </app-near-you>
     </div>
   </div>

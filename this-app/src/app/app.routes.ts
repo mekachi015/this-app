@@ -22,7 +22,7 @@ export const routes: Routes = [
   { path: 'sign-up/admin', component: NewAuthComponent },
   { path: 'sign-up/driver', component: NewAuthComponent },
   { path: 'stores', component: StorePageComponent },
-  { path: 'selected-store', component: SelectedStoreComponent },
+  { path: 'store/:storeId', component: SelectedStoreComponent },
   { path: 'cart', component: CartPageComponent },
   { path: 'dashboard', component: StoreDashboardComponent },
   { path: 'profile', component: ProfileComponent },

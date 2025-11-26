@@ -6,7 +6,7 @@ import { NavBarComponent } from "../../../components/nav-bar/nav-bar/nav-bar.com
 import { CommonModule } from '@angular/common';
 import { SearchBarComponent } from '../../../components/search-bar/search-bar.component';
 import { StoreAdminServiceService } from '../../../services/store-admin-service/store-admin-service.service';
-
+import { Router } from '@angular/router'; //
 
 @Component({
   selector: 'app-store-page',
@@ -22,7 +22,9 @@ export class StorePageComponent implements OnInit{
   isLoading = false;
   errorMessage = '';
 
-  constructor(private storeService: StoreAdminServiceService) {}
+  constructor(private storeService: StoreAdminServiceService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadAllStores();
@@ -91,6 +93,13 @@ export class StorePageComponent implements OnInit{
     } else {
       return 'Fashion & Lifestyle';
     }
+  }
+
+  //FUnction to navigate to selected store page
+  public navigateToStoreProducts(store: Store): void{
+    console.log(`Navigating to store: ${store.name} (ID: ${store.id})`);
+    console.log('Constructed URL:', `/store/${store.id}`);
+    this.router.navigate(['/store', store.id]);
   }
 
 
