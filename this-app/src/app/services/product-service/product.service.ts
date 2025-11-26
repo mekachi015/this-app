@@ -121,6 +121,16 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
       withCredentials: true
    });
   }
+
+   /**
+   * Get all products for a store
+   * Note: You'll need to add this endpoint to your backend if it doesn't exist
+   */
+  getAllStoreProductsPublic(storeId: number): Observable<Product[]> {
+  const url = `${this.baseUrl}/stores/${storeId}/products/public`;
+
+  return this.http.get<Product[]>(url); 
+}
   
   deleteProduct(storeId: number, productId: number){
     return (console.log('Deleting product not implemented yet'));

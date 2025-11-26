@@ -3,15 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoreAdminServiceService } from '../../../services/store-admin-service/store-admin-service.service';
 import { ActivatedRoute } from '@angular/router';
-//import { Products} from '../../../models/store-front/products.model';
+import { Product } from '../../../models/store-admin-models/product-admin/product';
+import { ProductService } from '../../../services/product-service/product.service';
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  imageUrl: string;
-  description: string;
-}
+
 
 @Component({
   selector: 'app-selected-store',
@@ -27,52 +22,15 @@ export class SelectedStoreComponent {
   }
 
   constructor( private route: ActivatedRoute,
-    private storeService: StoreAdminServiceService
+    private storeService: StoreAdminServiceService,
+    private productService: ProductService
   ) {
     
   }
 
   searchQuery: string = '';
 
-  storeName = 'IFUKU ONE';
-  products: Product[] = [
-    {
-    id: '1',
-    name: 'IFUKU WIDE CUT PANTS',
-    price: 2500.0,
-    imageUrl: 'assets/store-pictures/store-1.jpg',
-    description: 'Available in various sizes',
-  },
-  {
-    id: '2',
-    name: 'IFUKU BLACK T-SHIRT',
-    price: 500.0,
-    imageUrl: 'assets/store-pictures/store-2.jpg',
-    description: 'Layer it up with style. Limited edition',
-  },
-  {
-    id: '3',
-    name: 'IFUKU DUNGAREE',
-    price: 3000.0,
-    imageUrl: 'assets/store-pictures/store-3.jpg',
-    description: 'Available now',
-  },
-  {
-    id: '4',
-    name: 'IFUKU JACKET',
-    price: 3500.0,
-    imageUrl: 'assets/store-pictures/store-4.jpg',
-    description: 'Premium quality jacket',
-  },
-  {
-    id: '5',
-    name: 'IFUKU PREMIUM SET',
-    price: 4500.0,
-    imageUrl: 'assets/store-pictures/store-6.jpg',
-    description: 'Complete premium outfit set',
-  }
-  ];
-
+  products: Product[] = [];
   public storeId: string | null = null;
 
   onSearch(): void {
@@ -111,16 +69,30 @@ export class SelectedStoreComponent {
       return;
     }
 
-    this.storeService.getStoreById(idNum).subscribe({
-      next: (store) => {
-        console.log('Loaded store:', store);
-        // TODO: assign store data to component properties as needed
-      },
-      error: (err) => {
-        console.error('Failed to load store:', err);
-      }
-    });
+    console.log('Loading store data for ID:', idNum);
+
+    // this.storeService.getStoreById(idNum).subscribe({
+    //   next: (store) => {
+    //     console.log('Loaded store:', store);
+    //     // TODO: assign store data to component properties as needed
+    //   },
+    //   error: (err) => {
+    //     console.error('Failed to load store:', err);
+    //   }
+    // });
+
+    this.productService.getAllStoreProductsPublic(idNum).subscribe({
+  next: (products) => {
+    console.log('Loaded products for store:', products);
+    this.products = products;
+  },
+  error: (err) => {
+    console.error('Failed to load products for store:', err);
   }
+});
+  }
+
+  
 
   
 }
