@@ -17,7 +17,7 @@ import { StoreAdminServiceService } from '../../../services/store-admin-service/
 })
 export class StorePageComponent implements OnInit{
 
-     featuredStores: Store[] = [];
+  featuredStores: Store[] = [];
   nearbyStores: Store[] = [];
   isLoading = false;
   errorMessage = '';
@@ -43,6 +43,8 @@ export class StorePageComponent implements OnInit{
         this.featuredStores = transformedStores.slice(0, 5);
         this.nearbyStores = transformedStores; // Show all stores in nearby section
         
+        console.log('Transformed featured stores:', this.featuredStores);
+          console.log('Transformed nearby stores:', this.nearbyStores);
         this.isLoading = false;
       },
       error: (error) => {
@@ -65,7 +67,7 @@ export class StorePageComponent implements OnInit{
       imageUrl: backendStore.storeLogo || 'assets/default-store.png',
       description: backendStore.storeDescription || 'No description available',
       bestseller: 'Featured Items', // You can add this to backend later
-      category: this.inferCategory(backendStore.storeName), // Infer from name or add to backend
+      category: backendStore.storeCategory || this.inferCategory(backendStore.storeName || ''),
       rating: 90, // You can add ratings to backend later
       operatingHours: backendStore.storeBusinessHours || 'Hours not available'
     };
