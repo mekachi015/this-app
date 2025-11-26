@@ -41,6 +41,11 @@ export class StoreDashboardComponent implements OnInit {
   isDragOver = false;
   uploadContext: 'store' | 'product' = 'store';
 
+  //New property for store logo upload
+  selectedStoreFile : File | null = null;
+  storePreviewUrl: string | ArrayBuffer | null = null;
+  isStoreDragOver = false;
+
   // Store management properties
   isAdmin = false;
   stores: Store[] = [];
@@ -63,7 +68,7 @@ export class StoreDashboardComponent implements OnInit {
     storePhoneNumber: '',
     storeBusinessHours: '',
     storeLogo: '',
-    ownerId: null
+    ownerId: 0,
   };
 
   // Default models
@@ -105,7 +110,12 @@ export class StoreDashboardComponent implements OnInit {
       this.errorMessage = 'Access denied. Admin privileges required.';
       return;
     }
-
+    
+    //set the owner Id for the store
+    const user = this.authService.currentUserValue;
+    if(user?.id){
+      this.storeModel.ownerId = user.id;
+    }
 
     this.loadStores();
   }
@@ -136,6 +146,7 @@ export class StoreDashboardComponent implements OnInit {
     this.isLoading = true;
     this.storeAdminService.getUserStores().subscribe({
       next: (stores) => {
+        console.log('OwnerId is:', this.storeModel.ownerId);
         this.stores = stores;
         this.isLoading = false;
         // Automatically select first store if available
@@ -155,35 +166,60 @@ export class StoreDashboardComponent implements OnInit {
 
   createStore(): void {
     this.createStoreWithLogo();
+    console.log('Creating store with data:', this.storeModel);
   }
 
   createStoreWithLogo(): void {
-    if (!this.storeModel.storeName) {
-      this.errorMessage = 'Store name is required';
-      return;
-    }
+    // Validate required fields
+  if (!this.storeModel.storeName || !this.storeModel.storeDescription) {
+    this.errorMessage = 'Store name and description are required';
+    return;
+  }
 
-    this.isLoading = true;
+  // Validate that all required fields are filled
+  if (!this.storeModel.storeAddress || !this.storeModel.storeEmail || 
+      !this.storeModel.storePhoneNumber || !this.storeModel.storeBusinessHours) {
+    this.errorMessage = 'All store fields are required';
+    return;
+  }
 
-    const logoFile = this.selectedFile || new File([""], "empty.png", { type: "image/png" });
+  console.log('Creating store with data:', this.storeModel);
+  console.log('Selected logo file:', this.selectedStoreFile);
 
-    // Use the simple method that takes individual form fields
-    this.storeAdminService.createStoreWithLogo(
-      this.storeModel,
-      logoFile
-    ).subscribe({
-      next: (store) => {
-        this.stores.push(store);
-        this.resetStoreForm();
-        this.isLoading = false;
-        alert('Store created successfully!');
-        this.loadStores(); // Reload stores list
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to create store: ' + error.message;
-        this.isLoading = false;
+  this.isLoading = true;
+
+  // Pass storeModel and selectedStoreFile (can be null)
+  this.storeAdminService.createStoreWithLogo(
+    this.storeModel,
+    this.selectedStoreFile  // This can be null - backend handles it
+  ).subscribe({
+    next: (store) => {
+      console.log('Store created successfully:', store);
+      this.stores.push(store);
+      this.resetStoreForm();
+      this.isLoading = false;
+      alert('Store created successfully!');
+      this.loadStores();
+    },
+    error: (error) => {
+      console.error('Store creation failed:', error);
+      console.error('Error status:', error.status);
+      console.error('Error body:', error.error);
+      
+      // More detailed error message
+      let errorMsg = 'Failed to create store: ';
+      if (error.error && typeof error.error === 'string') {
+        errorMsg += error.error;
+      } else if (error.message) {
+        errorMsg += error.message;
+      } else {
+        errorMsg += 'Unknown error occurred';
       }
-    });
+      
+      this.errorMessage = errorMsg;
+      this.isLoading = false;
+    }
+  });
   }
 
 
@@ -232,79 +268,35 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   resetStoreForm(): void {
-    this.storeModel = {
-      storeName: '',
-      storeDescription: '',
-      storeAddress: '',
-      storeEmail: '',
-      logoUrl: ''
-    };
-    this.editingStore = null;
-    this.showStoreForm = false;
-  }
+  const user = this.authService.currentUserValue;
+  
+  this.storeModel = {
+    storeName: '',
+    storeDescription: '',
+    storeAddress: '',
+    storeEmail: '',
+    storePhoneNumber: '',
+    storeBusinessHours: '',
+    storeLogo: '',
+    ownerId: user?.id || 0
+  };
+  
+  this.editingStore = null;
+  this.showStoreForm = false;
+  this.resetStoreUpload();  // Clear the file upload
+}
 
   // Add method to handle store selection
   onStoreSelected(store: Store): void {
     this.selectedStore = store;
-   // this.loadProducts();
-  }
-
-  // ---------------------- Product Management ----------------------
-  // loadProducts(): void {
-  //   if (!this.selectedStore?.storeId) return;
-  //   this.isLoading = true;
-
-  //   this.productService.getStoreProducts(Number(this.selectedStore.storeId)).subscribe({
-  //     next: (products) => {
-  //       this.products = products;
-  //       this.isLoading = false;
-  //     },
-  //     error: () => {
-  //       this.errorMessage = 'Failed to load products.';
-  //       this.isLoading = false;
-  //     }
-  //   });
-  // }
+   
+ }
 
    createProduct(): void {
-  //    if (!this.selectedStore?.storeId) return;
-
-  // // You must get the current user ID for the ProductService
-  // const currentUser = this.authService.currentUserValue;
-  // const userId = Number(currentUser?.id);
-  // if (!userId || isNaN(userId)) {
-  //   this.errorMessage = 'User ID is missing or invalid';
-  //   return;
-  // }
-
-  // this.isLoading = true;
-  // this.productService.createProduct(
-  //   userId,
-  //   Number(this.selectedStore.storeId),
-  //   this.newProduct,
-  //   this.selectedFile
-  // ).subscribe({
-  //   next: (product) => {
-  //     this.handleProductCreated();
-  //   },
-  //   error: () => {
-  //     this.errorMessage = 'Failed to create product.';
-  //     this.isLoading = false;
-  //   }
-  // });
+  
   }
 
-  // private uploadProductImage(productId: number): void {
-  //   if (!this.selectedFile) return;
 
-  //   this.productService.uploadProductImage(productId, this.selectedFile).subscribe({
-  //     next: () => this.handleProductCreated(),
-  //     error: () => {
-  //       this.errorMessage = 'Product created but image upload failed.';
-  //       this.handleProductCreated();
-  //     }
-  //   });
-  // }
 
   handleProductCreated(): void {
    // this.loadProducts();
@@ -313,21 +305,6 @@ export class StoreDashboardComponent implements OnInit {
     this.isLoading = false;
   }
 
-  // deleteProduct(productId: number): void {
-  //   if (!confirm('Are you sure you want to delete this product?')) return;
-
-  //   this.isLoading = true;
-  //   this.productService.deleteProduct(productId,storeId).subscribe({
-  //     next: () => {
-  //       this.products = this.products.filter(p => p.productId !== productId);
-  //       this.isLoading = false;
-  //     },
-  //     error: () => {
-  //       this.errorMessage = 'Failed to delete product.';
-  //       this.isLoading = false;
-  //     }
-  //   });
-  // }
 
   resetProductForm(): void {
     this.newProduct = {
@@ -350,32 +327,33 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   // ---------------------- Upload Logic ----------------------
-  onFileSelected(event: any): void {
+  onStoreFileSelected(event: any): void {
     const file = event.target.files[0];
-    this.handleFileSelection(file);
+    this.handleStoreFileSelection(file);
   }
 
-  onDrop(event: DragEvent): void {
+  onStoreDrop(event: DragEvent): void {
     event.preventDefault();
-    this.isDragOver = false;
+    this.isStoreDragOver = false;
     if (event.dataTransfer?.files.length) {
-      this.handleFileSelection(event.dataTransfer.files[0]);
+      this.handleStoreFileSelection(event.dataTransfer.files[0]);
     }
   }
 
-  onDragOver(event: DragEvent): void {
+  onStoreDragOver(event: DragEvent): void {
     event.preventDefault();
-    this.isDragOver = true;
+    this.isStoreDragOver = true;
   }
 
-  handleFileSelection(file: File): void {
+  handleStoreFileSelection(file: File): void {
     if (file && this.isImageFile(file)) {
-      this.selectedFile = file;
+      this.selectedStoreFile = file;
       const reader = new FileReader();
-      reader.onload = () => (this.previewUrl = reader.result);
+      reader.onload = () => (this.storePreviewUrl = reader.result);
       reader.readAsDataURL(file);
     } else {
       this.errorMessage = 'Please select a valid image file (JPEG or PNG).';
+      this.resetStoreUpload();
     }
   }
 
@@ -393,12 +371,12 @@ export class StoreDashboardComponent implements OnInit {
     }
   }
 
-  private uploadStoreLogo(storeId: number): void {
+  public uploadStoreLogo(storeId: number): void {
     this.isLoading = true;
-    this.storeAdminService.uploadStoreLogo(storeId, this.selectedFile!).subscribe({
+    this.storeAdminService.uploadStoreLogo(storeId, this.selectedStoreFile!).subscribe({
       next: () => {
         alert('Store logo uploaded successfully!');
-        this.resetUpload();
+        this.resetStoreUpload();
         this.loadStores();
         this.isLoading = false;
       },
@@ -409,6 +387,17 @@ export class StoreDashboardComponent implements OnInit {
     });
   }
 
+  resetStoreUpload(): void {
+  this.selectedStoreFile = null;
+  this.storePreviewUrl = null;
+  this.isStoreDragOver = false;
+}
+
+  // UploadStoreLogo(): void {
+  //   if (this.selectedFile && this.editingStore?.storeId) {
+  //      this.uploadStoreLogo(Number(this.editingStore.storeId));
+  //   }
+  // }
   resetUpload(): void {
     this.selectedFile = null;
     this.previewUrl = null;

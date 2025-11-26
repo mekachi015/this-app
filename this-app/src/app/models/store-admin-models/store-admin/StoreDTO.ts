@@ -7,5 +7,5 @@ export interface StoreDTO {
   storePhoneNumber: string;
   storeBusinessHours: string;
   storeLogo?: string;
-  ownwerId?: number;
+  ownerId?: number;  // ← Fixed typo
 }

@@ -37,40 +37,61 @@ export class StoreAdminServiceService {
     );
   }
 
-  createStoreWithLogo(storeDto: StoreDTO, logoFile: File): Observable<Store>{
+  createStoreWithLogo(storeData: any, logoFile: File | null): Observable<Store> {
     const formData = new FormData();
-
-    formData.append('storeData', new Blob([JSON.stringify(storeDto)],
-     {type : 'application/json'}));
-
-     if (logoFile){
-      formData.append('logo', logoFile);
-     }
-     
-     const token = this.authService.token;
-     const headers = new HttpHeaders({
+    
+    // Create the store DTO object
+    const storeDTO: StoreDTO = {
+      storeName: storeData.storeName,
+      storeDescription: storeData.storeDescription,
+      storeAddress: storeData.storeAddress,
+      storeEmail: storeData.storeEmail,
+      storePhoneNumber: storeData.storePhoneNumber,
+      storeBusinessHours: storeData.storeBusinessHours
+      // Don't send ownerId - backend gets it from Authentication
+    };
+    
+    console.log('Store DTO being sent:', storeDTO);
+    
+    // CRITICAL: Append storeData as a JSON Blob with correct content type
+    formData.append('storeData', new Blob([JSON.stringify(storeDTO)], {
+      type: 'application/json'
+    }));
+    
+    // Append logo file if provided
+    if (logoFile) {
+      console.log('Appending logo file:', logoFile.name, logoFile.type);
+      formData.append('logoFile', logoFile, logoFile.name);
+    }
+    
+    // CRITICAL: Get auth headers but DON'T set Content-Type
+    // Let browser set it automatically for multipart/form-data
+    const token = this.authService.token;
+    const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
-     });
-
-    return this.http.post<Store>(this.apiUrl, formData, { 
-    headers,
-    withCredentials: true 
-  }).pipe(
-    catchError(error => {
-      console.error('Store creation error:', error);
-      return throwError(() => error);
-    })
-  );
+      // NO Content-Type header - browser will set it with boundary
+    });
+    
+    return this.http.post<Store>(this.apiUrl, formData, {
+      headers,
+      withCredentials: true
+    }).pipe(
+      catchError(error => {
+        console.error('Store creation error:', error);
+        console.error('Error details:', error.error);
+        return throwError(() => error);
+      })
+    );
   }
 
-   updateStore(id: number, storeDto: StoreDTO): Observable<Store> {
+    updateStore(id: number, storeDto: StoreDTO): Observable<Store> {
     const headers = this.authService.getAuthHeaders();
     return this.http.put<Store>(`${this.apiUrl}/${id}`, storeDto, { 
       headers,
       withCredentials: true 
     });
   }
-
+  
   deleteStore(id: number): Observable<void> {
     const headers = this.authService.getAuthHeaders();
     return this.http.delete<void>(`${this.apiUrl}/${id}`, { 
@@ -151,7 +172,7 @@ export class StoreAdminServiceService {
     storeEmail: store.storeEmail,
     storePhoneNumber: store.storePhoneNumber,
     storeBusinessHours: store.storeBusinessHours,
-    ownwerId: store.ownerId
+    ownerId: store.ownerId
   };
   }
 
