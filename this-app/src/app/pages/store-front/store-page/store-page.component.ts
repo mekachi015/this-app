@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '../../../models/store-front/store.model';
 import { StoreCardComponent } from "../../../components/store-front/store-card/store-card.component";
 import { NearYouComponent } from '../../../components/store-front/near-you/near-you.component';
 import { NavBarComponent } from "../../../components/nav-bar/nav-bar/nav-bar.component";
 import { CommonModule } from '@angular/common';
 import { SearchBarComponent } from '../../../components/search-bar/search-bar.component';
+import { StoreAdminServiceService } from '../../../services/store-admin-service/store-admin-service.service';
 
 
 @Component({
@@ -14,123 +15,81 @@ import { SearchBarComponent } from '../../../components/search-bar/search-bar.co
   templateUrl: './store-page.component.html',
   styleUrl: './store-page.component.scss'
 })
-export class StorePageComponent {
+export class StorePageComponent implements OnInit{
 
-  featuredStores: Store[] = [
-    {
-      id: '1',
-      name: 'IFUKU',
-      imageUrl: 'assets/store-pictures/store-3.jpg',
-      description: 'Premium Japanese streetwear and denim. Authentic pieces curated from Tokyo.',
-    },
-    {
-      id: '2',
-      name: 'BROKE',
-      imageUrl: 'assets/store-pictures/store-2.jpg',
-      description: 'Affordable streetwear for the fashion-conscious. Style doesn\'t have to break the bank.',
-    },
-    {
-      id: '5',
-      name: 'VINTAGE',
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-      description: 'Carefully selected vintage pieces from the 80s and 90s. Each item tells a story.',
-    },
-    {
-      id: '6',
-      name: 'STREETWEAR',
-      imageUrl: 'assets/store-pictures/store-6.jpg',
-      description: 'Contemporary urban fashion meets classic street style. For those who dare to stand out.',
-    },
-    {
-      id: '7',
-      name: 'LUXURY',
-      imageUrl: 'assets/store-pictures/store-4.jpg',
-      description: 'Exclusive designer pieces and high-end fashion. Luxury reimagined for modern taste.',
+     featuredStores: Store[] = [];
+  nearbyStores: Store[] = [];
+  isLoading = false;
+  errorMessage = '';
+
+  constructor(private storeService: StoreAdminServiceService) {}
+
+  ngOnInit(): void {
+    this.loadAllStores();
+  }
+
+  loadAllStores(): void {
+    this.isLoading = true;
+    
+    // Call the public endpoint to get all stores
+    this.storeService.getAllPublicStores().subscribe({
+      next: (stores) => {
+        console.log('Loaded stores from backend:', stores);
+        
+        // Transform backend Store[] to your frontend Store model
+        const transformedStores = stores.map(backendStore => this.transformToFrontendStore(backendStore));
+        
+        // Split stores: First 5 for featured, rest for nearby
+        this.featuredStores = transformedStores.slice(0, 5);
+        this.nearbyStores = transformedStores; // Show all stores in nearby section
+        
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading stores:', error);
+        this.errorMessage = 'Failed to load stores';
+        this.isLoading = false;
+        
+        // Fallback to empty arrays if backend fails
+        this.featuredStores = [];
+        this.nearbyStores = [];
+      }
+    });
+  }
+
+
+   private transformToFrontendStore(backendStore: any): Store {
+    return {
+      id: backendStore.storeId?.toString() || '',
+      name: backendStore.storeName || 'Unknown Store',
+      imageUrl: backendStore.storeLogo || 'assets/default-store.png',
+      description: backendStore.storeDescription || 'No description available',
+      bestseller: 'Featured Items', // You can add this to backend later
+      category: this.inferCategory(backendStore.storeName), // Infer from name or add to backend
+      rating: 90, // You can add ratings to backend later
+      operatingHours: backendStore.storeBusinessHours || 'Hours not available'
+    };
+  }
+
+  /**
+   * Helper method to infer category from store name
+   * You can make this more sophisticated or add category field to backend
+   */
+  private inferCategory(storeName: string): string {
+    const name = storeName.toLowerCase();
+    
+    if (name.includes('vintage') || name.includes('retro')) {
+      return 'Vintage Fashion';
+    } else if (name.includes('luxury') || name.includes('premium')) {
+      return 'Luxury Fashion';
+    } else if (name.includes('street') || name.includes('urban')) {
+      return 'Street Fashion';
+    } else if (name.includes('japanese') || name.includes('japan')) {
+      return 'Japanese Fashion';
+    } else {
+      return 'Fashion & Lifestyle';
     }
-    // Remove duplicates for cleaner implementation
+  }
 
-  ];
 
-   nearbyStores: Store[] = [
-    {
-      id: '1',
-      name: 'IFUKU Store',
-      imageUrl: 'assets/store-pictures/store-3.jpg',
-      bestseller: 'Japanese Denim Collection',
-      category: 'Japanese Fashion',
-      rating: 95,
-      operatingHours: '09:00 - 21:00',
-      description: 'Premium Japanese streetwear and authentic denim pieces.'
-    },
-    {
-      id: '2',
-      name: 'VINTAGE Corner',
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-      bestseller: 'Vintage Leather Jackets',
-      category: 'Vintage Fashion',
-      rating: 92,
-      operatingHours: '10:00 - 19:00',
-      description: 'Curated vintage pieces from the 80s and 90s.'
-    },
-    {
-      id: '3',
-      name: 'STREETWEAR Hub',
-      imageUrl: 'assets/store-pictures/store-6.jpg',
-      bestseller: 'Urban Streetwear Collection',
-      category: 'Street Fashion',
-      rating: 94,
-      operatingHours: '11:00 - 20:00',
-      description: 'Contemporary urban fashion for street style enthusiasts.'
-    },
-    {
-      id: '4',
-      name: 'LUXURY Boutique',
-      imageUrl: 'assets/store-pictures/store-4.jpg',
-      bestseller: 'Designer Collections',
-      category: 'Luxury Fashion',
-      rating: 97,
-      operatingHours: '10:00 - 18:00',
-      description: 'Exclusive designer pieces and high-end fashion.'
-    },
-    {
-      id: '1',
-      name: 'IFUKU Store',
-      imageUrl: 'assets/store-pictures/store-3.jpg',
-      bestseller: 'Japanese Denim Collection',
-      category: 'Japanese Fashion',
-      rating: 95,
-      operatingHours: '09:00 - 21:00',
-      description: 'Premium Japanese streetwear and authentic denim pieces.'
-    },
-    {
-      id: '2',
-      name: 'VINTAGE Corner',
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-      bestseller: 'Vintage Leather Jackets',
-      category: 'Vintage Fashion',
-      rating: 92,
-      operatingHours: '10:00 - 19:00',
-      description: 'Curated vintage pieces from the 80s and 90s.'
-    },
-    {
-      id: '3',
-      name: 'STREETWEAR Hub',
-      imageUrl: 'assets/store-pictures/store-6.jpg',
-      bestseller: 'Urban Streetwear Collection',
-      category: 'Street Fashion',
-      rating: 94,
-      operatingHours: '11:00 - 20:00',
-      description: 'Contemporary urban fashion for street style enthusiasts.'
-    },
-    {
-      id: '4',
-      name: 'LUXURY Boutique',
-      imageUrl: 'assets/store-pictures/store-4.jpg',
-      bestseller: 'Designer Collections',
-      category: 'Luxury Fashion',
-      rating: 97,
-      operatingHours: '10:00 - 18:00',
-      description: 'Exclusive designer pieces and high-end fashion.'
-    }
-  ];
 }

@@ -100,6 +100,15 @@ export class StoreAdminServiceService {
     });
   }
 
+ getAllPublicStores(): Observable<Store[]> {
+  return this.http.get<Store[]>(`${this.apiUrl}/public`).pipe(
+    catchError(error => {
+      console.error('Error fetching public stores:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
   getAllStores(): Observable<Store[]> {
     const headers = this.authService.getAuthHeaders();
     return this.http.get<Store[]>(this.apiUrl, { 
@@ -108,13 +117,7 @@ export class StoreAdminServiceService {
     });
   }
 
-  // getStoreById(storeId: number): Observable<Store> {
-  //   const headers = this.authService.getAuthHeaders();
-  //   return this.http.get<Store>(`${this.apiUrl}/${storeId}`, { 
-  //     headers,
-  //     withCredentials: true 
-  //   });
-  // }
+ 
 
   getStoreById(storeId: number): Observable<Store> {
     const headers = this.authService.getAuthHeaders();
