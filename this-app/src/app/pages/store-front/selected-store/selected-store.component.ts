@@ -19,6 +19,7 @@ export class SelectedStoreComponent {
   ngOnInit(): void {
     // Initialization logic can go here
     this.getStoreFromRoute();
+    this.loadStoreData(this.storeId!);
   }
 
   constructor( private route: ActivatedRoute,
@@ -85,6 +86,7 @@ export class SelectedStoreComponent {
   next: (products) => {
     console.log('Loaded products for store:', products);
     this.products = products;
+    console.log('Products assigned to component:', this.products);
   },
   error: (err) => {
     console.error('Failed to load products for store:', err);
