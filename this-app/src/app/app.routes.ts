@@ -12,6 +12,7 @@ import { WishlistPageComponent } from './pages/wishlist-page/wishlist-page.compo
 import { DriverComponentComponent } from './pages/driver-component/driver-component.component';
 import { NewAuthComponent } from './components/auth/new-auth/new-auth.component';
 import { ProductManagementComponent } from './pages/product-management/product-management.component';
+import { AuthGuard } from './services/Auth-gaurds/auth-guard';
 
 export const routes: Routes = [
   { path: '', component: AuthenticationPageComponent },
@@ -23,13 +24,13 @@ export const routes: Routes = [
   { path: 'sign-up/driver', component: NewAuthComponent },
   { path: 'stores', component: StorePageComponent },
   { path: 'store/:storeId', component: SelectedStoreComponent },
-  { path: 'cart', component: CartPageComponent },
-  { path: 'dashboard', component: StoreDashboardComponent },
-  { path: 'profile', component: ProfileComponent },
-  { path: 'wishlist', component: WishlistPageComponent }, // Dynamic route for selected store
-  { path: 'driver', component: DriverComponentComponent },
+  { path: 'cart', component: CartPageComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER'] } },
+  { path: 'dashboard', component: StoreDashboardComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
+  { path: 'profile', component: ProfileComponent  },
+  { path: 'wishlist', component: WishlistPageComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER'] } }, // Dynamic route for selected store
+  { path: 'driver', component: DriverComponentComponent, canActivate: [AuthGuard], data: { roles: ['DRIVER'] } },
   { path: 'new', component: NewAuthComponent },
-  { path: 'product-management/:id', component: ProductManagementComponent},
+  { path: 'product-management/:id', component: ProductManagementComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: 'stores', pathMatch: 'full' }, // Wildcard route should be last
 ];
 

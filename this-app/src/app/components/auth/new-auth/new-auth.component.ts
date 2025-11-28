@@ -155,12 +155,14 @@ export class NewAuthComponent implements OnInit {
     loginObservable.subscribe({
       next: (user) => {
         console.log('Login successful, user:', user);
+        this.router.navigate(['/dashboard']);
         this.isLoading = false;
-        if (user.userType === this.userType) {
+        if (user.userType === 'ADMIN') {
           this.navigateAfterSuccess();
         } else {
           this.errorMessage = `Access denied. This page is for ${this.userType} users only.`;
         }
+        
       },
        error: (error) => {
       this.isLoading = false;

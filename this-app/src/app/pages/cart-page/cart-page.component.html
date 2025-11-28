@@ -1,5 +1,4 @@
 <div class="cart-container">
-  <!-- Header -->
   <header class="cart-header">
     <div class="header-content">
       <h1>Shopping Cart</h1>
@@ -7,10 +6,9 @@
     </div>
   </header>
 
-  <!-- Cart Items -->
   <main class="cart-content">
     <div class="cart-items">
-      <div class="cart-item" *ngFor="let item of cartItems">
+      <div class="cart-item" *ngFor="let item of cartItems; let i = index"> 
         <div class="item-image">
           <img [src]="item.imageUrl" [alt]="item.name">
         </div>
@@ -24,13 +22,13 @@
           <span>{{ item.quantity }}</span>
           <button class="quantity-btn" (click)="increaseQuantity(item)">+</button>
         </div>
-        <button class="remove-btn" (click)="removeItem(item)">
-          <i class="fas fa-trash"></i>
+        
+        <button class="remove-btn" (click)="removeItem(cart[i])"> 
+            <i class="fas fa-trash"></i>
         </button>
       </div>
     </div>
 
-    <!-- Order Summary -->
     <aside class="order-summary">
       <h2>Order Summary</h2>
       <div class="summary-details">

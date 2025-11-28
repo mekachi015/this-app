@@ -21,7 +21,7 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_item_id")
-    private Integer cartItemId;
+    private Long cartItemId;
 
     // Many Cart items belong to one User
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,7 +39,7 @@ public class Cart {
     private Stores store;
 
     @Column(name = "quantity", nullable = false)
-    private Integer quantity; // CHECK (quantity > 0) is handled by DB schema
+    private Long quantity; // CHECK (quantity > 0) is handled by DB schema
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

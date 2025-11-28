@@ -5,6 +5,10 @@ import { StoreAdminServiceService } from '../../../services/store-admin-service/
 import { ActivatedRoute } from '@angular/router';
 import { Product } from '../../../models/store-admin-models/product-admin/product';
 import { ProductService } from '../../../services/product-service/product.service';
+import { AuthService } from '../../../services/authentication-service/auth.service';
+import { CartService } from '../../../services/cart-service/cart.service';
+import { CartRequest } from '../../../models/cart-model/cart-request';
+import { response } from 'express';
 
 
 
@@ -20,11 +24,16 @@ export class SelectedStoreComponent {
     // Initialization logic can go here
     this.getStoreFromRoute();
     this.loadStoreData(this.storeId!);
+
+    this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
   }
 
   constructor( private route: ActivatedRoute,
     private storeService: StoreAdminServiceService,
-    private productService: ProductService
+    private productService: ProductService,
+    private authService: AuthService,
+    private cartService: CartService
+
   ) {
     
   }
@@ -34,14 +43,41 @@ export class SelectedStoreComponent {
   products: Product[] = [];
   public storeId: string | null = null;
 
+  private currentUserId: number = 0;
+
   onSearch(): void {
     // Implement search functionality
     console.log('Searching for:', this.searchQuery);
   }
 
   addToCart(product: Product): void {
-    // Implement add to cart functionality
-    console.log('Added to cart:', product);
+    if(!this.currentUserId || this.currentUserId === 0){
+      console.error('User not logged in. Cannot add to cart.');
+      return;
+    }
+
+    if(!product.productId){
+      console.error('Invalid product. Cannot add to cart.');
+      return;
+    }
+
+    //default qunantity to 1 for a standard "Add to cart" button
+    const request: CartRequest = {
+      productId: product.productId,
+      quantity: 1
+    };
+
+    this.cartService.addToCart(this.currentUserId, request).subscribe({
+      next: (response) => {
+        console.log('Product added to cart successfully:', response);
+        alert(`Added ${product.productName} to cart.`);
+      },
+      error: (err) => {
+        console.error('Failed to add product to cart:', err);
+        alert('Failed to add product to cart. Please try again.');
+      }
+    });
+
   }
 
   zoomProduct(product: Product): void {
