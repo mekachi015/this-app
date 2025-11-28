@@ -33,11 +33,14 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll() // Allow H2 console
                 .requestMatchers("/api/stores/**").permitAll() 
                 .requestMatchers( "/api/stores/**").permitAll()
+                    .requestMatchers("/api/products/redefine/stores/*/products/public").permitAll()
                     .requestMatchers("/api/products/**").hasRole("ADMIN")
                 .requestMatchers("/api/stores/**").hasRole("ADMIN")
                     .requestMatchers("/api/products/redefine/users**").hasRole("ADMIN")
 
-                .anyRequest().authenticated()
+
+
+                    .anyRequest().authenticated()
             )
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         

@@ -62,7 +62,7 @@ public class ProductService {
         product.setStore(store);
         product.setProductName(productsDTO.getProductName());
         product.setProductDescription(productsDTO.getProductDescription());
-        product.setProductPrice(BigDecimal.valueOf(productsDTO.getProductPrice()));
+        product.setProductPrice(productsDTO.getProductPrice());
         product.setCategory(productsDTO.getCategory());
         product.setStockQuantity(productsDTO.getStockQuantity());
 
@@ -98,10 +98,10 @@ public class ProductService {
     }
 
 
-    public List<Products> getProductsByStore(Long storeId, String ownerUsername){
+    public List<Products> getProductsByStore(Long storeId){
 
-        User user = userRepo.findByUsername(ownerUsername)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+//        User user = userRepo.findByUsername(ownerUsername)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Stores store = storeService.getStoreById(storeId);
         return productRepo.findByStore(store);
@@ -121,7 +121,7 @@ public class ProductService {
         // Update product fields
         product.setProductName(productDTO.getProductName());
         product.setProductDescription(productDTO.getProductDescription());
-        product.setProductPrice(BigDecimal.valueOf(productDTO.getProductPrice()));
+        product.setProductPrice(product.getProductPrice());
         product.setCategory(productDTO.getCategory());
         product.setStockQuantity(productDTO.getStockQuantity());
         
@@ -195,7 +195,7 @@ public class ProductService {
         // --- FIX IS HERE ---
         // Convert Double from DTO to BigDecimal for Entity
         if (dto.getProductPrice() != null) {
-            entity.setProductPrice(BigDecimal.valueOf(dto.getProductPrice()));
+            entity.setProductPrice(dto.getProductPrice());
         } else {
             entity.setProductPrice(null); // Handle null price
         }
@@ -252,7 +252,7 @@ public class ProductService {
         existingProduct.setProductDescription(productDTO.getProductDescription());
         // Convert Double from DTO to BigDecimal for Entity
         if (productDTO.getProductPrice() != null) {
-            existingProduct.setProductPrice(BigDecimal.valueOf(productDTO.getProductPrice()));
+            existingProduct.setProductPrice(productDTO.getProductPrice());
         } else {
             existingProduct.setProductPrice(null);
         }        existingProduct.setCategory(productDTO.getCategory());

@@ -144,27 +144,12 @@ public class ProductsControllerRedefined {
      * Get : Retrieve all products for a specific strore
      *
      */
-    @GetMapping("stores/{storeId}/products")
-    public ResponseEntity<?> getAllProductsByStore(
-            @PathVariable Long storeId,
-            Authentication authentication
-    ){
-        try {
-            String ownerUsername = authentication.getName();
-            User authenticatedUser = userService.getUserByUsername(ownerUsername)
-                    .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+//
 
-            List<Products> products = productsService.getAllProductsByStore(storeId);
-
-            return ResponseEntity.ok(products);
-
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "An unexpected error occurred: " + e.getMessage()));
-        }
+    @GetMapping("stores/{storeId}/products/public")
+    public ResponseEntity<?> getAllProductsByStorePublic(@PathVariable Long storeId) {
+        return ResponseEntity.ok(productsService.getAllPublicProductsForStore(storeId));
     }
+
 
 }

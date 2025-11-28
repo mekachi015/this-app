@@ -54,11 +54,11 @@ public class ProductController {
      * GET /api/products/store/{storeId}
      */
     @GetMapping("/store/{storeId}")
-    public ResponseEntity<?> getStoreProducts(@PathVariable Long storeId, Authentication authentication) {
+    public ResponseEntity<?> getStoreProducts(@PathVariable Long storeId) {
 
         try {
-            String username = authentication.getName();
-            List<Products> products = productService.getProductsByStore(storeId, username);
+
+            List<Products> products = productService.getProductsByStore(storeId);
 
             // map to DTOs
             List<ProductsDTO> productDTOs = products.stream().map(product -> {
@@ -66,7 +66,7 @@ public class ProductController {
                 dto.setProductId(product.getProductId());
                 dto.setProductName(product.getProductName());
                 dto.setProductDescription(product.getProductDescription());
-                dto.setProductPrice(product.getProductPrice().doubleValue());
+                dto.setProductPrice(product.getProductPrice());
                 dto.setCategory(product.getCategory());
                 dto.setImageUrl(product.getImageUrl());
                 dto.setStockQuantity(product.getStockQuantity());

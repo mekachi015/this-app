@@ -50,7 +50,7 @@ public class ProductsRedefined {
         product.setCreatedBy(user); // Set the User entity here
         product.setProductName(productsDTO.getProductName());
         product.setProductDescription(productsDTO.getProductDescription());
-        product.setProductPrice(BigDecimal.valueOf(productsDTO.getProductPrice()));
+        product.setProductPrice(productsDTO.getProductPrice());
         product.setCategory(productsDTO.getCategory());
         product.setStockQuantity(productsDTO.getStockQuantity());
 
@@ -119,6 +119,28 @@ public class ProductsRedefined {
         Stores store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Store not found with id: " + storeId));
         return productsRepository.findByStore(store);
+    }
+
+    public List<ProductsDTO> getAllPublicProductsForStore(Long storeId){
+        Stores store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("Store not found with store id"));
+
+        List<Products> products = productsRepository.findByStore(store);
+
+        return products.stream()
+                .map(product -> {
+                    ProductsDTO dto = new ProductsDTO();
+                    dto.setProductId(product.getProductId());
+                    dto.setProductName(product.getProductName());
+                    dto.setProductDescription(product.getProductDescription());
+                    dto.setProductPrice(product.getProductPrice());
+                    dto.setCategory(product.getCategory());
+                    dto.setStockQuantity(product.getStockQuantity());
+                    dto.setImageUrl(product.getImageUrl());
+                    return dto;
+                })
+                .toList();
+
     }
 
 
