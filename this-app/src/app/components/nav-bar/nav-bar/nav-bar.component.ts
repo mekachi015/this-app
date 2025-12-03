@@ -29,7 +29,9 @@ export class NavBarComponent {
     { label: 'Profile', route: '/profile', icon: 'user-circle' },
     { label: 'Settings', route: '/settings', icon: 'cog' },
     { label: 'Administration', route: '/login/admin', icon: 'cogs' },
-    {label: 'Driver', route: '/login/driver', icon: 'car'}
+    {label: 'Driver', route: '/login/driver', icon: 'car'},
+    {label: 'Cart', route: '/cart', icon: 'shopping-cart'},
+    { label: "Wishlist", route: "/wishlist", icon: "heart" }
   ];
 
   toggleSidebar(): void {
