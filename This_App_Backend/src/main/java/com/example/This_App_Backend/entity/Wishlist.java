@@ -22,7 +22,7 @@ public class Wishlist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "wishlist_id")
-    private Integer wishlistId;
+    private Long  wishlistId;
 
     // Many Wishlists items belong to one User
     @ManyToOne(fetch = FetchType.LAZY)

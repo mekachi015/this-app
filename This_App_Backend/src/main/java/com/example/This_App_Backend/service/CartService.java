@@ -1,5 +1,6 @@
 package com.example.This_App_Backend.service;
 
+import com.example.This_App_Backend.dto.CartDTO.CartDto;
 import com.example.This_App_Backend.dto.CartDTO.CartResponse;
 import com.example.This_App_Backend.dto.CartDTO.ProductResponse;
 import com.example.This_App_Backend.entity.Cart;
@@ -10,7 +11,7 @@ import com.example.This_App_Backend.repository.CartRepo;
 import com.example.This_App_Backend.repository.ProductsRepository;
 import com.example.This_App_Backend.repository.StoreRepository;
 import com.example.This_App_Backend.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,132 +19,167 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class CartService {
 
-   @Autowired
+  @Autowired
     private CartRepo cartRepo;
 
-   @Autowired
+  @Autowired
     private UserRepository userRepo;
 
-   @Autowired
+  @Autowired
     private ProductsRepository productRepo;
 
-   @Autowired
-    private StoreRepository storeRepos;
+  @Autowired
+    private StoreRepository storeRepo;
 
-   private CartResponse maptoResponse(Cart cart){
-       ProductResponse productDTO = ProductResponse.builder()
-               .productId(cart.getProduct().getProductId())
-               .productName(cart.getProduct().getProductName())
-               .productPrice(cart.getProduct().getProductPrice())
-               .productDescription(cart.getProduct().getProductDescription())
-               .imageUrl(cart.getProduct().getImageUrl())
-               .build();
+  @Transactional
+    public CartDto addToCart (Long userId, Long productId, Long quantity){
+      //Validate the user
+      User user = userRepo.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found error"));
 
-       return CartResponse.builder()
-               .cartId(cart.getCartItemId())
-               .quantity(cart.getQuantity())
-               .productResponse(productDTO)
-               .build();
-   }
+      if(user.getUserType() != User.UserType.CUSTOMER){
+          throw new RuntimeException("Only customers can add to the cart");
+      }
 
+      //Validate product exist
+      Products products = productRepo.findById(productId)
+              .orElseThrow(() -> new RuntimeException("Product not found"));
 
-   private User validateCustomer(Long userId){
-       User user = userRepo.findById(userId)
-               .orElseThrow(() -> new RuntimeException("User has not been found"));
+      //get store from product
+      Stores store = products.getStore();
+      if (store == null) {
+          throw new RuntimeException("Product is not associated with store");
+      }
 
-       if(user.getUserType() != User.UserType.CUSTOMER){
-           throw new SecurityException("Access denied: Only customer can interact with the cart");
-       }
-       return user;
-   }
+      //Check if product already exists
+      Cart cart = cartRepo.findByUserAndProduct(user, products)
+              .orElse(new Cart());
 
-    public Cart addToCart(Long userId, Long productId, Long quantity) {
+      if (cart.getCartItemId() != null){
+          //update existing cart  item
+          cart.setQuantity(cart.getQuantity() + quantity);
+          cart.setUpdatedAt(LocalDateTime.now());
+      } else {
+          //create a new cart item
+          cart.setUser(user);
+          cart.setProduct(products);
+          cart.setStore(store);
+          cart.setQuantity(quantity);
+          cart.setCreatedAt(LocalDateTime.now());
+          cart.setUpdatedAt(LocalDateTime.now());
+      }
 
-        User user = validateCustomer(userId);
+      Cart savedCart = cartRepo.save(cart);
+      return convertToDto(savedCart);
+  }
 
-        Products product = productRepo.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+  @Transactional(readOnly = true)
+    public List<CartDto> getUserCart(Long userId){
+      User user = userRepo.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Stores store = storeRepos.findById(product.getStore().getStoreId())
-                .orElseThrow(() -> new RuntimeException("Store not found"));
+      if (user.getUserType() !=  User.UserType.CUSTOMER){
+          throw new RuntimeException("Only customers can view carts");
+      }
 
-        // Check if product already exists in cart
-        Optional<Cart> existing = cartRepo
-                .findByUserUserIdAndProductProductId(userId, productId);
+      List<Cart> cartItem = cartRepo.findByUser(user);
+      return cartItem.stream()
+              .map(this::convertToDto)
+              .collect(Collectors.toList());
+  }
 
-        //ensure quantity is positive
-        if (quantity <= 0){
-            throw new IllegalArgumentException("Quantity must not be less than 0");
-        }
-        Cart savedCart;
-        if (existing.isPresent()) {
-           Cart cartItem = existing.get();
-            cartItem.setQuantity(cartItem.getQuantity() + quantity);
-            cartItem.setUpdatedAt(LocalDateTime.now()); // Update timestamp on modification
-            savedCart = cartRepo.save(cartItem);
-        }else {
-            // Create new cart entry
-            Cart cart = new Cart();
-            cart.setUser(user);
-            cart.setProduct(product);
-            cart.setStore(store);
-            cart.setQuantity(quantity);
-            cart.setCreatedAt(LocalDateTime.now());
-            cart.setUpdatedAt(LocalDateTime.now());
-            savedCart = cartRepo.save(cart);
-        }
+  @Transactional
+    public CartDto updateCartQuantity(Long userId,  Long cartItemId, Long quantity){
+      User user = userRepo.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found"));
 
+      if(user.getUserType() != User.UserType.CUSTOMER){
+          throw new RuntimeException("Only customers can update a cart");
+      }
 
+      Cart cart = cartRepo.findById(cartItemId)
+              .orElseThrow(() -> new RuntimeException("cart item does not exist"));
 
-        return cartRepo.save(savedCart);
-    }
+      if(!cart.getUser().getUserId().equals(userId)){
+          throw new RuntimeException("Cart item does not belong to this user");
+      }
 
-    //Retrieve all cart items for a specific user
-    public List<CartResponse> getCart(Long userId){
-        validateCustomer(userId);
+      if (quantity <= 0){
+          throw new RuntimeException("Quantity must be greater than 0");
+      }
 
-        List<Cart> cartEntities = cartRepo.findByUserUserId((userId));
+      cart.setQuantity(quantity);
+      cart.setUpdatedAt(LocalDateTime.now());
 
-        return cartEntities.stream()
-                .map(this::maptoResponse)
-        .toList();
-    }
+      Cart updateCart = cartRepo.save(cart);
+      return convertToDto(updateCart);
+  }
 
-    //remove a specific product froma users cart
-    public void removeCartItem(Long userId, Long productId){
-        validateCustomer(userId);
+  @Transactional
+    public void removeFromCart(Long userId, Long cartItemId){
+      User user = userRepo.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found "));
 
-        Products products = productRepo.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Products not found"));
+      if (user.getUserType() != User.UserType.CUSTOMER){
+          throw new RuntimeException("Only customers can remover cart items");
+      }
 
+      Cart cart = cartRepo.findById(cartItemId)
+              .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
-        cartRepo.deleteByUserUserIdAndProductProductId(userId, productId);
-    }
+      if (!cart.getUser().getUserId().equals(userId)){
+          throw new RuntimeException("Cart item does not belong to this user");
+      }
 
-    //Update the quantities of a specific item in the catt
-    public CartResponse updateQuantity(Long cartItemId, Long quantity){
-        Cart cart = cartRepo.findById(cartItemId)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+      cartRepo.delete(cart);
+  }
 
-        validateCustomer(cart.getUser().getUserId());
+  @Transactional
+    public void clearCart(Long userId){
+      User user = userRepo.findById(userId)
+              .orElseThrow(()-> new RuntimeException("User not found"));
 
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than zero. Use removeCartItem to delete.");
-        }
+      if (user.getUserType() != User.UserType.CUSTOMER){
+          throw new RuntimeException("Only customers can delete cart items");
+      }
 
-        cart.setQuantity(quantity);
-        cart.setUpdatedAt(LocalDateTime.now());
+      cartRepo.deleteByUser(user);
+  }
 
-        Cart updatedCart = cartRepo.save(cart);
+  @Transactional (readOnly = true)
+    public Long getCartItemCount (Long userId){
+      User user = userRepo.findById(userId)
+              .orElseThrow(() ->  new RuntimeException("User not found with ID:" + userId));
 
-        // Return the mapped DTO instead of the raw entity
-        return maptoResponse(updatedCart);
-    }
+      if (user.getUserType() != User.UserType.CUSTOMER){
+          return 0L;
+      }
 
+      return cartRepo.countByUser_UserId(userId);
+  }
 
+  private CartDto convertToDto (Cart cart) {
+      CartDto dto = new CartDto();
+
+      dto.setCartItemId(cart.getCartItemId());
+      dto.setUserId(cart.getUser().getUserId());
+      dto.setProductId(cart.getProduct().getProductId());
+      dto.setProductName(cart.getProduct().getProductName());
+      dto.setProductImage(cart.getProduct().getImageUrl());
+      dto.setProductPrice(cart.getProduct().getProductPrice().doubleValue());
+      dto.setStoreId(cart.getStore().getStoreId());
+      dto.setStoreName(cart.getStore().getStoreName());
+      dto.setQuantity(cart.getQuantity());
+      dto.setSubtotal(cart.getProduct().getProductPrice().doubleValue() * cart.getQuantity());
+      dto.setCreatedAt(cart.getCreatedAt());
+      dto.setUpdatedAt(cart.getUpdatedAt());
+
+      return dto;
+  }
 }
