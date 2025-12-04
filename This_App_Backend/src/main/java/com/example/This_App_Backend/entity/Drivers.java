@@ -62,7 +62,7 @@ public class Drivers {
 
     // One Driver can be assigned to many Orders
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
-    private List<Orders> orders = new ArrayList<>();
+    private List<CustomerOrders> orders = new ArrayList<>();
     
 
     

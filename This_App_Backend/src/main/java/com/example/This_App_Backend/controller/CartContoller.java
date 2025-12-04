@@ -5,6 +5,7 @@ import com.example.This_App_Backend.dto.CartDTO.CartRequest;
 import com.example.This_App_Backend.dto.CartDTO.CartResponse;
 import com.example.This_App_Backend.dto.CartDTO.QuantityUpdateRequest;
 import com.example.This_App_Backend.entity.Cart;
+import com.example.This_App_Backend.entity.CustomerOrders;
 import com.example.This_App_Backend.entity.User;
 import com.example.This_App_Backend.repository.UserRepository;
 import com.example.This_App_Backend.service.CartService;
@@ -61,6 +62,45 @@ public class CartContoller {
             response.put("data", cartDto);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e){
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    // Endpoint for checkout
+    @PostMapping("/checkout")
+    public ResponseEntity<?> checkout(
+            @RequestParam Long userId,
+            @RequestParam(required = false) Long deliveryAddressId, // Make it optional
+            Authentication authentication
+    ) {
+        try {
+            // 1. Authorization and Authentication Check
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "User must be logged in"));
+            }
+
+            if (!isUserAuthorized(authentication.getName(), userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "Unauthorized access"));
+            }
+
+            CustomerOrders customerOrder = cartService.checkout(userId, deliveryAddressId);
+            Map<String, Object> response = new HashMap<>();
+
+            response.put("success", true);
+            response.put("message", "Checkout successful. Order placed");
+            response.put("orderId", customerOrder.getOrderId());
+            response.put("totalAmount", customerOrder.getTotalAmount());
+            response.put("orderStatus", customerOrder.getOrderStatus());
+            response.put("orderDate", customerOrder.getOrderDate());
+            response.put("deliveryAddress", customerOrder.getDeliveryAddress());
+
+            return ResponseEntity.ok(response);
+        } catch(RuntimeException e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -226,6 +266,8 @@ public class CartContoller {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
+
+
 
     private boolean isUserAuthorized(String authenticatedUsername, Long userId) {
         return userRepo.findByUsername(authenticatedUsername)

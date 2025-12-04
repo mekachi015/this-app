@@ -14,16 +14,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Payments {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")
-    private Integer paymentId;
+    private Long paymentId;
 
     // Many Payments belong to one Order
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false) // Maps to order_id in payments table
-    private Orders order;
+    private CustomerOrders order;
 
     // Many Payments use one Payment_Method
     @ManyToOne(fetch = FetchType.LAZY)

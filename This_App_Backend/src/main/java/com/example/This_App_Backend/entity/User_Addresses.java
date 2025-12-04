@@ -22,7 +22,7 @@ public class User_Addresses {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
-    private Integer addressId;
+    private Long addressId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false) // Foreign key to Users table
@@ -56,7 +56,7 @@ public class User_Addresses {
      // --- Relationships ---
     // One User_Address can be the delivery address for many Orders
     @OneToMany(mappedBy = "deliveryAddress", cascade = CascadeType.ALL)
-    private List<Orders> deliveryOrders = new ArrayList<>();
+    private List<CustomerOrders> deliveryOrders = new ArrayList<>();
 
     // One User_Address can be the billing address for many Payment_Methods
     @OneToMany(mappedBy = "billingAddress", cascade = CascadeType.ALL)

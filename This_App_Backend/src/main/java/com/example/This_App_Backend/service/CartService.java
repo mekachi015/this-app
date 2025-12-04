@@ -1,24 +1,17 @@
 package com.example.This_App_Backend.service;
 
 import com.example.This_App_Backend.dto.CartDTO.CartDto;
-import com.example.This_App_Backend.dto.CartDTO.CartResponse;
-import com.example.This_App_Backend.dto.CartDTO.ProductResponse;
-import com.example.This_App_Backend.entity.Cart;
-import com.example.This_App_Backend.entity.Products;
-import com.example.This_App_Backend.entity.Stores;
-import com.example.This_App_Backend.entity.User;
-import com.example.This_App_Backend.repository.CartRepo;
-import com.example.This_App_Backend.repository.ProductsRepository;
-import com.example.This_App_Backend.repository.StoreRepository;
-import com.example.This_App_Backend.repository.UserRepository;
+import com.example.This_App_Backend.entity.*;
+import com.example.This_App_Backend.repository.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +29,15 @@ public class CartService {
 
   @Autowired
     private StoreRepository storeRepo;
+
+  @Autowired
+  private OrderRepository orderRepo;
+
+  @Autowired
+  private OrderItemsRepository orderItemsRepo;
+
+  @Autowired
+  private UserAddressesRepository userAddressRepo;
 
   @Transactional
     public CartDto addToCart (Long userId, Long productId, Long quantity){
@@ -164,6 +166,115 @@ public class CartService {
       return cartRepo.countByUser_UserId(userId);
   }
 
+    @Transactional
+    public CustomerOrders checkout(Long userId, Long deliveryAddressId) {
+        // Validate user
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(user.getUserType() != User.UserType.CUSTOMER) {
+            throw new RuntimeException("Only customers can checkout");
+        }
+
+        List<Cart> cartItems = cartRepo.findByUser(user);
+        if(cartItems.isEmpty()) {
+            throw new RuntimeException("Cart is empty. Nothing to checkout.");
+        }
+
+        // Check if deliveryAddressId is provided
+        User_Addresses deliveryAddress = null;
+
+        if (deliveryAddressId != null) {
+            // Use the provided address
+            deliveryAddress = userAddressRepo.findById(deliveryAddressId)
+                    .orElseThrow(() -> new RuntimeException("Delivery address not found"));
+
+            if(!deliveryAddress.getUser().getUserId().equals(userId)) {
+                throw new RuntimeException("Delivery address does not belong to this user");
+            }
+        } else {
+            // Try to find a default address for the user
+            deliveryAddress = userAddressRepo.findFirstByUserAndIsDefault(user, true)
+                    .orElseGet(() -> userAddressRepo.findFirstByUser(user)
+                            .orElseThrow(() -> new RuntimeException(
+                                    "No delivery address found. Please add a delivery address before checkout."
+                            )));
+        }
+
+        // Additional validations
+        if (deliveryAddress == null) {
+            throw new RuntimeException("Delivery address is required for checkout");
+        }
+
+        // Validate address completeness
+        if (deliveryAddress.getAddressLine1() == null || deliveryAddress.getAddressLine1().trim().isEmpty()) {
+            throw new RuntimeException("Delivery address is incomplete. Please update your address.");
+        }
+
+        // Check all items are from the same store
+        Stores primaryStore = cartItems.get(0).getStore();
+        boolean allSameStore = cartItems.stream()
+                .allMatch(item -> item.getStore().getStoreId().equals(primaryStore.getStoreId()));
+
+        if (!allSameStore) {
+            throw new RuntimeException("All items must be from the same store for checkout");
+        }
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        // Create order
+        CustomerOrders newCustomerOrders = new CustomerOrders();
+        newCustomerOrders.setUser(user);
+        newCustomerOrders.setStore(primaryStore);
+        newCustomerOrders.setOrderStatus("PENDING");
+        newCustomerOrders.setDeliveryAddress(deliveryAddress);
+        newCustomerOrders.setIsAssignedDriver(false);
+        newCustomerOrders.setOrderDate(LocalDateTime.now());
+        newCustomerOrders.setCreatedAt(LocalDateTime.now());
+        newCustomerOrders.setUpdatedAt(LocalDateTime.now());
+
+        // Create order items and calculate total amount
+        List<Order_Items> orderItems = new ArrayList<>();
+        for (Cart item : cartItems) {
+            Products product = item.getProduct();
+            BigDecimal priceAtPurchase = product.getProductPrice();
+
+            // Check stock availability
+            if (product.getStockQuantity() < item.getQuantity()) {
+                throw new RuntimeException(
+                        String.format("Insufficient stock for %s. Available: %d, Requested: %d",
+                                product.getProductName(), product.getStockQuantity(), item.getQuantity())
+                );
+            }
+
+            Order_Items itemsOrdered = new Order_Items();
+            itemsOrdered.setOrder(newCustomerOrders);
+            itemsOrdered.setProduct(product);
+            itemsOrdered.setQuantity(item.getQuantity().intValue());
+            itemsOrdered.setPriceAtPurchase(priceAtPurchase);
+            itemsOrdered.setCreatedAt(LocalDateTime.now());
+
+            orderItems.add(itemsOrdered);
+
+            // Update product stock
+            product.setStockQuantity(product.getStockQuantity() - item.getQuantity().intValue());
+            productRepo.save(product);
+
+            BigDecimal itemTotal = priceAtPurchase.multiply(BigDecimal.valueOf(item.getQuantity()));
+            totalAmount = totalAmount.add(itemTotal);
+        }
+
+        newCustomerOrders.setTotalAmount(totalAmount);
+        newCustomerOrders.setOrderItems(orderItems);
+
+        CustomerOrders savedOrder = orderRepo.save(newCustomerOrders);
+
+        // Clear the cart after successful order creation
+        cartRepo.deleteAll(cartItems);
+
+        return savedOrder;
+    }
+
   private CartDto convertToDto (Cart cart) {
       CartDto dto = new CartDto();
 
@@ -182,4 +293,6 @@ public class CartService {
 
       return dto;
   }
+
+
 }

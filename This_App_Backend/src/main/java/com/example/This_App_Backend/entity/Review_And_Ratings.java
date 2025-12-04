@@ -20,7 +20,7 @@ public class Review_And_Ratings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "review_id")
-    private Integer reviewId;
+    private Long reviewId;
 
     // Many Reviews_And_Ratings belong to one User
     @ManyToOne(fetch = FetchType.LAZY)

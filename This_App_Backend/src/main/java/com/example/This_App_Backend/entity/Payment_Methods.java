@@ -18,12 +18,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Payment_Methods {
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "method_id")
-    private Integer methodId; // Unique identifier for the payment method
+    private Long methodId; // Unique identifier for the payment method
 
     @ManyToOne(fetch = FetchType.LAZY)  
     @JoinColumn(name = "user_id", nullable = false) // Foreign key to Users table

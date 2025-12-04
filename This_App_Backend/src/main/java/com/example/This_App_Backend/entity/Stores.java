@@ -7,8 +7,6 @@ import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "stores") //maps user entity to "Users" table
 @Data
@@ -61,7 +59,7 @@ public class Stores {
 
     // One Store can have many Orders (if orders are per-store)
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
-    private List<Orders> orders = new ArrayList<>();
+    private List<CustomerOrders> orders = new ArrayList<>();
 
     // One Store can have many Reviews_And_Ratings
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)

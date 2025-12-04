@@ -1,13 +1,11 @@
 package com.example.This_App_Backend.entity;
 
 import java.math.BigDecimal;
-import java.sql.Driver;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.ssl.JksSslBundleProperties.Store;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -21,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Orders {
+public class CustomerOrders {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
