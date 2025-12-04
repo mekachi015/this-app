@@ -187,6 +187,7 @@ public class WishlistService {
         if (wishlist.getStore() != null) {
             dto.setStoreId(wishlist.getStore().getStoreId());
             dto.setStoreName(wishlist.getStore().getStoreName());
+            dto.setStoreImage(wishlist.getStore().getStoreLogo());
         }
 
         dto.setCreatedAt(wishlist.getCreatedAt());

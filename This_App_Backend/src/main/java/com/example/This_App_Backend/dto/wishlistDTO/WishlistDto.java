@@ -17,6 +17,7 @@ public class WishlistDto {
     private String productImage;
     private Double productPrice;
     private Long storeId;
+    private String storeImage;
     private String storeName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
