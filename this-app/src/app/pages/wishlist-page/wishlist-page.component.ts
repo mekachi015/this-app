@@ -2,7 +2,24 @@ import { Component } from '@angular/core';
 import { StoreCardComponent } from '../../components/store-front/store-card/store-card.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { CommonModule } from '@angular/common';
+import { WishlistService } from '../../services/wishlist-service/wishlist.service';
+import { AuthService } from '../../services/authentication-service/auth.service';
+import { WishlistResponse } from '../../models/wishlist-models/wishlistResponse';
 
+import { StoreWishlistItem } from '../../models/wishlist-models/store-wishlist-item';
+import { ProductWishlistItem } from '../../models/wishlist-models/product-wishlist-item';
+
+
+interface Store {
+  id: string;
+  name: string;
+  imageUrl: string;
+  bestseller: string;
+  category: string;
+  rating: number;
+  operatingHours: string;
+  description: string;
+}
 
 @Component({
   selector: 'app-wishlist-page',
@@ -12,125 +29,147 @@ import { CommonModule } from '@angular/common';
   styleUrl: './wishlist-page.component.scss'
 })
 export class WishlistPageComponent {
-   favoriteStores = [
-  {
-      id: '1',
-      name: 'IFUKU Store',
-      imageUrl: 'assets/store-pictures/store-3.jpg',
-      bestseller: 'Japanese Denim Collection',
-      category: 'Japanese Fashion',
-      rating: 95,
-      operatingHours: '09:00 - 21:00',
-      description: 'Premium Japanese streetwear and authentic denim pieces.'
-    },
-    {
-      id: '2',
-      name: 'VINTAGE Corner',
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-      bestseller: 'Vintage Leather Jackets',
-      category: 'Vintage Fashion',
-      rating: 92,
-      operatingHours: '10:00 - 19:00',
-      description: 'Curated vintage pieces from the 80s and 90s.'
-    },
-    {
-      id: '3',
-      name: 'STREETWEAR Hub',
-      imageUrl: 'assets/store-pictures/store-6.jpg',
-      bestseller: 'Urban Streetwear Collection',
-      category: 'Street Fashion',
-      rating: 94,
-      operatingHours: '11:00 - 20:00',
-      description: 'Contemporary urban fashion for street style enthusiasts.'
-    },
-    {
-      id: '4',
-      name: 'LUXURY Boutique',
-      imageUrl: 'assets/store-pictures/store-4.jpg',
-      bestseller: 'Designer Collections',
-      category: 'Luxury Fashion',
-      rating: 97,
-      operatingHours: '10:00 - 18:00',
-      description: 'Exclusive designer pieces and high-end fashion.'
-    },
-    {
-      id: '1',
-      name: 'IFUKU Store',
-      imageUrl: 'assets/store-pictures/store-3.jpg',
-      bestseller: 'Japanese Denim Collection',
-      category: 'Japanese Fashion',
-      rating: 95,
-      operatingHours: '09:00 - 21:00',
-      description: 'Premium Japanese streetwear and authentic denim pieces.'
-    },
-    {
-      id: '2',
-      name: 'VINTAGE Corner',
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-      bestseller: 'Vintage Leather Jackets',
-      category: 'Vintage Fashion',
-      rating: 92,
-      operatingHours: '10:00 - 19:00',
-      description: 'Curated vintage pieces from the 80s and 90s.'
-    },
-    {
-      id: '3',
-      name: 'STREETWEAR Hub',
-      imageUrl: 'assets/store-pictures/store-6.jpg',
-      bestseller: 'Urban Streetwear Collection',
-      category: 'Street Fashion',
-      rating: 94,
-      operatingHours: '11:00 - 20:00',
-      description: 'Contemporary urban fashion for street style enthusiasts.'
-    },
-    {
-      id: '4',
-      name: 'LUXURY Boutique',
-      imageUrl: 'assets/store-pictures/store-4.jpg',
-      bestseller: 'Designer Collections',
-      category: 'Luxury Fashion',
-      rating: 97,
-      operatingHours: '10:00 - 18:00',
-      description: 'Exclusive designer pieces and high-end fashion.'
+  favoriteStores: StoreWishlistItem[] = [];
+  favoriteClothes: ProductWishlistItem[] = [];
+  currentUserId: number = 0;
+  isLoading: boolean = false;
+  errorMessage: string = '';
+
+  constructor(
+    private wishlistService: WishlistService,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
+    
+    if (this.currentUserId > 0) {
+      this.loadUserWishlist();
+    } else {
+      this.errorMessage = 'Please log in to view your wishlist';
     }
-];
-
-  favoriteClothes = [
-   {
-    id: '1',
-    name: 'IFUKU WIDE CUT PANTS',
-    price: 2500.0,
-    imageUrl: 'assets/store-pictures/store-1.jpg',
-    description: 'Available in various sizes',
-  },
-  {
-    id: '2',
-    name: 'IFUKU BLACK T-SHIRT',
-    price: 500.0,
-    imageUrl: 'assets/store-pictures/store-2.jpg',
-    description: 'Layer it up with style. Limited edition',
-  },
-  {
-    id: '3',
-    name: 'IFUKU DUNGAREE',
-    price: 3000.0,
-    imageUrl: 'assets/store-pictures/store-3.jpg',
-    description: 'Available now',
-  },
-  {
-    id: '4',
-    name: 'IFUKU JACKET',
-    price: 3500.0,
-    imageUrl: 'assets/store-pictures/store-4.jpg',
-    description: 'Premium quality jacket',
-  },
-  {
-    id: '5',
-    name: 'IFUKU PREMIUM SET',
-    price: 4500.0,
-    imageUrl: 'assets/store-pictures/store-6.jpg',
-    description: 'Complete premium outfit set',
   }
-  ];
 
+  // Add this helper method to convert StoreWishlistItem to Store
+  toStore(item: StoreWishlistItem): Store {
+    return {
+      id: item.id,
+      name: item.name || item.storeName || 'Unknown Store',
+      imageUrl: item.imageUrl || '',
+      bestseller: item.bestseller || '',
+      category: item.category || '',
+      rating: item.rating || 0,
+      operatingHours: item.operatingHours || '',
+      description: item.description || ''
+    };
+  }
+
+  loadUserWishlist(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.wishlistService.getUserWishlist(this.currentUserId).subscribe({
+      next: (response: WishlistResponse) => {
+        if (response.success && response.data) {
+          const wishlistItems = Array.isArray(response.data) ? response.data : [response.data];
+          
+          // Map to StoreWishlistItem with all required fields
+          this.favoriteStores = wishlistItems
+            .filter(item => item.storeId && !item.productId)
+            .map(item => ({
+              wishlistId: item.wishlistId,
+              userId: item.userId,
+              storeId: item.storeId,
+              storeName: item.storeName,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+              id: String(item.storeId),
+              name: item.storeName || 'Unknown Store',
+              imageUrl: item.storeImage || '',
+              bestseller: '',
+              category: '',
+              rating: 0,
+              operatingHours: '',
+              description: ''
+            }));
+
+          this.favoriteClothes = wishlistItems
+            .filter(item => item.productId)
+            .map(item => ({
+              wishlistId: item.wishlistId,
+              userId: item.userId,
+              productId: item.productId,
+              productName: item.productName,
+              productImage: item.productImage,
+              productPrice: item.productPrice,
+              storeName: item.storeName,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+              name: item.productName || 'Unknown Product',
+              price: item.productPrice || 0,
+              imageUrl: item.productImage || '',
+              description: ''
+            }));
+
+          console.log('Wishlist loaded successfully');
+          console.log('Stores:', this.favoriteStores.length);
+          console.log('Products:', this.favoriteClothes.length);
+        } else {
+          this.errorMessage = response.message || 'Failed to load wishlist';
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load wishlist:', err);
+        this.errorMessage = 'Failed to load wishlist. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // ... rest of your methods remain the same
+  removeStoreFromWishlist(store: StoreWishlistItem): void {
+    if (!confirm(`Remove ${store.storeName} from your wishlist?`)) {
+      return;
+    }
+
+    this.wishlistService.removeFromWishlist(store.wishlistId, this.currentUserId).subscribe({
+      next: (response: WishlistResponse) => {
+        if (response.success) {
+          this.favoriteStores = this.favoriteStores.filter(s => s.wishlistId !== store.wishlistId);
+          console.log('Store removed from wishlist');
+        }
+      },
+      error: (err) => {
+        console.error('Failed to remove store:', err);
+        alert('Failed to remove store. Please try again.');
+      }
+    });
+  }
+
+  removeProductFromWishlist(product: ProductWishlistItem): void {
+    if (!confirm(`Remove ${product.productName} from your wishlist?`)) {
+      return;
+    }
+
+    this.wishlistService.removeFromWishlist(product.wishlistId, this.currentUserId).subscribe({
+      next: (response: WishlistResponse) => {
+        if (response.success) {
+          this.favoriteClothes = this.favoriteClothes.filter(p => p.wishlistId !== product.wishlistId);
+          console.log('Product removed from wishlist');
+        }
+      },
+      error: (err) => {
+        console.error('Failed to remove product:', err);
+        alert('Failed to remove product. Please try again.');
+      }
+    });
+  }
+
+  clearWishlist(): void {
+    if (!confirm('Are you sure you want to clear your entire wishlist?')) {
+      return;
+    }
+    // Implementation commented out as in original
+  }
 }

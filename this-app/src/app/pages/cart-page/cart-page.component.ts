@@ -1,19 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Cart }  from '../../models/cart-model/cart';
+import { CartDTO }  from '../../models/cart-model/CartDTO';
 import { CartService } from '../../services/cart-service/cart.service';
-import { CartRequest } from '../../models/cart-model/cart-request';
+import {  CartResponse } from '../../models/cart-model/CartResponse';
 import { AuthService } from '../../services/authentication-service/auth.service';
+import { Router } from '@angular/router';
 
 
-interface CartItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  quantity: number;
-  imageUrl: string;
-}
+
 
 @Component({
   selector: 'app-cart-page',
@@ -24,99 +18,141 @@ interface CartItem {
 })
 export class CartPageComponent implements OnInit {
 
-  ngOnInit(): void {
-     this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
-     this.loadUserCart();
-  }
-  cartItems: CartItem[] = [
-    {
-      id: '1',
-      name: 'IFUKU WIDE CUT PANTS',
-      description: 'Available in various sizes',
-      price: 2500.0,
-      quantity: 1,
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-    },
-    {
-      id: '1',
-      name: 'IFUKU WIDE CUT PANTS',
-      description: 'Available in various sizes',
-      price: 2500.0,
-      quantity: 1,
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-    },
-    {
-      id: '1',
-      name: 'IFUKU WIDE CUT PANTS',
-      description: 'Available in various sizes',
-      price: 2500.0,
-      quantity: 1,
-      imageUrl: 'assets/store-pictures/store-1.jpg',
-    },
-    // Add more items as needed
-  ];
-
-  
-
-  cart: Cart[] = [];
+  cartItems: CartDTO[] = [];
   currentUserId: number = 0;
+  shipping: number = 150.00;
+  isLoading: boolean = false;
+  errorMessage: string = '';
 
   constructor(
     private cartService: CartService,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private router: Router
+  ){}
 
-  get subtotal(): number {
-    return this.cartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+  ngOnInit(): void {
+    this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
+
+    if (this.currentUserId > 0){
+      this.loadUserCart();
+    } else{
+      this.errorMessage = 'User not authenticated.';
+    }
   }
 
-  shipping: number = 150.0;
+  navigateToStores(): void {
+    this.router.navigate(['/stores']);
+  }
+
+
+  loadUserCart(): void{
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.cartService.getCartByUser(this.currentUserId).subscribe({
+      next: (response: CartResponse) => {
+        if (response && response.data){
+          this.cartItems = Array.isArray(response.data) ? response.data : [response.data];
+          console.log('Cart items loaded:', this.cartItems);
+        } else {
+          this.errorMessage = response.message || 'failed to load cart.';
+        }
+        this.isLoading = false;
+      }, 
+      error: (err) => {
+        this.errorMessage = 'An error occurred while loading the cart.';
+        console.error('Error loading cart:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  get subtotal(): number {
+    return this.cartItems.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
+  }
 
   get total(): number {
     return this.subtotal + this.shipping;
   }
 
-  increaseQuantity(item: CartItem): void {
-    item.quantity++;
+   increaseQuantity(item: CartDTO): void {
+    const newQuantity = item.quantity + 1;
+    this.updateQuantity(item, newQuantity);
   }
 
-  decreaseQuantity(item: CartItem): void {
+  decreaseQuantity(item: CartDTO): void {
     if (item.quantity > 1) {
-      item.quantity--;
+      const newQuantity = item.quantity - 1;
+      this.updateQuantity(item, newQuantity);
     }
   }
 
-  loadUserCart(): void {
-    this.cartService.getCartByUser(this.currentUserId).subscribe({
-      next: (response) => {
-        // Ensure we always store an array of Cart items
-        this.cart = Array.isArray(response) ? response : [response];
-        console.log('Cart loaded successfully:', this.cart);
+  updateQuantity(item: CartDTO, newQuantity: number): void {
+    this.cartService.updateQuantity(item.cartItemId, this.currentUserId, newQuantity).subscribe({
+      next: (response: CartResponse) => {
+        if (response.success && response.data) {
+          const updatedItem = response.data as CartDTO;
+          const index = this.cartItems.findIndex(i => i.cartItemId === item.cartItemId);
+          if (index !== -1) {
+            this.cartItems[index] = updatedItem;
+          }
+          console.log('Quantity updated successfully');
+        }
       },
       error: (err) => {
-        console.error('Failed to load cart:', err);
+        console.error('Failed to update quantity:', err);
+        alert('Failed to update quantity. Please try again.');
       }
     });
   }
 
-  removeItem(cartItem: Cart): void {
-    if (!confirm(`Are you sure you want to remove product ${cartItem.productId}?`)) {
+  removeItem(item: CartDTO): void {
+    if (!confirm(`Are you sure you want to remove ${item.productName} from your cart?`)) {
       return;
     }
-    // Note: The DELETE endpoint requires userId and productId
-    this.cartService.removeCartItem(this.currentUserId, cartItem.productId).subscribe({
-      next: () => {
-        console.log('Item removed successfully.');
-        // Remove the item from the local arrays (match by productId/cartId)
-        this.cartItems = this.cartItems.filter(item => item.id !== String(cartItem.productId));
-        this.cart = this.cart.filter(c => c.cartId !== cartItem.cartId);
+
+    this.cartService.removeCartItem(item.cartItemId, this.currentUserId).subscribe({
+      next: (response: CartResponse) => {
+        if (response.success) {
+          this.cartItems = this.cartItems.filter(i => i.cartItemId !== item.cartItemId);
+          console.log('Item removed successfully');
+        }
       },
       error: (err) => {
         console.error('Failed to remove item:', err);
+        alert('Failed to remove item. Please try again.');
       }
     });
   }
+
+  clearCart(): void {
+    if (!confirm('Are you sure you want to clear your entire cart?')) {
+      return;
+    }
+
+    this.cartService.clearCart(this.currentUserId).subscribe({
+      next: (response: CartResponse) => {
+        if (response.success) {
+          this.cartItems = [];
+          console.log('Cart cleared successfully');
+        }
+      },
+      error: (err) => {
+        console.error('Failed to clear cart:', err);
+        alert('Failed to clear cart. Please try again.');
+      }
+    });
+  }
+
+  proceedToCheckout(): void {
+    if (this.cartItems.length === 0) {
+      alert('Your cart is empty');
+      return;
+    }
+    // Implement checkout logic
+    console.log('Proceeding to checkout...');
+  }
+
+  
+
 }

@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { ProductService } from '../../services/product-service/product.service';
 import { Product } from '../../models/store-admin-models/product-admin/product';
+import { time } from 'console';
 
 
 
@@ -34,6 +35,11 @@ export class StoreDashboardComponent implements OnInit {
     { id: 'ORD-002', customer: 'Jane Smith', products: '1 item', total: 2500.00, status: 'Pending' },
     { id: 'ORD-003', customer: 'Mike Johnson', products: '3 items', total: 7500.00, status: 'Cancelled' }
   ];
+
+  //date and time
+  selectedDays: string[] = [];
+  openTime: string = '07:00';
+  closeTime: string = '18:00';
 
   // File upload properties
   selectedFile: File | null = null;
@@ -402,5 +408,53 @@ export class StoreDashboardComponent implements OnInit {
     this.selectedFile = null;
     this.previewUrl = null;
     this.isDragOver = false;
+  }
+
+  //helper function to format time
+  private formatTimeForDisplay(time24hr: string): string{
+    if(!time24hr) return '';
+
+    const [hours, minutes] = time24hr.split(':').map(Number);
+
+    const date = new Date();
+    date.setHours(hours, minutes);
+
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
+  //update business hours 
+  updateBusinessHours(): void{
+    if(this.selectedDays.length === 0 || this.openTime || this.closeTime){
+      alert('Please select days and times for business hours.');
+      return;
+    }
+
+    //Formate days string
+    let dayString : string;
+    if(this.selectedDays.length === 7){
+      dayString = 'Everyday';
+    } else if( 
+      this.selectedDays.length === 5 &&
+      !this.selectedDays.includes('Saturday') &&
+      (!this.selectedDays.includes('Sunday')
+    )){
+      dayString = 'Mon - Fri';
+    } else{
+      dayString = this.selectedDays.join(', ');
+    }
+
+    //formate times for display
+    const formattedOpenTime = this.formatTimeForDisplay(this.openTime);
+    const formattedCloseTime = this.formatTimeForDisplay(this.closeTime);
+
+    //combine and update store model
+    const finalHours = `${dayString}: ${formattedOpenTime} - ${formattedCloseTime}`;
+
+    this.storeModel.storeBusinessHours = finalHours;
+    console.log('Updated business hours to:', finalHours);
   }
 }

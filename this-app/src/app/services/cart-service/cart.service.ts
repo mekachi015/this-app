@@ -1,8 +1,8 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { CartRequest } from '../../models/cart-model/cart-request';
+import { CartResponse } from '../../models/cart-model/CartResponse';
 import { Observable } from 'rxjs';
-import { Cart } from '../../models/cart-model/cart';
+import { CartDTO } from '../../models/cart-model/CartDTO';
 import { QuantityUpdateRequest } from '../../models/cart-model/quantity-update-request';
 import { AuthService } from '../authentication-service/auth.service';
 
@@ -30,42 +30,72 @@ private baseUrl = 'http://localhost:9091/api/cart';
   
 
   /** Add item to cart */
-  addToCart(userId: number, request: CartRequest): Observable<Cart> {
-    const url = `${this.baseUrl}/${userId}/items`;
+   addToCart(userId: number, productId: number, quantity: number = 1): Observable<CartResponse> {
+    const url = `${this.baseUrl}/add`;
+    const params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('productId', productId.toString())
+      .set('quantity', quantity.toString());
 
-    return this.http.post<Cart>(url, request, {
+    return this.http.post<CartResponse>(url, null, {
       headers: this.getAuthHeaders(),
-      withCredentials: true,
-      responseType: 'text' as 'json'
+      params: params,
+      withCredentials: true
     });
   }
 
   /** Get cart for a specific user */
-  getCartByUser(userId: number): Observable<Cart> {
+  getCartByUser(userId: number): Observable<CartResponse> {
     const url = `${this.baseUrl}/${userId}`;
 
-    return this.http.get<Cart>(url, {
-      headers: this.getAuthHeaders(),
-      withCredentials: true,
-      responseType: 'text' as 'json'
-    });
-  }
-
-  /** Update cart item quantity */
-  updateQuantity(cartItemId: number, request: QuantityUpdateRequest): Observable<Cart> {
-    const url = `${this.baseUrl}/items/${cartItemId}`;
-
-    return this.http.put<Cart>(url, request, {
+    return this.http.get<CartResponse>(url, {
       headers: this.getAuthHeaders(),
       withCredentials: true
     });
   }
 
-  /** Remove cart item */
-  removeCartItem(userId: number, productId: number): Observable<void> {
-    const url = `${this.baseUrl}/${userId}/items/${productId}`;
+  /** Update cart item quantity */
+ updateQuantity(cartItemId: number, userId: number, quantity: number): Observable<CartResponse> {
+    const url = `${this.baseUrl}/${cartItemId}`;
+    const params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('quantity', quantity.toString());
 
-    return this.http.delete<void>(url, {
+    return this.http.put<CartResponse>(url, null, {
+      headers: this.getAuthHeaders(),
+      params: params,
+      withCredentials: true
+    });
+  }
+
+  /** Remove cart item */
+  removeCartItem(cartItemId: number, userId: number): Observable<CartResponse> {
+    const url = `${this.baseUrl}/${cartItemId}`;
+    const params = new HttpParams()
+      .set('userId', userId.toString());
+
+    return this.http.delete<CartResponse>(url, {
+      headers: this.getAuthHeaders(),
+      params: params,
+      withCredentials: true
+    });
+  }
+
+   /** Clear entire cart */
+  clearCart(userId: number): Observable<CartResponse> {
+    const url = `${this.baseUrl}/clear/${userId}`;
+
+    return this.http.delete<CartResponse>(url, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  /** Get cart item count */
+  getCartItemCount(userId: number): Observable<CartResponse> {
+    const url = `${this.baseUrl}/count/${userId}`;
+
+    return this.http.get<CartResponse>(url, {
       headers: this.getAuthHeaders(),
       withCredentials: true
     });
