@@ -38,13 +38,19 @@
       &.primary {
         background: #7367f0;
         color: white;
-        &:hover { background: #5e50ee; }
+
+        &:hover {
+          background: #5e50ee;
+        }
       }
 
       &.secondary {
         background: #edf2f7;
         color: #4a5568;
-        &:hover { background: #e2e8f0; }
+
+        &:hover {
+          background: #e2e8f0;
+        }
       }
     }
   }
@@ -95,7 +101,8 @@
           margin-bottom: 0.5rem;
         }
 
-        .stock, .category {
+        .stock,
+        .category {
           color: #666;
           font-size: 0.9rem;
           margin-bottom: 0.25rem;
@@ -119,13 +126,19 @@
           &.edit {
             background: #7367f0;
             color: white;
-            &:hover { background: #5e50ee; }
+
+            &:hover {
+              background: #5e50ee;
+            }
           }
 
           &.delete {
             background: #fee2e2;
             color: #dc2626;
-            &:hover { background: #fecaca; }
+
+            &:hover {
+              background: #fecaca;
+            }
           }
         }
       }
@@ -168,11 +181,22 @@
           font-weight: 500;
         }
 
-        input, textarea {
+        input,
+        textarea , select{
           padding: 0.75rem;
           border: 1px solid #e2e8f0;
           border-radius: 8px;
           font-size: 0.95rem;
+          height: 3.25rem;
+          /* <-- OPTIONAL: To match height of input for better alignment */
+          // Apply default appearance removal for consistency across browsers (especially for the select arrow)
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23a0aec0"><path d="M7 10l5 5 5-5z"/></svg>');
+          background-repeat: no-repeat;
+          background-position: right 0.75rem center;
+          background-size: 1.2em;
 
           &:focus {
             outline: none;
@@ -226,13 +250,19 @@
             &.primary {
               background: #7367f0;
               color: white;
-              &:hover { background: #5e50ee; }
+
+              &:hover {
+                background: #5e50ee;
+              }
             }
 
             &.cancel {
               background: #edf2f7;
               color: #4a5568;
-              &:hover { background: #e2e8f0; }
+
+              &:hover {
+                background: #e2e8f0;
+              }
             }
           }
         }
@@ -240,7 +270,8 @@
     }
   }
 
-  .loading-container, .no-products {
+  .loading-container,
+  .no-products {
     text-align: center;
     padding: 3rem;
     background: white;
@@ -261,8 +292,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {
@@ -280,6 +316,7 @@
 
     .action-bar {
       flex-direction: column;
+
       button {
         width: 100%;
       }

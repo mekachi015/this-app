@@ -18,6 +18,19 @@ import { Store } from '../../models/store-admin-models/store-admin/Store';
 })
 export class ProductManagementComponent implements OnInit {
 
+  availableCategories: string[] = [
+    'Shirts',
+    'Shoes',
+    'Pants',
+    'Accessories',
+    'Hats',
+    'Jackets',
+    'Dresses',
+    'Skirts',
+    'Shorts',
+    'Sweaters'
+  ];
+
   // Store and User data
   store: Store | null = null;
   currentUserId: number | null = null;
@@ -66,6 +79,8 @@ export class ProductManagementComponent implements OnInit {
     }
     this.currentUserId = Number(currentUser.id);
 
+    this.productModel.userId = this.currentUserId;
+
     // Get store ID from route
     this.route.params.subscribe(params => {
       const storeId = +params['id'];
@@ -80,6 +95,7 @@ export class ProductManagementComponent implements OnInit {
       console.log('✅ Set productModel.storeId to:', this.productModel.storeId);
       
       this.loadStore(storeId);
+      //this.loadProducts(storeId);
     });
   }
 
@@ -96,12 +112,7 @@ export class ProductManagementComponent implements OnInit {
       this.store = store;
       this.storeOwnerId = this.currentUserId ?? null;
       this.productModel.storeId = storeId;
-      
-      // FIX: Don't call loadProducts() - the store IS the products!
-      // this.products is already set by the store response
-      this.products = Array.isArray(store) ? store : []; // ADD THIS LINE
-      console.log('✅ Products set from store:', this.products);
-      
+      this.loadProducts(storeId);
       this.isLoading = false;
     },
     error: (error) => {
@@ -145,6 +156,8 @@ export class ProductManagementComponent implements OnInit {
     } else {
       this.createProduct();
     }
+
+    console.log("edited product:" , this.editingProduct);
   }
 
   createProduct(): void {
@@ -188,65 +201,93 @@ export class ProductManagementComponent implements OnInit {
   }
 
   editProduct(product: Product): void {
-    this.editingProduct = { ...product }; // Create a copy
-    this.productModel = {
-      productName: product.productName,
-      productDescription: product.productDescription || '',
-      productPrice: product.productPrice,
-      stockQuantity: product.stockQuantity,
-      category: product.category || '',
-      storeId: product.storeId ?? 0,
-      userId: this.currentUserId || 0
-    };
-    this.previewUrl = product.imageUrl || null;
-    this.showProductForm = true;
+     console.log('Called editing for product:', product);
+  this.editingProduct = { ...product };
+  
+  // CRITICAL: Preserve the original storeId from the loaded store
+  this.productModel = {
+    productName: product.productName,
+    productDescription: product.productDescription || '',
+    productPrice: product.productPrice,
+    stockQuantity: product.stockQuantity,
+    category: product.category || '',
+    storeId: this.productModel.storeId || product.storeId || 0, // Use current storeId first
+    userId: this.currentUserId || 0
+  };
+  
+  this.previewUrl = product.imageUrl || null;
+  this.showProductForm = true;
+  
+  // Log to verify
+  console.log('✅ Editing product with storeId:', this.productModel.storeId);
+
   }
 
   updateProduct(): void {
-    if (!this.editingProduct?.productId) {
-      this.errorMessage = 'Product ID is missing';
-      return;
-    }
-
-    if (!this.store?.storeId) {
-      this.errorMessage = 'Store ID is missing';
-      return;
-    }
-
-    if (!this.currentUserId) {
-      this.errorMessage = 'User ID is missing';
-      return;
-    }
-
-    console.log('Updating product:', this.editingProduct.productId);
-    
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.productService.updateProduct(
-      this.currentUserId,
-      this.store.storeId,
-      this.editingProduct.productId,
-      this.productModel,
-      this.selectedFile
-    ).subscribe({
-      next: (updatedProduct) => {
-        console.log('✅ Product updated successfully:', updatedProduct);
-        // Update the product in the array immutably
-        this.products = this.products.map(p => 
-          p.productId === updatedProduct.productId ? updatedProduct : p
-        );
-        this.resetProductForm();
-        this.isLoading = false;
-        alert('Product updated successfully!');
-      },
-      error: (error) => {
-        console.error('❌ Product update failed:', error);
-        this.errorMessage = error.error?.message || error.message || 'Failed to update product';
-        this.isLoading = false;
-      }
-    });
+  console.log('🔍 UPDATE VALIDATION:');
+  console.log('  - currentUserId:', this.currentUserId);
+  console.log('  - productId:', this.editingProduct?.productId);
+  console.log('  - storeId:', this.productModel?.storeId);
+  
+  // VALIDATION - Add these checks
+  if (!this.editingProduct?.productId) {
+    this.errorMessage = 'Product ID is missing';
+    return;
   }
+  
+  if (!this.productModel?.storeId) {
+    this.errorMessage = 'Store ID is missing';
+    return;
+  }
+  
+  if (!this.currentUserId) {
+    this.errorMessage = 'User ID is missing';
+    return;
+  }
+  
+  // CRITICAL: Create a proper DTO with ALL required fields
+  const updateDTO: CreateProductDTO = {
+    productName: this.productModel.productName,
+    productDescription: this.productModel.productDescription,
+    productPrice: this.productModel.productPrice,
+    stockQuantity: this.productModel.stockQuantity,
+    category: this.productModel.category,
+    storeId: this.productModel.storeId,  // Make sure this is set
+    userId: this.currentUserId           // This is required!
+  };
+  
+  console.log('📤 Calling updateProduct service with:', {
+    productId: this.editingProduct.productId,
+    dto: updateDTO,
+    hasFile: !!this.selectedFile
+  });
+  
+  this.isLoading = true;
+  this.errorMessage = '';
+  
+  this.productService.updateProduct(
+    this.editingProduct.productId,
+    updateDTO,  // Use the proper DTO
+    this.selectedFile
+  ).subscribe({
+    next: (updatedProduct) => {
+      console.log('✅ Product updated successfully:', updatedProduct);
+      this.products = this.products.map(p => 
+        p.productId === updatedProduct.productId ? updatedProduct : p
+      );
+      this.resetProductForm();
+      this.isLoading = false;
+      alert('Product updated successfully!');
+    },
+    error: (error) => {
+      console.error('❌ Product update failed:', error);
+      console.error('❌ Error details:', error.error);
+      console.error('❌ Status:', error.status);
+      this.errorMessage = error.error?.message || error.message || 'Failed to update product';
+      this.isLoading = false;
+    }
+  });
+}
 
   deleteProduct(productId: number, userId: number, storeId: number): void {
     // if (!confirm('Are you sure you want to delete this product?')) return;
@@ -271,19 +312,19 @@ export class ProductManagementComponent implements OnInit {
   }
 
   resetProductForm(): void {
-    this.productModel = {
-      productName: '',
-      productDescription: '',
-      productPrice: 0,
-      stockQuantity: 0,
-      category: '',
-      storeId: this.store?.storeId || 0,
-      userId: this.currentUserId || 0
-    };
-    this.editingProduct = null;
-    this.showProductForm = false;
-    this.resetUpload();
-    this.errorMessage = '';
+   this.productModel = {
+    productName: '',
+    productDescription: '',
+    productPrice: 0,
+    stockQuantity: 0,
+    category: '',
+    storeId: this.productModel.storeId || this.store?.storeId || 0, // PRESERVE storeId
+    userId: this.currentUserId || 0
+  };
+  this.editingProduct = null;
+  this.showProductForm = false;
+  this.resetUpload();
+  this.errorMessage = '';
   }
 
   // ---------------------- File Upload ----------------------

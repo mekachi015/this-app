@@ -64,13 +64,13 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
    * PUT: /api/products/redefine/users/{userId}/stores/{storeId}/{productId}
    */
   updateProduct(
-    userId: number,
-    storeId: number,
     productId: number,
     productData: CreateProductDTO,
     logoFile: File | null
   ): Observable<Product> {
     const formData = new FormData();
+
+     
 
     // Append each field individually
     formData.append('productName', productData.productName);
@@ -84,10 +84,13 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
       formData.append('logoFile', logoFile, logoFile.name);
     }
 
-    const headers = this.authService.getAuthHeaders();
-    headers.delete('Content-Type');
+    const token = this.authService.token;
 
-    const url = `${this.baseUrl}/users/${userId}/stores/${storeId}/${productId}`;
+    const headers = new HttpHeaders({
+      'Authorization' : `Bearer ${token}`
+    });
+
+    const url = `${this.baseUrl}/${productId}`;
 
     console.log('Updating product:', {
       url,

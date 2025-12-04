@@ -16,16 +16,7 @@
 <div class="product-management-container" *ngIf="!isLoading; else loading">
   <!-- Fixed: Single heading -->
   <h2 *ngIf="store?.storeName">{{ store?.storeName }} - Product Management</h2>
-  
-  <!-- Debug Info (Remove after fixing) -->
-  <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px;">
-    <strong>Debug Info:</strong><br>
-    Store ID: {{ store?.storeId }}<br>
-    Products Count: {{ products?.length || 0 }}<br>
-    Current User: {{ currentUserId }}<br>
-    Store Owner: {{ storeOwnerId }}
-  </div>
-  
+    
   <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
 
   <!-- Action Bar -->
@@ -54,11 +45,7 @@
     </div>
   </div>
 
-  <!-- Debug: Show raw JSON at bottom (Remove after fixing) -->
-  <details style="margin-top: 20px;">
-    <summary>Raw Product Data (Debug)</summary>
-    <pre style="background: #f5f5f5; padding: 10px; overflow: auto;">{{ products | json }}</pre>
-  </details>
+
 
   <!-- Product Form Modal -->
   <div class="modal" *ngIf="showProductForm">
@@ -73,13 +60,18 @@
         <textarea [(ngModel)]="productModel.productDescription" name="productDescription" required></textarea>
 
         <label>Price</label>
-        <input type="number" [(ngModel)]="productModel.productPrice" name="productPrice" min="0" step="0.01" required />
+        <input type="number" id="productPrice" [(ngModel)]="productModel.productPrice" name="productPrice" min="0" step="0.01" required />
 
         <label>Stock Quantity</label>
         <input type="number" [(ngModel)]="productModel.stockQuantity" name="stockQuantity" min="0" required />
 
         <label>Category</label>
-        <input type="text" [(ngModel)]="productModel.category" name="category" required />
+        <select [(ngModel)]="productModel.category" name="category" required>
+        <option value="" disabled>Select a Category</option>
+        <option *ngFor="let category of availableCategories" [value]="category">
+        {{ category }}
+        </option>
+        </select>
 
         <!-- Image Upload -->
         <label>Product Image</label>
@@ -112,7 +104,7 @@
           <button class="btn primary" type="submit" [disabled]="!productForm.valid">
             {{ editingProduct ? 'Update' : 'Create' }}
           </button>
-          <!-- <button class="btn cancel" type="button" (click)="resetProductForm()">Cancel</button> -->
+           <button class="btn cancel" type="button" (click)="resetProductForm()">Cancel</button> 
         </div>
       </form>
     </div>
