@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoreAdminServiceService } from '../../../services/store-admin-service/store-admin-service.service';
@@ -8,9 +8,15 @@ import { ProductService } from '../../../services/product-service/product.servic
 import { AuthService } from '../../../services/authentication-service/auth.service';
 import { CartService } from '../../../services/cart-service/cart.service';
 import { CartResponse } from '../../../models/cart-model/CartResponse'; 
-import { response } from 'express';
+import { Store } from '../../../models/store-admin-models/store-admin/Store'; // Import the base interface
 
-
+// Create a more specific interface for this component
+interface SelectedStore extends Store {
+  storeId: number; // Override to make it required
+  storeName: string; // Override to make it required
+  storeLogo?: string;
+  // All other properties remain optional as inherited from Store
+}
 
 @Component({
   selector: 'app-selected-store',
@@ -19,34 +25,31 @@ import { response } from 'express';
   templateUrl: './selected-store.component.html',
   styleUrl: './selected-store.component.scss',
 })
-export class SelectedStoreComponent {
-  ngOnInit(): void {
-    // Initialization logic can go here
-    this.getStoreFromRoute();
-    this.loadStoreData(this.storeId!);
-
-    this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
-  }
-
-  constructor( private route: ActivatedRoute,
-    private storeService: StoreAdminServiceService,
-    private productService: ProductService,
-    private authService: AuthService,
-    private cartService: CartService
-
-  ) {
-    
-  }
-
+export class SelectedStoreComponent implements OnInit {
   searchQuery: string = '';
 
+  // Use the more specific SelectedStore interface
+  store: SelectedStore | null = null;
   products: Product[] = [];
+  isLoading = false;
   public storeId: string | null = null;
 
   private currentUserId: number = 0;
 
+  constructor(
+    private route: ActivatedRoute,
+    private storeService: StoreAdminServiceService,
+    private productService: ProductService,
+    private authService: AuthService,
+    private cartService: CartService
+  ) {}
+
+  ngOnInit(): void {
+    this.getStoreFromRoute();
+    this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
+  }
+
   onSearch(): void {
-    // Implement search functionality
     console.log('Searching for:', this.searchQuery);
   }
 
@@ -62,8 +65,6 @@ export class SelectedStoreComponent {
       return;
     }
 
-    // Call the CartService with correct parameters
-    // addToCart expects: userId, productId, quantity
     this.cartService.addToCart(this.currentUserId, product.productId, 1).subscribe({
       next: (response: CartResponse) => {
         if (response.success) {
@@ -82,22 +83,19 @@ export class SelectedStoreComponent {
   }
 
   zoomProduct(product: Product): void {
-    // Implement zoom functionality
     console.log('Zooming product:', product);
   }
 
   private getStoreFromRoute(): void { 
-    // Accessing the parameter named 'storeId' from the route defined as /store/:storeId
-        this.storeId = this.route.snapshot.paramMap.get('storeId');
+    this.storeId = this.route.snapshot.paramMap.get('storeId');
 
-        if (this.storeId) {
-            console.log('Successfully retrieved Store ID from route:', this.storeId);
-            // Convert string id to number and load store data
-            this.loadStoreData(this.storeId);
-        } else {
-            console.error('Error: Store ID not found in route parameters.');
-            // Handle case where ID is missing, perhaps redirect to a 404 or store-page
-        }
+    if (this.storeId) {
+      console.log('Successfully retrieved Store ID from route:', this.storeId);
+      this.loadStoreData(this.storeId);
+      this.loadProducts(this.storeId);
+    } else {
+      console.error('Error: Store ID not found in route parameters.');
+    }
   }
 
   private loadStoreData(storeId: string): void {
@@ -108,30 +106,43 @@ export class SelectedStoreComponent {
     }
 
     console.log('Loading store data for ID:', idNum);
+    this.isLoading = true;
 
-    // this.storeService.getStoreById(idNum).subscribe({
-    //   next: (store) => {
-    //     console.log('Loaded store:', store);
-    //     // TODO: assign store data to component properties as needed
-    //   },
-    //   error: (err) => {
-    //     console.error('Failed to load store:', err);
-    //   }
-    // });
+    this.storeService.getStoreForPublicView(idNum).subscribe({
+      next: (apiStore) => {
+        console.log('Loaded API store data:', apiStore);
+        
+        // Type assertion to convert Store to SelectedStore
+        // This is safe because we know the API will return these required fields
+        const selectedStore: SelectedStore = {
+          ...apiStore,
+          storeId: apiStore.storeId || idNum, // Use the API storeId or fallback to route ID
+          storeName: apiStore.storeName || 'Unnamed Store' // Ensure we have a name
+        };
+        
+        this.store = selectedStore;
+        console.log('Store data assigned:', this.store);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load store:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadProducts(storeId: string): void {
+    const idNum = Number(storeId);
+    if (isNaN(idNum)) return;
 
     this.productService.getAllStoreProductsPublic(idNum).subscribe({
-  next: (products) => {
-    console.log('Loaded products for store:', products);
-    this.products = products;
-    console.log('Products assigned to component:', this.products);
-  },
-  error: (err) => {
-    console.error('Failed to load products for store:', err);
+      next: (products) => {
+        console.log('Loaded products for store:', products);
+        this.products = products;
+      },
+      error: (err) => {
+        console.error('Failed to load products for store:', err);
+      }
+    });
   }
-});
-  }
-
-  
-
-  
 }

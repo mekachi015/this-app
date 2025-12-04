@@ -189,9 +189,10 @@ export class ProductManagementComponent implements OnInit {
         // Add the new product to the array
         this.products = [...this.products, product];
         this.resetProductForm();
+        this.loadProducts(this.productModel.storeId);
         this.isLoading = false;
         alert('Product created successfully!');
-        this.loadProducts(this.productModel.storeId);
+        
       },
       error: (error) => {
         console.error('❌ Product creation failed:', error);
