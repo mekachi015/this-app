@@ -191,6 +191,7 @@ export class ProductManagementComponent implements OnInit {
         this.resetProductForm();
         this.isLoading = false;
         alert('Product created successfully!');
+        this.loadProducts(this.productModel.storeId);
       },
       error: (error) => {
         console.error('❌ Product creation failed:', error);
@@ -272,9 +273,9 @@ export class ProductManagementComponent implements OnInit {
   ).subscribe({
     next: (updatedProduct) => {
       console.log('✅ Product updated successfully:', updatedProduct);
-      this.products = this.products.map(p => 
-        p.productId === updatedProduct.productId ? updatedProduct : p
-      );
+      this.loadProducts(this.productModel.storeId);
+
+
       this.resetProductForm();
       this.isLoading = false;
       alert('Product updated successfully!');
