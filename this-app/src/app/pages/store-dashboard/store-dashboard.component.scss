@@ -868,6 +868,8 @@
   }
 }
 
+// ...existing code...
+
 @media (max-width: 768px) {
   .dashboard-container {
     .orders-section {
@@ -904,9 +906,9 @@
 
           tr {
             display: block;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 0;
+            border-radius: 10px;
             margin-bottom: 1rem;
             background: #f9f9f9;
           }
@@ -931,6 +933,33 @@
 
           .action-btn {
             margin-left: auto;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    .orders-section {
+      padding: 0.75rem;
+
+      .orders-table-container {
+        .orders-table {
+          font-size: 0.75rem;
+
+          tr {
+            padding: 0.75rem 0;
+          }
+
+          td {
+            padding: 0.25rem 0;
+
+            &::before {
+              min-width: 80px;
+              font-size: 0.75rem;
+            }
           }
         }
       }
