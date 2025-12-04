@@ -96,12 +96,10 @@ public class ProductsControllerRedefined {
      */
     @PutMapping(path = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
-            @PathVariable Long storeId,
-            @PathVariable Long userId, // userId moved to class mapping, but kept here for clarity
-            @PathVariable Long productId,
+            @PathVariable Long productId, // Only this one is needed
             @ModelAttribute ProductsDTO productsDTO,
             @RequestPart(value = "logoFile", required = false) MultipartFile logoFile,
-            Authentication authentication){ // Inject Authentication object
+            Authentication authentication) {
 
         String ownerUsername = authentication.getName();
         User authenticatedUser = userService.getUserByUsername(ownerUsername)
@@ -144,7 +142,10 @@ public class ProductsControllerRedefined {
      * Get : Retrieve all products for a specific strore
      *
      */
-//
+   @GetMapping("stores/{storeId}/products")
+   public ResponseEntity<?> getProductsForSpecificStore(@PathVariable Long storeId){
+       return ResponseEntity.ok(productsService.getAllProductsByStore(storeId));
+   }
 
     @GetMapping("stores/{storeId}/products/public")
     public ResponseEntity<?> getAllProductsByStorePublic(@PathVariable Long storeId) {

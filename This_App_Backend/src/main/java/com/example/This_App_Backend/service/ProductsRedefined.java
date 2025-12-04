@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -76,23 +75,24 @@ public class ProductsRedefined {
         return  savedProduct;
     }
 
-    public Products updateProduct (Long productId, ProductsDTO productsDTO, Long userId, MultipartFile logoFile){
+    public Products updateProduct(Long productId, ProductsDTO productsDTO, Long userId, MultipartFile logoFile){
 
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id:" + productId));
 
-        User user = userRepository.findById(userId).
-                orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (user.getUserType() != User.UserType.ADMIN){
-            throw new RuntimeException("User does not have permission to update this store");
+            throw new RuntimeException("User does not have permission to update this product");
         }
 
-        product.setProductName(product.getProductName());
-        product.setProductDescription(product.getProductDescription());
-        product.setProductPrice(product.getProductPrice());
-        product.setCategory(product.getCategory());
-        product.setStockQuantity(product.getStockQuantity());
+        // Update fields from DTO
+        product.setProductName(productsDTO.getProductName());
+        product.setProductDescription(productsDTO.getProductDescription());
+        product.setProductPrice(productsDTO.getProductPrice());
+        product.setCategory(productsDTO.getCategory());
+        product.setStockQuantity(productsDTO.getStockQuantity());
 
         Products savedProduct = productsRepository.save(product);
 
@@ -115,10 +115,27 @@ public class ProductsRedefined {
     }
 
     //get all products for a specific store
-    public List<Products> getAllProductsByStore(Long storeId){
+    public List<ProductsDTO> getAllProductsByStore(Long storeId){
         Stores store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Store not found with id: " + storeId));
-        return productsRepository.findByStore(store);
+
+        List<Products> products = productsRepository.findByStore(store);
+
+        return products.stream()
+                .map(product -> {
+                    ProductsDTO dto = new ProductsDTO();
+                    dto.setProductId(product.getProductId());
+                    dto.setProductName(product.getProductName());
+                    dto.setProductDescription(product.getProductDescription());
+                    dto.setProductPrice(product.getProductPrice());
+                    dto.setCategory(product.getCategory());
+                    dto.setStockQuantity(product.getStockQuantity());
+                    dto.setImageUrl(product.getImageUrl());
+                    dto.setStoreId(product.getStore().getStoreId());
+                    dto.setUserId(product.getCreatedBy().getUserId());
+                    return dto;
+                })
+                .toList();
     }
 
     public List<ProductsDTO> getAllPublicProductsForStore(Long storeId){
@@ -137,6 +154,8 @@ public class ProductsRedefined {
                     dto.setCategory(product.getCategory());
                     dto.setStockQuantity(product.getStockQuantity());
                     dto.setImageUrl(product.getImageUrl());
+                    dto.setStoreId(product.getStore().getStoreId());
+                    dto.setUserId(product.getCreatedBy().getUserId());
                     return dto;
                 })
                 .toList();
