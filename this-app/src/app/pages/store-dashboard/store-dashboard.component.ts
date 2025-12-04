@@ -231,9 +231,16 @@ export class StoreDashboardComponent implements OnInit {
 
   editStore(store: Store): void {
     this.editingStore = store;
-    this.storeModel = this.storeAdminService.toComponentStore(store);
-    this.showStoreForm = true;
-    this.uploadContext = 'store';
+  this.storeModel = { ...store }; // Create a copy of the store data
+  this.showStoreForm = true;
+  this.uploadContext = 'store';
+  
+  // If you have a logo, set the preview
+  if (store.storeLogo) {
+    this.storePreviewUrl = store.storeLogo;
+  }
+  
+  console.log("Editing store:", this.storeModel);
   }
 
   updateStore(): void {
