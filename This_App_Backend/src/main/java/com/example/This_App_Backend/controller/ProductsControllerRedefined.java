@@ -152,5 +152,44 @@ public class ProductsControllerRedefined {
         return ResponseEntity.ok(productsService.getAllPublicProductsForStore(storeId));
     }
 
+    /**
+     * Search products across all stores (Public)
+     * GET /api/products/redefine/search?q=searchTerm
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchProducts(@RequestParam(required = false) String q) {
+        try {
+            List<ProductsDTO> products = productsService.searchProducts(q);
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error searching products: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Search products within a specific store (Public)
+     * GET /api/products/redefine/stores/{storeId}/search?q=searchTerm
+     */
+    @GetMapping("/stores/{storeId}/search")
+    public ResponseEntity<?> searchProductsByStore(
+            @PathVariable Long storeId,
+            @RequestParam(required = false) String q) {
+        try {
+            List<ProductsDTO> products = productsService.searchProductsByStore(storeId, q);
+            return ResponseEntity.ok(products);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Error searching products: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "An unexpected error occurred: " + e.getMessage()));
+        }
+    }
+
 
 }

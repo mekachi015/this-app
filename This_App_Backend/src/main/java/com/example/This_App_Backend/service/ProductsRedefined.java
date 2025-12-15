@@ -163,5 +163,72 @@ public class ProductsRedefined {
     }
 
 
+    /**
+     * Search products across all stores
+     */
+    public List<ProductsDTO> searchProducts(String searchTerm){
+        if(searchTerm == null || searchTerm.trim().isEmpty()){
+            return productsRepository.findAll().stream()
+            .map(this::convertToDTO)
+            .toList();
+        }
+
+        String search = searchTerm.toLowerCase().trim();
+         return productsRepository.findAll().stream()
+            .filter(product -> 
+                product.getProductName().toLowerCase().contains(search) ||
+                (product.getProductDescription() != null && 
+                 product.getProductDescription().toLowerCase().contains(search)) ||
+                (product.getCategory() != null && 
+                 product.getCategory().toLowerCase().contains(search))
+            )
+            .map(this::convertToDTO)
+            .toList();
+    }
+
+    /**
+     * Search products within a specific store
+     */
+    public List<ProductsDTO> searchProductsByStore(Long storeId, String searchTerm){
+        Stores store = storeRepository.findById(storeId)
+        .orElseThrow(() -> new RuntimeException("Store not found with id:"+ storeId));
+
+        List<Products> products =  productsRepository.findByStore(store);
+
+        if(searchTerm == null || searchTerm.trim().isEmpty()){
+            return products.stream()
+            .map(this::convertToDTO)
+            .toList();
+        }
+
+        String search = searchTerm.toLowerCase().trim();
+          return products.stream()
+            .filter(product -> 
+                product.getProductName().toLowerCase().contains(search) ||
+                (product.getProductDescription() != null && 
+                 product.getProductDescription().toLowerCase().contains(search)) ||
+                (product.getCategory() != null && 
+                 product.getCategory().toLowerCase().contains(search))
+            )
+            .map(this::convertToDTO)
+            .toList();
+    }
+
+    /**
+     * Helper method
+     */
+    private ProductsDTO convertToDTO(Products product) {
+        ProductsDTO dto = new ProductsDTO();
+        dto.setProductId(product.getProductId());
+        dto.setProductName(product.getProductName());
+        dto.setProductDescription(product.getProductDescription());
+        dto.setProductPrice(product.getProductPrice());
+        dto.setCategory(product.getCategory());
+        dto.setStockQuantity(product.getStockQuantity());
+        dto.setImageUrl(product.getImageUrl());
+        dto.setStoreId(product.getStore().getStoreId());
+        dto.setUserId(product.getCreatedBy().getUserId());
+        return dto;
+    }
 
 }

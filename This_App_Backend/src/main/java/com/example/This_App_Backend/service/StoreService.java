@@ -197,6 +197,28 @@ public class StoreService {
 
         return logoUrl;
     }
+
+    //Search stores by name or description
+    public List<Stores> searchStores(String searchTerm){
+        if(searchTerm == null || searchTerm.trim().isEmpty()){
+            return getAllStores();
+        }
+
+        String search = searchTerm.toLowerCase().trim();
+        return storeRepo.findAll().stream()
+        .filter(store -> 
+            store.getStoreName().toLowerCase().contains(search) ||
+            (
+                store.getStoreDescription() != null && 
+                store.getStoreDescription().toLowerCase().contains(search) ||
+                (
+                    store.getStoreAddress() != null &&
+                    store.getStoreAddress().toLowerCase().contains(search))
+                )
+            ).toList();
+    }
+
+
     public StoreDTO convertToDTO(Stores store) {
         StoreDTO dto = new StoreDTO();
         dto.setStoreId(store.getStoreId());

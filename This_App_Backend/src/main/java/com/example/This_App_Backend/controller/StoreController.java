@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -188,4 +191,24 @@ public class StoreController {
                     .body("Store not found: " + e.getMessage());
         }
     }
+
+    /** 
+     * Search for stores (Public)
+     * Get 
+    */
+   @GetMapping("/search")
+   public ResponseEntity<?> searchStores(@RequestParam(required = false) String q) {
+        try{
+            List<Stores> stores = storeService.searchStores(q);
+            List<StoreDTO> storeDTOs = stores.stream()
+            .map(storeService::convertToDTO)
+            .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(storeDTOs);
+        } catch(RuntimeException e){
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Error searching stores: " + e.getMessage());   
+        }
+   }
+   
 }
