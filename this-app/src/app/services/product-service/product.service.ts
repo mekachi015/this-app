@@ -138,4 +138,17 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
   deleteProduct(storeId: number, productId: number){
     return (console.log('Deleting product not implemented yet'));
   }
+
+  //seach products method
+  searchProducts(searchTerm: string): Observable<Product[]> {
+    const url = `${this.baseUrl}/search?q=${encodeURIComponent(searchTerm)}`;
+      return this.http.get<Product[]>(url);
+
+  }
+
+  //search products by store
+  searchProductsByStore(storeId: number, searchTerm: string): Observable<Product[]> {
+  const url = `${this.baseUrl}/stores/${storeId}/search?q=${encodeURIComponent(searchTerm)}`;
+  return this.http.get<Product[]>(url);
+}
 }

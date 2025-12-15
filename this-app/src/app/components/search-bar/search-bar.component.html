@@ -1,25 +1,30 @@
 <div class="search-container">
-    <div class="store-name">STORE NAME</div>
-    
-    <div class="search-box">
-      <i class="fas fa-search search-icon"></i>
-      <input 
-        type="text" 
-        [(ngModel)]="searchQuery"
-        placeholder="Search by name"
-        class="search-input"
-      >
-    </div>
+  <div class="store-name">{{ storeName || (searchType === 'stores' ? 'ALL STORES' : 'ALL PRODUCTS') }}</div>
   
-    <div class="buttons-container">
-      <button class="filter-btn">
-        <i class="fas fa-filter"></i>
-        Filter
-      </button>
-  
-      <button class="sort-btn">
-        <i class="fas fa-sort"></i>
-        Sort Selection
-      </button>
-    </div>
+  <div class="search-box">
+    <i class="fas fa-search search-icon"></i>
+    <input 
+      type="text" 
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchChange()"
+      [placeholder]="searchType === 'stores' ? 'Search stores...' : 'Search products...'"
+      class="search-input"
+    >
+    <i *ngIf="searchQuery" 
+       class="fas fa-times clear-icon" 
+       (click)="clearSearch()"></i>
+    <i *ngIf="isSearching" class="fas fa-spinner fa-spin loading-icon"></i>
+  </div>
+
+  <div class="buttons-container">
+    <button class="filter-btn">
+      <i class="fas fa-filter"></i>
+      Filter
+    </button>
+
+    <button class="sort-btn">
+      <i class="fas fa-sort"></i>
+      Sort Selection
+    </button>
+  </div>
 </div>
