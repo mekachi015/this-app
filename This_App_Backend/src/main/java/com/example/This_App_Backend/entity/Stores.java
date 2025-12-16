@@ -46,9 +46,6 @@ public class Stores {
     @Column(name = "store_logo", length = 255)
     private String storeLogo;
 
-
-
-
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
