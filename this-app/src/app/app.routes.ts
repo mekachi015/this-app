@@ -15,7 +15,7 @@ import { ProductManagementComponent } from './pages/product-management/product-m
 import { AuthGuard } from './services/Auth-gaurds/auth-guard';
 
 export const routes: Routes = [
-  { path: '', component: AuthenticationPageComponent },
+  { path: '', component: StorePageComponent },
   { path: 'login', component: NewAuthComponent },
   { path: 'sign-up', component: NewAuthComponent },
   { path: 'login/admin', component: NewAuthComponent },

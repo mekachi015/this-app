@@ -258,4 +258,12 @@ getAuthHeaders(token?: string, includeContentType: boolean = true): HttpHeaders 
     const user = this.currentUserValue;
     return user?.token || '';
   }
+
+  /**
+   * Redirects the user to the login page.
+   * Optionally, a return URL can be passed to redirect the user back after login.
+   */
+  redirectToLogin(returnUrl: string = '/'): void {
+    this.router.navigate(['/login'], { queryParams: { returnUrl } });
+  }
 }

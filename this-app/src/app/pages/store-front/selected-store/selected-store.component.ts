@@ -55,8 +55,9 @@ export class SelectedStoreComponent implements OnInit {
 
   addToCart(product: Product): void {
     if (!this.currentUserId || this.currentUserId === 0) {
+      // Redirect to login page if user is not logged in
       alert('Please log in to add items to your cart.');
-      console.error('User not logged in. Cannot add to cart.');
+      this.authService.redirectToLogin(); // Ensure this method is implemented in AuthService
       return;
     }
 

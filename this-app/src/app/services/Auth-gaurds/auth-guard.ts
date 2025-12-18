@@ -19,7 +19,9 @@ export class AuthGuard implements CanActivate {
     
     // 1. Check if the user is logged in
     if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/login']);
+      // Redirect to login page and pass the attempted URL for post-login redirection
+      console.log('User not logged in, redirecting to login page.');
+      this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
       return false;
     }
 
@@ -37,7 +39,7 @@ export class AuthGuard implements CanActivate {
         return false;
       }
     }
-    
+
     // User is logged in and has the required role (if specified)
     return true;
   }
