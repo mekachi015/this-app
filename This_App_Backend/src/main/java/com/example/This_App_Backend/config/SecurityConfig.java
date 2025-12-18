@@ -11,6 +11,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.This_App_Backend.security.JwtRequestFilter;
 
@@ -25,28 +28,40 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.and())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/stores/search").permitAll()
                         .requestMatchers("/api/stores/public").permitAll()
                         .requestMatchers("/api/products/redefine/search").permitAll()
                         .requestMatchers("/api/products/redefine/stores/*/search").permitAll()
-                        .requestMatchers("/api/products/redefiine/stores/*/products/public").permitAll()
+                        .requestMatchers("/api/products/redefine/stores/*/products/public").permitAll()
                         .requestMatchers("/api/auth/**").permitAll() // Allow authentication endpoints
                         .requestMatchers("/api/users/register").permitAll() // Allow user registration
                         .requestMatchers("/api/users/**").authenticated() // Protect other user endpoints
                         .requestMatchers("/h2-console/**").permitAll() // Allow H2 console
-                        .requestMatchers("/api/stores/**").permitAll()
+                        .requestMatchers("/api/addresses/**").permitAll()
                         .requestMatchers("/api/stores/**").permitAll()
                         .requestMatchers("/api/products/redefine/stores/*/products/public").permitAll()
                         .requestMatchers("/api/products/**").hasRole("ADMIN")
                         .requestMatchers("/api/stores/**").hasRole("ADMIN")
                         .requestMatchers("/api/products/redefine/users**").hasRole("ADMIN")
-
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOriginPattern("*"); // Or specify your frontend origin
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
@@ -59,5 +74,4 @@ public class SecurityConfig {
             throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
 }

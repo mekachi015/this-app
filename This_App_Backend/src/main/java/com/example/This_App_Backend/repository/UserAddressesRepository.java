@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface UserAddressesRepository extends JpaRepository<User_Addresses, Long> {
 
     // New methods for checkout
-    List<User_Addresses> findByUser_UserId(Long userId);
+    List<User_Addresses> findByUser(User user);
     Optional<User_Addresses> findFirstByUserAndIsDefault(User user, Boolean isDefault);
     Optional<User_Addresses> findFirstByUser(User user);
 }

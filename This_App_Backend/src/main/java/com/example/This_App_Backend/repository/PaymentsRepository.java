@@ -9,8 +9,6 @@ import java.util.Optional;
 @Repository
 public interface PaymentsRepository extends JpaRepository<Payments, Long> {
 
-    Optional<Payments> findByTransactionsReference(String transactionReference);
 
-    List<>
 
 }

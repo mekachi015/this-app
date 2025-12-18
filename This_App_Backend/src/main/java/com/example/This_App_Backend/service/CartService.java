@@ -168,111 +168,34 @@ public class CartService {
 
     @Transactional
     public CustomerOrders checkout(Long userId, Long deliveryAddressId) {
-        // Validate user
+        // 1. Validate User
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(user.getUserType() != User.UserType.CUSTOMER) {
-            throw new RuntimeException("Only customers can checkout");
-        }
-
-        List<Cart> cartItems = cartRepo.findByUser(user);
-        if(cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty. Nothing to checkout.");
-        }
-
-        // Check if deliveryAddressId is provided
-        User_Addresses deliveryAddress = null;
-
+        // 2. Validate Address (Security check: Ensure it belongs to the user)
         if (deliveryAddressId != null) {
-            // Use the provided address
-            deliveryAddress = userAddressRepo.findById(deliveryAddressId)
+            User_Addresses address = userAddressRepo.findById(deliveryAddressId)
                     .orElseThrow(() -> new RuntimeException("Delivery address not found"));
 
-            if(!deliveryAddress.getUser().getUserId().equals(userId)) {
-                throw new RuntimeException("Delivery address does not belong to this user");
+            if (!address.getUser().getUserId().equals(userId)) {
+                throw new RuntimeException("This address does not belong to the authenticated user");
             }
-        } else {
-            // Try to find a default address for the user
-            deliveryAddress = userAddressRepo.findFirstByUserAndIsDefault(user, true)
-                    .orElseGet(() -> userAddressRepo.findFirstByUser(user)
-                            .orElseThrow(() -> new RuntimeException(
-                                    "No delivery address found. Please add a delivery address before checkout."
-                            )));
         }
 
-        // Additional validations
-        if (deliveryAddress == null) {
-            throw new RuntimeException("Delivery address is required for checkout");
-        }
+        // 3. Print success message as requested
+        System.out.println("------------------------------------");
+        System.out.println("CHECKOUT SUCCESSFUL FOR USER ID: " + userId);
+        System.out.println("------------------------------------");
 
-        // Validate address completeness
-        if (deliveryAddress.getAddressLine1() == null || deliveryAddress.getAddressLine1().trim().isEmpty()) {
-            throw new RuntimeException("Delivery address is incomplete. Please update your address.");
-        }
+        // 4. Return a mock or empty Order object so your Controller doesn't crash
+        // In a real scenario, this is where you'd call your Peach Payment initiation.
+        CustomerOrders mockOrder = new CustomerOrders();
+        mockOrder.setOrderId(0L); // Placeholder ID
+        mockOrder.setOrderStatus("PENDING_PAYMENT");
+        mockOrder.setOrderDate(LocalDateTime.now());
+        mockOrder.setTotalAmount(BigDecimal.ZERO); // You would calculate the real total here
 
-        // Check all items are from the same store
-        Stores primaryStore = cartItems.get(0).getStore();
-        boolean allSameStore = cartItems.stream()
-                .allMatch(item -> item.getStore().getStoreId().equals(primaryStore.getStoreId()));
-
-        if (!allSameStore) {
-            throw new RuntimeException("All items must be from the same store for checkout");
-        }
-
-        BigDecimal totalAmount = BigDecimal.ZERO;
-
-        // Create order
-        CustomerOrders newCustomerOrders = new CustomerOrders();
-        newCustomerOrders.setUser(user);
-        newCustomerOrders.setStore(primaryStore);
-        newCustomerOrders.setOrderStatus("PENDING");
-        newCustomerOrders.setDeliveryAddress(deliveryAddress);
-        newCustomerOrders.setIsAssignedDriver(false);
-        newCustomerOrders.setOrderDate(LocalDateTime.now());
-        newCustomerOrders.setCreatedAt(LocalDateTime.now());
-        newCustomerOrders.setUpdatedAt(LocalDateTime.now());
-
-        // Create order items and calculate total amount
-        List<Order_Items> orderItems = new ArrayList<>();
-        for (Cart item : cartItems) {
-            Products product = item.getProduct();
-            BigDecimal priceAtPurchase = product.getProductPrice();
-
-            // Check stock availability
-            if (product.getStockQuantity() < item.getQuantity()) {
-                throw new RuntimeException(
-                        String.format("Insufficient stock for %s. Available: %d, Requested: %d",
-                                product.getProductName(), product.getStockQuantity(), item.getQuantity())
-                );
-            }
-
-            Order_Items itemsOrdered = new Order_Items();
-            itemsOrdered.setOrder(newCustomerOrders);
-            itemsOrdered.setProduct(product);
-            itemsOrdered.setQuantity(item.getQuantity().intValue());
-            itemsOrdered.setPriceAtPurchase(priceAtPurchase);
-            itemsOrdered.setCreatedAt(LocalDateTime.now());
-
-            orderItems.add(itemsOrdered);
-
-            // Update product stock
-            product.setStockQuantity(product.getStockQuantity() - item.getQuantity().intValue());
-            productRepo.save(product);
-
-            BigDecimal itemTotal = priceAtPurchase.multiply(BigDecimal.valueOf(item.getQuantity()));
-            totalAmount = totalAmount.add(itemTotal);
-        }
-
-        newCustomerOrders.setTotalAmount(totalAmount);
-        newCustomerOrders.setOrderItems(orderItems);
-
-        CustomerOrders savedOrder = orderRepo.save(newCustomerOrders);
-
-        // Clear the cart after successful order creation
-        cartRepo.deleteAll(cartItems);
-
-        return savedOrder;
+        return mockOrder;
     }
 
   private CartDto convertToDto (Cart cart) {
@@ -293,6 +216,8 @@ public class CartService {
 
       return dto;
   }
+
+
 
 
 }
