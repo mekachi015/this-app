@@ -157,9 +157,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     // Call your auth service or create a profile service
     console.log(this.userPhotoUrl, 'User url');
-    this.authService.uploadProfilePhoto(formData).subscribe({
+    this.authService.uploadProfilePhotoRefactored(formData).subscribe({
       next: (response: any) => {
         this.userPhotoUrl = response.photoUrl;
+        this.currentUser!.profilePhotoUrl = response.photoUrl;
         this.isPhotoChanging = false;
 
         console.log(this.userPhotoUrl, 'User url after');

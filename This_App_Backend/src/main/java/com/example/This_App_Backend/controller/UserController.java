@@ -1,25 +1,21 @@
 package com.example.This_App_Backend.controller;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import com.example.This_App_Backend.service.FileStorageService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.This_App_Backend.entity.User;
 import com.example.This_App_Backend.service.UserService;
-
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("api/users")
@@ -28,6 +24,10 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
@@ -83,6 +83,87 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    //Get user profile picture url
+    @GetMapping("/{id}/profile-picture")
+    public ResponseEntity<Map<String, String>> getUserProfilePicture(
+            @PathVariable Long id
+    ){
+        try {
+            Optional<User> user = userService.getUserById(id);
+
+            if(user.isPresent() && user.get().getProfilePhotoUrl() != null){
+                Map<String, String> response = new HashMap<>();
+
+                response.put("profilePhotoUrl", user.get().getProfilePhotoUrl());
+                return  new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //Upload profile picture
+    @PostMapping("/{id}/profile-photo")
+    public ResponseEntity<Map<String, String>> uploadProfilePicture(
+            @PathVariable Long id,
+           @RequestParam("profilePhoto") MultipartFile file,
+           @RequestHeader("Authorization") String authHeader
+            ){
+        try{
+            //Validate file
+            if (file.isEmpty()){
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            //upload to cloudinary
+            String photoUrl =  fileStorageService.storeProfilePhoto(file, id);
+
+            Optional<User> userOptional = userService.getUserById(id);
+            if (userOptional.isPresent()){
+                User user = userOptional.get();
+                user.setProfilePhotoUrl(photoUrl);
+                userService.updateUser(user);
+
+                Map<String, String> response = new HashMap<>();
+                response.put("photoUrl", photoUrl);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //Delete profile picture
+    @DeleteMapping("/{id}/profile-picture")
+    public ResponseEntity<Void> deleteProfilePicture(@PathVariable Long id){
+        try{
+            Optional<User> userOptional = userService.getUserById(id);
+            if(userOptional.isPresent()){
+                User user = userOptional.get();
+
+                //Delete from cloudinary
+                if(user.getProfilePhotoUrl() != null){
+                    String publicId = "profile_photos/user" + id;
+                    fileStorageService.deleteImage(publicId);
+                }
+
+                //remove url from database
+                user.setProfilePhotoUrl(null);
+                userService.updateUser(user);
+
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e){
+            return  new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

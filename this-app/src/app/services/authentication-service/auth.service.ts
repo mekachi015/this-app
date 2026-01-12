@@ -210,15 +210,15 @@ getAuthHeadersForMultipart(token?: string): HttpHeaders {
 getAuthHeaders(token?: string, includeContentType: boolean = true): HttpHeaders {
   const authToken = token || this.token;
   const headers: any = {};
-  
+
   if (authToken) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
-  
+
   if (includeContentType) {
     headers['Content-Type'] = 'application/json';
   }
-  
+
   return new HttpHeaders(headers);
 }
 
@@ -252,6 +252,26 @@ getAuthHeaders(token?: string, includeContentType: boolean = true): HttpHeaders 
       { headers }
     );
   }
+
+//Refactored method for uploading profile photo 
+uploadProfilePhotoRefactored(formData: FormData): Observable<{photoUrl: string}>{
+  const token = this.getToken();
+  const userId = this.currentUserValue?.id; //get from current user
+
+  if(!userId){
+    return throwError(() => new Error('User not logged in'));
+  }
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+  });
+
+  return this.http.post<{photoUrl: string}>(
+    `${this.apiUrl}/users/${userId}/profile-photo`,
+    formData,
+    {headers}
+  );
+}
 
   // Helper method to get token
   private getToken(): string {
