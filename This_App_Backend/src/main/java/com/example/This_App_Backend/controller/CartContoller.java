@@ -7,6 +7,7 @@ import com.example.This_App_Backend.dto.CartDTO.QuantityUpdateRequest;
 import com.example.This_App_Backend.entity.Cart;
 import com.example.This_App_Backend.entity.CustomerOrders;
 import com.example.This_App_Backend.entity.User;
+import com.example.This_App_Backend.entity.User_Addresses;
 import com.example.This_App_Backend.repository.UserRepository;
 import com.example.This_App_Backend.service.CartService;
 import lombok.RequiredArgsConstructor;
@@ -97,7 +98,11 @@ public class CartContoller {
             response.put("totalAmount", customerOrder.getTotalAmount());
             response.put("orderStatus", customerOrder.getOrderStatus());
             response.put("orderDate", customerOrder.getOrderDate());
-            response.put("deliveryAddress", customerOrder.getDeliveryAddress());
+
+            //format the deliery address
+            if(customerOrder.getDeliveryAddress() != null){
+                response.put("deliveryAddress", formatAddress(customerOrder.getDeliveryAddress()));
+            }
 
             return ResponseEntity.ok(response);
         } catch(RuntimeException e) {
@@ -273,5 +278,21 @@ public class CartContoller {
         return userRepo.findByUsername(authenticatedUsername)
                 .map(user -> user.getUserId().equals(userId))
                 .orElse(false);
+    }
+
+    private String formatAddress(User_Addresses address){
+        StringBuilder sb = new StringBuilder();
+        sb.append(address.getAddressLine1());
+
+        if (address.getAddressLine2() != null && !address.getAddressLine2().trim().isEmpty()) {
+            sb.append(", ").append(address.getAddressLine2());
+        }
+        if (address.getAddressLine3() != null && !address.getAddressLine3().trim().isEmpty()) {
+            sb.append(", ").append(address.getAddressLine3());
+        }
+        sb.append(", ").append(address.getCity());
+        sb.append(", ").append(address.getState());
+        sb.append(" ").append(address.getPostalCode());
+        return sb.toString();
     }
 }
