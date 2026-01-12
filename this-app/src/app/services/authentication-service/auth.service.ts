@@ -5,6 +5,7 @@ import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { User } from '../../models/user/user';
 import { Router } from '@angular/router';
 
+
 @Injectable({
   providedIn: 'root',
 })
@@ -286,4 +287,12 @@ uploadProfilePhotoRefactored(formData: FormData): Observable<{photoUrl: string}>
   redirectToLogin(returnUrl: string = '/'): void {
     this.router.navigate(['/login'], { queryParams: { returnUrl } });
   }
+
+ getUserProfilePicture(userId: number, headers: HttpHeaders): Observable<{ profilePhotoUrl: string }> {
+  // const token = this.getToken();
+  return this.http.get<{ profilePhotoUrl: string }>(
+    `${this.apiUrl}/users/${userId}/profile-picture`,
+    { headers }
+  );
+}
 }

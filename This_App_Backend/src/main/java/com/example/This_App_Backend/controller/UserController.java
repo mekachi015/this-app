@@ -11,6 +11,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.This_App_Backend.entity.User;
@@ -89,20 +90,44 @@ public class UserController {
     //Get user profile picture url
     @GetMapping("/{id}/profile-picture")
     public ResponseEntity<Map<String, String>> getUserProfilePicture(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ){
+//        try {
+//            Optional<User> user = userService.getUserById(id);
+//
+//            if(user.isPresent() && user.get().getProfilePhotoUrl() != null){
+//                Map<String, String> response = new HashMap<>();
+//
+//                response.put("profilePhotoUrl", user.get().getProfilePhotoUrl());
+//                return  new ResponseEntity<>(response, HttpStatus.OK);
+//            } else {
+//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//            }
+//        } catch (Exception e){
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
         try {
+            // Get current authenticated user
+            String currentUsername = authentication.getName();
+            Optional<User> currentUser = userService.getUserByUsername(currentUsername);
+
+            // Check if user is accessing their own profile or has admin role
+            if (!currentUser.get().getUserId().equals(id)) {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+
             Optional<User> user = userService.getUserById(id);
 
             if(user.isPresent() && user.get().getProfilePhotoUrl() != null){
                 Map<String, String> response = new HashMap<>();
-
                 response.put("profilePhotoUrl", user.get().getProfilePhotoUrl());
-                return  new ResponseEntity<>(response, HttpStatus.OK);
+                return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         } catch (Exception e){
+            e.printStackTrace(); // Add logging to see actual error
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
