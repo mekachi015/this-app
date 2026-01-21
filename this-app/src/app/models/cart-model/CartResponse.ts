@@ -7,4 +7,6 @@ export interface CartResponse {
   itemCount?: number;
   total?: number;
   count?: number;
+  orderCount: number;
+  grandTotal?: number;
 }

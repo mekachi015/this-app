@@ -38,9 +38,9 @@
     <div>Wallet</div>
   </div>
   
-  <div *ngIf="userType === UserType.CUSTOMER">
+  <div *ngIf="userType === UserType.CUSTOMER" (click)="goToOrders()">
     <i class="fas fa-box"></i>
-    <div>Orders</div>
+    <div >Orders</div>
   </div>
 
   <!-- Driver specific summary -->

@@ -100,4 +100,20 @@ private baseUrl = 'http://localhost:9091/api/cart';
       withCredentials: true
     });
   }
+
+  /** Checkout */
+  checkout(userId: number, deliveryAddressId?: number): Observable<CartResponse> {
+    const url = `${this.baseUrl}/checkout`;
+    let params = new HttpParams().set('userId', userId.toString());
+  
+    if (deliveryAddressId) {
+      params = params.set('deliveryAddressId', deliveryAddressId.toString());
+    }
+
+    return this.http.post<CartResponse>(url, null, {
+      headers: this.getAuthHeaders(),
+      params: params,
+      withCredentials: true
+    });
+  }
 }

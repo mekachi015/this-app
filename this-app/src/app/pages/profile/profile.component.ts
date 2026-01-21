@@ -319,6 +319,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     console.log('Navigating to wishlist');
   }
 
+  goToOrders() {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/customer-orders']);
+      console.log('Navigating to orders');
+    }
+  }
+
   logOut() {
     if (this.authService.isLoggedIn()) {
       this.authService.logout();

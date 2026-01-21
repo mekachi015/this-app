@@ -1,0 +1,63 @@
+<div class="orders-container">
+  <header class="orders-header">
+    <div class="header-content">
+      <h1>Your Orders</h1>
+      <p class="order-count">{{ orderCount }} orders</p>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-message">
+    <p>Loading your orders...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="error-message">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- No Orders Message -->
+  <div *ngIf="!isLoading && !errorMessage && orders.length === 0" class="no-orders">
+    <p>You have no orders yet.</p>
+    <button class="shop-now-btn" (click)="router.navigate(['/store-front'])">Shop Now</button>
+  </div>
+
+  <!-- Orders Content -->
+  <main class="orders-content" *ngIf="!isLoading && !errorMessage && orders.length > 0">
+    <div class="order-items">
+      <div class="order-item" *ngFor="let order of orders">
+        <div class="order-details">
+          <h3>Order :{{ order.orderId }}</h3>
+          <p class="order-date">Date: {{ order.createdAt | date }}</p>
+          <p class="order-total">Total: R{{ order.totalAmount?.toFixed(2) }}</p>
+          <div class="order-images">
+            <img *ngFor="let item of order.items.slice(0, 3)" [src]="item.productImage" [alt]="item.productName" class="product-image">
+            <span *ngIf="order.items.length > 3" class="more-items">+{{ order.items.length - 3 }}</span>
+          </div>
+        </div>
+        <div class="order-actions">
+          <button class="view-details-btn" (click)="viewOrderDetails(order)">View Details</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Order Details Modal -->
+  <div class="order-details-modal" *ngIf="selectedOrder">
+    <div class="modal-content">
+      <h2>Order :{{ selectedOrder.orderId }}</h2>
+      <p><strong>Date:</strong> {{ selectedOrder.createdAt | date }}</p>
+      <p><strong>Total:</strong> R{{ selectedOrder.totalAmount?.toFixed(2) }}</p>
+      <p><strong>Status:</strong> {{ selectedOrder.orderStatus }}</p>
+      <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress?.addressLine1 }}, {{ selectedOrder.deliveryAddress?.city }}, {{ selectedOrder.deliveryAddress?.province }}</p>
+      <h3>Items:</h3>
+      <ul>
+        <li *ngFor="let item of selectedOrder.items">
+          <img [src]="item.productImage" [alt]="item.productName" class="product-image">
+          <span>{{ item.productName }} - R{{ item.productPrice.toFixed(2) }} x {{ item.quantity }}</span>
+        </li>
+      </ul>
+      <button class="close-modal-btn" (click)="closeOrderDetails()">Close</button>
+    </div>
+  </div>
+</div>

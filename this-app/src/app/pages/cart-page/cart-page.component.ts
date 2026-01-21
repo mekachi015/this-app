@@ -145,13 +145,41 @@ export class CartPageComponent implements OnInit {
   }
 
   proceedToCheckout(): void {
-    if (this.cartItems.length === 0) {
-      alert('Your cart is empty');
-      return;
-    }
-    // Implement checkout logic
-    console.log('Proceeding to checkout...');
+  if (this.cartItems.length === 0) {
+    alert('Your cart is empty');
+    return;
   }
+
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  this.cartService.checkout(this.currentUserId).subscribe({
+    next: (response: CartResponse) => {
+      if (response.success) {
+        console.log('Checkout successful:', response);
+        
+        // Clear cart items from UI
+        this.cartItems = [];
+        
+        // Show success message
+        alert(`Checkout successful! ${response.orderCount} order(s) placed. Total: R${response.grandTotal}`);
+        
+        // Navigate to orders page or order confirmation
+        this.router.navigate(['/orders']);
+      } else {
+        this.errorMessage = response.message || 'Checkout failed';
+        alert(this.errorMessage);
+      }
+      this.isLoading = false;
+    },
+    error: (err) => {
+      this.errorMessage = 'An error occurred during checkout.';
+      console.error('Checkout error:', err);
+      alert(this.errorMessage);
+      this.isLoading = false;
+    }
+  });
+}
 
   
 
