@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +76,7 @@ public class CartContoller {
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(
             @RequestParam Long userId,
-            @RequestParam(required = false) Long deliveryAddressId, // Make it optional
+            @RequestParam(required = false) Long deliveryAddressId,
             Authentication authentication
     ) {
         try {
@@ -89,23 +91,70 @@ public class CartContoller {
                         .body(Map.of("success", false, "message", "Unauthorized access"));
             }
 
-            CustomerOrders customerOrder = cartService.checkout(userId, deliveryAddressId);
+            // 2. Call checkout service (now returns List<CustomerOrders>)
+            List<CustomerOrders> orders = cartService.checkout(userId, deliveryAddressId);
+
+            // 3. Build response
             Map<String, Object> response = new HashMap<>();
-
             response.put("success", true);
-            response.put("message", "Checkout successful. Order placed");
-            response.put("orderId", customerOrder.getOrderId());
-            response.put("totalAmount", customerOrder.getTotalAmount());
-            response.put("orderStatus", customerOrder.getOrderStatus());
-            response.put("orderDate", customerOrder.getOrderDate());
+            response.put("message", "Checkout successful. " + orders.size() + " order(s) placed");
+            response.put("orderCount", orders.size());
 
-            //format the deliery address
-            if(customerOrder.getDeliveryAddress() != null){
-                response.put("deliveryAddress", formatAddress(customerOrder.getDeliveryAddress()));
+            // 4. Calculate totals across all orders
+            BigDecimal grandTotal = orders.stream()
+                    .map(CustomerOrders::getTotalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal totalShipping = orders.stream()
+                    .map(CustomerOrders::getShippingAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal subtotal = grandTotal.subtract(totalShipping);
+
+            response.put("grandTotal", grandTotal);
+            response.put("subtotal", subtotal);
+            response.put("totalShipping", totalShipping);
+
+            // 5. Build order details list
+            List<Map<String, Object>> orderDetailsList = new ArrayList<>();
+
+            for (CustomerOrders order : orders) {
+                Map<String, Object> orderDetails = new HashMap<>();
+                orderDetails.put("orderId", order.getOrderId());
+                orderDetails.put("totalAmount", order.getTotalAmount());
+                orderDetails.put("shippingAmount", order.getShippingAmount());
+                orderDetails.put("orderStatus", order.getOrderStatus());
+                orderDetails.put("orderDate", order.getOrderDate());
+
+                // Store details
+                if (order.getStore() != null) {
+                    Map<String, Object> storeInfo = new HashMap<>();
+                    storeInfo.put("storeId", order.getStore().getStoreId());
+                    storeInfo.put("storeName", order.getStore().getStoreName());
+                    orderDetails.put("store", storeInfo);
+                }
+
+                // Calculate subtotal for this order (total - shipping)
+                BigDecimal orderSubtotal = order.getTotalAmount()
+                        .subtract(order.getShippingAmount());
+                orderDetails.put("subtotal", orderSubtotal);
+
+                // Add item count for this order
+                orderDetails.put("itemCount", order.getOrderItems().size());
+
+                orderDetailsList.add(orderDetails);
+            }
+
+            response.put("orders", orderDetailsList);
+
+            // 6. Format delivery address (same for all orders)
+            if (!orders.isEmpty() && orders.get(0).getDeliveryAddress() != null) {
+                response.put("deliveryAddress", formatAddress(orders.get(0).getDeliveryAddress()));
             }
 
             return ResponseEntity.ok(response);
-        } catch(RuntimeException e) {
+
+        } catch (RuntimeException e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());

@@ -22,7 +22,7 @@ public class Drivers {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "driver_id")
-    private Integer driverId;
+    private Long driverId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true) // Maps to user in drivers table (can be null )

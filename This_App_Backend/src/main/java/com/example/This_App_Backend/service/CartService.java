@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -167,7 +168,7 @@ public class CartService {
   }
 
     @Transactional
-    public CustomerOrders checkout(Long userId, Long deliveryAddressId) {
+    public List<CustomerOrders> checkout(Long userId, Long deliveryAddressId) {
         // 1. Validate User
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -185,75 +186,105 @@ public class CartService {
         // 3. Validate and get delivery address
         User_Addresses deliveryAddress = validateAndGetDeliveryAddress(userId, user, deliveryAddressId);
 
-        // 4. Calculate total amount
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        for (Cart cartItem : cartItems) {
-            Products product = cartItem.getProduct();
+        // 4. Group cart items by store
+        Map<Stores, List<Cart>> itemsByStore = cartItems.stream()
+                .collect(Collectors.groupingBy(Cart::getStore));
 
-            // Check stock availability
-            if (product.getStockQuantity() < cartItem.getQuantity()) {
-                throw new RuntimeException(
-                        String.format("Insufficient stock for %s. Available: %d, Requested: %d",
-                                product.getProductName(),
-                                product.getStockQuantity(),
-                                cartItem.getQuantity())
-                );
+        // 5. Create separate orders for each store
+        List<CustomerOrders> createdOrders = new ArrayList<>();
+        BigDecimal shippingAmountPerStore = new BigDecimal("150.00"); // R150 shipping per store
+
+        for (Map.Entry<Stores, List<Cart>> entry : itemsByStore.entrySet()) {
+            Stores store = entry.getKey();
+            List<Cart> storeCartItems = entry.getValue();
+
+            // Calculate total amount for this store's items
+            BigDecimal storeTotalAmount = BigDecimal.ZERO;
+
+            for (Cart cartItem : storeCartItems) {
+                Products product = cartItem.getProduct();
+
+                // Check stock availability
+                if (product.getStockQuantity() < cartItem.getQuantity()) {
+                    throw new RuntimeException(
+                            String.format("Insufficient stock for %s. Available: %d, Requested: %d",
+                                    product.getProductName(),
+                                    product.getStockQuantity(),
+                                    cartItem.getQuantity())
+                    );
+                }
+
+                BigDecimal itemTotal = product.getProductPrice()
+                        .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+                storeTotalAmount = storeTotalAmount.add(itemTotal);
             }
 
-            BigDecimal itemTotal = product.getProductPrice()
-                    .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
-            totalAmount = totalAmount.add(itemTotal);
+            // Create order for this store
+            CustomerOrders order = new CustomerOrders();
+            order.setUser(user);
+            order.setStore(store); // Set the associated store
+            order.setOrderStatus("PENDING_PAYMENT");
+            order.setOrderDate(LocalDateTime.now());
+            order.setTotalAmount(storeTotalAmount.add(shippingAmountPerStore)); // Include shipping
+            order.setShippingAmount(shippingAmountPerStore); // Set shipping amount
+            order.setDeliveryAddress(deliveryAddress);
+            order.setIsAssignedDriver(false);
+            order.setCreatedAt(LocalDateTime.now());
+            order.setUpdatedAt(LocalDateTime.now());
+
+            // Create order items for this store
+            List<Order_Items> orderItems = new ArrayList<>();
+            for (Cart cartItem : storeCartItems) {
+                Products product = cartItem.getProduct();
+
+                Order_Items orderItem = new Order_Items();
+                orderItem.setOrder(order);
+                orderItem.setProduct(product);
+                orderItem.setQuantity(cartItem.getQuantity().intValue());
+                orderItem.setPriceAtPurchase(product.getProductPrice());
+                orderItem.setCreatedAt(LocalDateTime.now());
+
+                orderItems.add(orderItem);
+
+                // Update stock
+                product.setStockQuantity(
+                        product.getStockQuantity() - cartItem.getQuantity().intValue()
+                );
+                productRepo.save(product);
+            }
+
+            order.setOrderItems(orderItems);
+
+            // Save the order
+            CustomerOrders savedOrder = orderRepo.save(order);
+            createdOrders.add(savedOrder);
+
+            // Print success message for this store's order
+            System.out.println("------------------------------------");
+            System.out.println("ORDER CREATED FOR STORE: " + store.getStoreName());
+            System.out.println("ORDER ID: " + savedOrder.getOrderId());
+            System.out.println("SUBTOTAL: " + storeTotalAmount);
+            System.out.println("SHIPPING: " + shippingAmountPerStore);
+            System.out.println("TOTAL AMOUNT: " + savedOrder.getTotalAmount());
+            System.out.println("------------------------------------");
         }
-
-        // 5. Create the order
-        CustomerOrders order = new CustomerOrders();
-        order.setUser(user);
-        order.setOrderStatus("PENDING_PAYMENT");
-        order.setOrderDate(LocalDateTime.now());
-        order.setTotalAmount(totalAmount);
-        order.setDeliveryAddress(deliveryAddress);
-        order.setIsAssignedDriver(false);
-        order.setCreatedAt(LocalDateTime.now());
-        order.setUpdatedAt(LocalDateTime.now());
-
-        // 6. Create order items
-        List<Order_Items> orderItems = new ArrayList<>();
-        for (Cart cartItem : cartItems) {
-            Products product = cartItem.getProduct();
-
-            Order_Items orderItem = new Order_Items();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setQuantity(cartItem.getQuantity().intValue());
-            orderItem.setPriceAtPurchase(product.getProductPrice());
-            orderItem.setCreatedAt(LocalDateTime.now());
-
-            orderItems.add(orderItem);
-
-            // Update stock
-            product.setStockQuantity(
-                    product.getStockQuantity() - cartItem.getQuantity().intValue()
-            );
-            productRepo.save(product);
-        }
-
-        order.setOrderItems(orderItems);
-
-        // 7. Save the order (this will generate the order ID)
-        CustomerOrders savedOrder = orderRepo.save(order);
 
         // 8. Clear the cart after successful order creation
         cartRepo.deleteAll(cartItems);
 
-        // 9. Print success message
-        System.out.println("------------------------------------");
+        // 9. Print overall success message
+        System.out.println("====================================");
         System.out.println("CHECKOUT SUCCESSFUL FOR USER ID: " + userId);
-        System.out.println("ORDER ID: " + savedOrder.getOrderId());
-        System.out.println("TOTAL AMOUNT: " + savedOrder.getTotalAmount());
-        System.out.println("------------------------------------");
+        System.out.println("TOTAL ORDERS CREATED: " + createdOrders.size());
+        BigDecimal grandTotal = createdOrders.stream()
+                .map(CustomerOrders::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        System.out.println("GRAND TOTAL: " + grandTotal);
+        System.out.println("====================================");
 
-        return savedOrder;
+        return createdOrders;
     }
+
 
 
     //Helper method to validate and get delivery address

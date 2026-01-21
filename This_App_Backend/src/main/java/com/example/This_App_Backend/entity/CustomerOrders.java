@@ -39,6 +39,8 @@ public class CustomerOrders {
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
+    private BigDecimal shippingAmount;
+
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
