@@ -155,28 +155,28 @@ export class NewAuthComponent implements OnInit {
     loginObservable.subscribe({
       next: (user) => {
         console.log('Login successful, user:', user);
-        this.router.navigate(['/dashboard']);
         this.isLoading = false;
-        if (user.userType === 'ADMIN') {
+
+        // Validate user type access
+        if (this.validateUserTypeAccess(user.userType)) {
           this.navigateAfterSuccess();
         } else {
           this.errorMessage = `Access denied. This page is for ${this.userType} users only.`;
         }
-        
       },
-       error: (error) => {
-      this.isLoading = false;
-      // Enhanced error message handling
-      if (error.status === 401) {
-        this.errorMessage = 'Invalid username or password. Please check your credentials and try again.';
-      } else if (error.status === 403) {
-        this.errorMessage = `Access denied. You don't have ${this.userType.toLowerCase()} privileges.`;
-      } else if (error.status === 404) {
-        this.errorMessage = 'User account not found. Please check your username or create a new account.';
-      } else {
-        this.errorMessage = error.message || 'Login failed. Please try again or contact support if the problem persists.';
-      }
-    },
+      error: (error) => {
+        this.isLoading = false;
+        // Enhanced error message handling
+        if (error.status === 401) {
+          this.errorMessage = 'Invalid username or password. Please check your credentials and try again.';
+        } else if (error.status === 403) {
+          this.errorMessage = `Access denied. You don't have ${this.userType.toLowerCase()} privileges.`;
+        } else if (error.status === 404) {
+          this.errorMessage = 'User account not found. Please check your username or create a new account.';
+        } else {
+          this.errorMessage = error.message || 'Login failed. Please try again or contact support if the problem persists.';
+        }
+      },
     });
   }
 
