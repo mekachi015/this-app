@@ -14,6 +14,7 @@ import { NewAuthComponent } from './components/auth/new-auth/new-auth.component'
 import { ProductManagementComponent } from './pages/product-management/product-management.component';
 import { AuthGuard } from './services/Auth-gaurds/auth-guard';
 import { CustomerOrdersComponent } from './pages/customer-orders/customer-orders/customer-orders.component';
+import { AddressPageComponent } from './pages/address-page/address-page.component';
 
 export const routes: Routes = [
   { path: '', component: StorePageComponent },
@@ -31,6 +32,7 @@ export const routes: Routes = [
   { path: 'wishlist', component: WishlistPageComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER'] } }, // Dynamic route for selected store
   { path: 'driver', component: DriverComponentComponent, canActivate: [AuthGuard], data: { roles: ['DRIVER'] } },
   { path: 'new', component: NewAuthComponent },
+  { path: 'addresses', component: AddressPageComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER'] } },
   { path: 'customer-orders', component: CustomerOrdersComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER'] } },
   { path: 'product-management/:id', component: ProductManagementComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: '**', redirectTo: 'stores', pathMatch: 'full' }, // Wildcard route should be last

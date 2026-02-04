@@ -43,6 +43,12 @@
     <div >Orders</div>
   </div>
 
+  <!-- Added Address navigation for customers -->
+  <!--<div *ngIf="userType === UserType.CUSTOMER" (click)="goToAddressPage()" style="cursor: pointer;">
+    <i class="fas fa-map-marker-alt"></i>
+    <div>Address</div>
+  </div> -->
+
   <!-- Driver specific summary -->
   <div *ngIf="userType === UserType.DRIVER">
     <i class="fas fa-route"></i>

@@ -356,4 +356,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+  goToAddressPage() {
+    this.router.navigate(['/address-page']);
+  }
 }
