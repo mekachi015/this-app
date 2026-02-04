@@ -9,4 +9,6 @@ import com.example.This_App_Backend.entity.User;
 
 public interface StoreOwnerRepository  extends JpaRepository<Store_Owners, Integer>{
     Optional<Store_Owners> findByUser(User user);
+    Optional<Store_Owners> findByOwnerId(Long ownerId);
+
 }

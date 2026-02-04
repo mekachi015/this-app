@@ -11,6 +11,8 @@ import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.This_App_Backend.repository.StoreRepository;
+import com.example.This_App_Backend.repository.StoreOwnerRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,6 +26,12 @@ public class OrderService {
 
     @Autowired
     private UserRepository userRepo;
+
+    @Autowired
+    private StoreRepository storeRepo;
+
+    @Autowired
+    private StoreOwnerRepository storeOwnerRepo;
 
     //Get all orders for the user
     public List<OrderDTO> getUserOrders (Long userId){
@@ -156,4 +164,93 @@ public class OrderService {
 
         return dto;
     }
+
+     /**
+     * Get all orders for a specific store
+     */
+    public List<OrderDTO> getStoreOrders(Long storeId){
+        Stores store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("Store not found"));
+
+        List<CustomerOrders> orders = orderRepo.findByStoreOrderByOrderDateDesc(store);
+        return orders.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get orders for a store filtered by status
+     */
+    public List<OrderDTO> getStoreOrdersByStatus(Long storeId, String orderStatus){
+        Stores store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("Store not found"));
+
+        List<CustomerOrders> orders = orderRepo.findByStoreAndOrderStatusOrderByOrderDateDesc(store, orderStatus);
+        return orders.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get specific order by ID for a store
+     */
+    public OrderDTO getStoreOrderById(Long storeId, Long orderId){
+        Stores store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("Store not found"));
+
+        CustomerOrders order = orderRepo.findByOrderIdAndStore(orderId, store)
+                .orElseThrow(() -> new RuntimeException("Order not found or does not belong to this store"));
+
+        return convertToDTO(order);
+    }
+    
+    /**
+     * Get total order count for a store
+     */
+    public Long getStoreOrderCount(Long storeId){
+        Stores store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("Store not found"));
+
+        return orderRepo.countByStore(store);
+    }
+
+    /**
+ * Get all orders for all stores owned by a specific owner
+ */
+public List<OrderDTO> getOrdersByOwnerId(Long ownerId) {
+    Store_Owners storeOwner = storeOwnerRepo.findByOwnerId(ownerId)
+            .orElseThrow(() -> new RuntimeException("Store owner not found"));
+
+    List<CustomerOrders> orders = orderRepo.findByStore_StoreOwnerOrderByOrderDateDesc(storeOwner);
+    return orders.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+}
+
+/**
+ * Get all orders for all stores owned by the logged-in user
+ */
+public List<OrderDTO> getOrdersByUserId(Long userId) {
+    User user = userRepo.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    Store_Owners storeOwner = storeOwnerRepo.findByUser(user)
+            .orElseThrow(() -> new RuntimeException("User is not a store owner"));
+
+    List<CustomerOrders> orders = orderRepo.findByStore_StoreOwnerOrderByOrderDateDesc(storeOwner);
+    return orders.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+}
+
+/**
+ * Get order count for a store owner
+ */
+public Long getOrderCountByOwnerId(Long ownerId) {
+    Store_Owners storeOwner = storeOwnerRepo.findByOwnerId(ownerId)
+            .orElseThrow(() -> new RuntimeException("Store owner not found"));
+
+    return orderRepo.countByStore_StoreOwner(storeOwner);
+}
+
 }

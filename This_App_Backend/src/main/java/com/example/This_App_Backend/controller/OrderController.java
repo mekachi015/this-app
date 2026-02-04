@@ -105,5 +105,71 @@ public class OrderController {
     }
 
 
+    //get all orders for a store
+    @GetMapping("{storeId}/orders")
+     public ResponseEntity<?> getStoreOrders(@PathVariable Long storeId) {
+        try {
+            List<OrderDTO> orders = orderService.getStoreOrders(storeId);
+            return ResponseEntity.ok(orders);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    new ErrorResponse(e.getMessage())
+            );
+        }
+    }
+
+    //get specific order by id for a store
+     @GetMapping("/{storeId}/orders/{orderId}")
+    public ResponseEntity<?> getStoreOrderById(
+            @PathVariable Long storeId,
+            @PathVariable Long orderId) {
+        try {
+            OrderDTO order = orderService.getStoreOrderById(storeId, orderId);
+            return ResponseEntity.ok(order);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    new ErrorResponse(e.getMessage())
+            );
+        }
+    }
+
+    //total order count for a store
+      @GetMapping("/{storeId}/orders/count")
+    public ResponseEntity<?> getStoreOrderCount(@PathVariable Long storeId) {
+        try {
+            Long count = orderService.getStoreOrderCount(storeId);
+            return ResponseEntity.ok(new CountResponse(count));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    new ErrorResponse(e.getMessage())
+            );
+        }
+    }
+
+      // Response classes
+    private static class ErrorResponse {
+        private String message;
+
+        public ErrorResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
+    private static class CountResponse {
+        private Long count;
+
+        public CountResponse(Long count) {
+            this.count = count;
+        }
+
+        public Long getCount() {
+            return count;
+        }
+    }
+
 
 }

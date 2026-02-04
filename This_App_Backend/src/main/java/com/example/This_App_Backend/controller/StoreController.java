@@ -1,8 +1,10 @@
 package com.example.This_App_Backend.controller;
 
+import com.example.This_App_Backend.dto.OrderDTO.OrderDTO;
 import com.example.This_App_Backend.dto.StoresDTO.StoreDTO;
 import com.example.This_App_Backend.entity.Stores;
 import com.example.This_App_Backend.service.StoreService;
+import com.example.This_App_Backend.service.OrderService;
 
 import jakarta.annotation.security.PermitAll;
 
@@ -18,8 +20,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 
@@ -32,6 +32,9 @@ public class StoreController {
     
     @Autowired
     private StoreService storeService;
+
+    @Autowired
+    private OrderService orderService;
 
     /**
      * Create a new store (Authenticated users only)
@@ -210,5 +213,62 @@ public class StoreController {
           .body("Error searching stores: " + e.getMessage());   
         }
    }
+
+   /**
+     * Get all orders for all stores owned by a specific owner
+     * GET /api/stores/owner/{ownerId}/orders
+     */
+    @GetMapping("/owner/{ownerId}/orders")
+    public ResponseEntity<?> getOrdersByOwnerId(@PathVariable Long ownerId) {
+        try {
+            List<OrderDTO> orders = orderService.getOrdersByOwnerId(ownerId);
+            return ResponseEntity.ok(orders);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    new ErrorResponse(e.getMessage())
+            );
+        }
+    }
+
+    /**
+     * Get all orders for the logged-in user's stores
+     * GET /api/stores/my-orders
+     */
+    @GetMapping("/my-orders")
+    public ResponseEntity<?> getMyStoreOrders(@RequestParam Long userId) {
+        try {
+            List<OrderDTO> orders = orderService.getOrdersByUserId(userId);
+            return ResponseEntity.ok(orders);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    new ErrorResponse(e.getMessage())
+            );
+        }
+    }
+
+     // Response classes
+    private static class ErrorResponse {
+        private String message;
+
+        public ErrorResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
+    private static class CountResponse {
+        private Long count;
+
+        public CountResponse(Long count) {
+            this.count = count;
+        }
+
+        public Long getCount() {
+            return count;
+        }
+    }
    
 }
