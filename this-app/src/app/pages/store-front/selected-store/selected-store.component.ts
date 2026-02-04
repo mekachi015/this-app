@@ -36,6 +36,9 @@ export class SelectedStoreComponent implements OnInit {
 
   private currentUserId: number = 0;
 
+  // To store search results
+  searchResultsList: Product[] = [];
+
   constructor(
     private route: ActivatedRoute,
     private storeService: StoreAdminServiceService,
@@ -50,7 +53,63 @@ export class SelectedStoreComponent implements OnInit {
   }
 
   onSearch(): void {
-    console.log('Searching for:', this.searchQuery);
+    if (!this.searchQuery || this.searchQuery.trim().length < 2) {
+      console.warn('Search query is too short.');
+      return;
+    }
+
+    if (!this.storeId) {
+      console.error('Store ID is not available. Cannot perform search.');
+      return;
+    }
+
+    const storeId = Number(this.storeId);
+    if (isNaN(storeId)) {
+      console.error('Invalid store ID. Cannot perform search.');
+      return;
+    }
+
+    this.isLoading = true;
+    this.productService.searchProductsByStore(storeId, this.searchQuery).subscribe({
+      next: (products) => {
+        console.log('Search results:', products);
+        this.products = products; // Update the products list with search results
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error searching products:', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  onSearchChange(): void {
+    if (!this.searchQuery || this.searchQuery.trim().length < 2) {
+      this.searchResultsList = []; // Clear results if query is too short
+      return;
+    }
+
+    if (!this.storeId) {
+      console.error('Store ID is not available. Cannot perform search.');
+      return;
+    }
+
+    const storeId = Number(this.storeId);
+    if (isNaN(storeId)) {
+      console.error('Invalid store ID. Cannot perform search.');
+      return;
+    }
+
+    this.productService.searchProductsByStore(storeId, this.searchQuery).subscribe({
+      next: (products) => {
+        console.log('Search results:', products);
+        this.searchResultsList = products; // Update the dropdown with search results
+      },
+      error: (err) => {
+        console.error('Error searching products:', err);
+        this.searchResultsList = []; // Clear results on error
+      },
+    });
   }
 
   addToCart(product: Product): void {
@@ -85,6 +144,19 @@ export class SelectedStoreComponent implements OnInit {
 
   zoomProduct(product: Product): void {
     console.log('Zooming product:', product);
+  }
+
+  onProductSelect(product: Product): void {
+    console.log('Selected product:', product);
+    this.searchQuery = product.productName; // Update search bar with the product name
+    this.searchResultsList = []; // Clear the dropdown
+    this.products = [product]; // Show only the selected product in the main content
+  }
+
+  clearSearch(): void {
+    this.searchQuery = ''; // Clear the search query
+    this.searchResultsList = []; // Clear the dropdown
+    this.loadProducts(this.storeId!); // Reload all products for the store
   }
 
   private getStoreFromRoute(): void { 

@@ -17,13 +17,30 @@
         <input 
           type="text" 
           [(ngModel)]="searchQuery" 
+          (input)="onSearchChange()" 
           placeholder="Search for clothing"
           class="search-input"
         >
         <button class="search-button" (click)="onSearch()">Search</button>
+
+        <!-- Dropdown for search results -->
+        <ul *ngIf="searchResultsList.length > 0" class="dropdown">
+          <li *ngFor="let product of searchResultsList" (click)="onProductSelect(product)">
+            <div class="product-item">
+              <span class="product-name">{{ product.productName }}</span>
+              <span class="product-price">R{{ product.productPrice.toFixed(2) }}</span>
+            </div>
+          </li>
+        </ul>
       </div>
     </header>
-  
+
+    <!-- Search Results Indicator -->
+    <div *ngIf="searchQuery" class="search-results-indicator">
+      Showing results for "{{ searchQuery }}"
+      <button class="clear-search" (click)="clearSearch()">&times;</button>
+    </div>
+
     <!-- Navigation -->
     <nav class="store-nav">
       <button class="nav-button active">Browse Products</button>
@@ -62,3 +79,64 @@
       </p>
     </aside>
 </div>
+
+<style>
+  .dropdown {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+    margin-top: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .dropdown li {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dropdown li:hover {
+    background-color: #f0f0f0;
+  }
+
+  .product-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-name {
+    font-weight: bold;
+  }
+
+  .product-price {
+    font-size: 0.9em;
+    color: gray;
+  }
+
+  .search-results-indicator {
+    margin: 10px 0;
+    font-style: italic;
+    color: #555;
+  }
+
+  .clear-search {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 5px;
+    font-size: 1.2em;
+  }
+
+  .clear-search:hover {
+    text-decoration: underline;
+  }
+</style>
