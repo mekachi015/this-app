@@ -1,7 +1,11 @@
 <div class="stores-page">
 
   <!--Search bar component name-->
-  <app-search-bar></app-search-bar>
+  <app-search-bar 
+    [searchType]="'stores'" 
+    (searchResults)="onSearchResults($event)" 
+    (searchError)="onSearchError($event)">
+  </app-search-bar>
 
 
   <h1 class="page-title">Stores</h1>

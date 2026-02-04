@@ -102,5 +102,14 @@ export class StorePageComponent implements OnInit{
     this.router.navigate(['/store', store.id]);
   }
 
+  onSearchResults(results: any[]): void {
+    console.log('Search results:', results);
+    // Handle search results here
+  }
+
+  onSearchError(error: string): void {
+    console.error('Search error:', error);
+    // Handle search error here
+  }
 
 }

@@ -5,6 +5,7 @@ import { Event } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ProductService } from '../../services/product-service/product.service';
 import { StoreAdminServiceService } from '../../services/store-admin-service/store-admin-service.service';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -26,10 +27,12 @@ export class SearchBarComponent {
   searchQuery: string = '';
   private searchSubject = new Subject<string>();
   isSearching = false;
+  searchResultsList: any[] = []; // To store search results
 
   constructor(
     private productService: ProductService,
-    private storeService: StoreAdminServiceService
+    private storeService: StoreAdminServiceService,
+    private router: Router // Inject Angular Router
   ) {
     // Debounce search input
     this.searchSubject.pipe(
@@ -83,23 +86,36 @@ export class SearchBarComponent {
   private searchStores(searchTerm: string): void {
     this.storeService.searchStores(searchTerm).subscribe({
       next: (results) => {
-        // This emit call is now valid
+        this.searchResultsList = results; // Store results in the array
         this.searchResults.emit(results);
         this.isSearching = false;
       },
       error: (error) => {
         console.error('Store search error:', error);
-        // This emit call is now valid
         this.searchError.emit('Failed to search stores');
         this.isSearching = false;
       }
     });
   }
 
+  onStoreSelect(store: any): void {
+    console.log('Selected store:', store);
+    this.searchQuery = store.storeName; // Update search bar with the store name
+    this.searchResults.emit([store]); // Emit the selected store
+    this.searchResultsList = []; // Clear the dropdown
+
+    // Navigate to the selected store's page
+    this.router.navigate(['/store', store.storeId]);
+  }
+
   clearSearch(): void {
     this.searchQuery = '';
     // This emit call is now valid
     this.searchResults.emit([]);
+  }
+
+  get placeholderText(): string {
+    return this.searchType === 'products' ? 'Search products' : 'Search stores';
   }
 
 }

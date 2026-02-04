@@ -221,7 +221,11 @@ export class StoreAdminServiceService {
   //Search stores
     searchStores(searchTerm: string): Observable<Store[]>{
         const url = `${this.apiUrl}/search?q=${encodeURIComponent(searchTerm)}`;
-        return this.http.get<Store[]>(url);
-
+        return this.http.get<Store[]>(url).pipe(
+          catchError((error) => {
+            console.error('Error searching stores:', error);
+            return throwError(() => error);
+          })
+        );
     }
 }
