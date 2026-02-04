@@ -20,7 +20,7 @@ interface SidebarItem {
 })
 export class NavBarComponent {
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(public authService: AuthService, private router: Router) {}
 
   sidebarVisible: boolean = false;
 
@@ -59,6 +59,19 @@ export class NavBarComponent {
 
     // Otherwise proceed with navigation
     this.router.navigate([item.route]);
+    this.toggleSidebar();
+  }
+
+  get loginLogoutLabel(): string {
+    return this.authService.isLoggedIn() ? 'Logout' : 'Login';
+  }
+
+  handleLoginLogout(): void {
+    if (this.authService.isLoggedIn()) {
+      this.authService.logout();
+    } else {
+      this.router.navigate(['/login']);
+    }
     this.toggleSidebar();
   }
 }
