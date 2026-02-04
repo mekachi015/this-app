@@ -228,4 +228,48 @@ export class StoreAdminServiceService {
           })
         );
     }
+
+
+    //get all orders for a store
+    getStoreOrders(ownerId: number): Observable<any[]> {
+  const headers = this.authService.getAuthHeaders();
+  return this.http.get<any[]>(`${this.apiUrl}/owner/${ownerId}/orders`, {
+    headers,
+    withCredentials: true,
+  }).pipe(
+    catchError((error) => {
+      console.error('Error fetching store orders:', error);
+      return throwError(() => error);
+    })
+  );
 }
+
+
+    //get specific order by id for a store
+    getStoreOrderById(storeId: number, orderId: number): Observable<any> {
+      const headers  = this.authService.getAuthHeaders();
+      return this.http.get<any>(`${this.apiUrl}/${storeId}/orders/${orderId}`, {
+        headers,
+        withCredentials: true,
+      }).pipe(
+        catchError((error) => {
+          console.error('Error fetching store order by id:', error);
+          return throwError(() => error);
+        })
+      );
+    }
+
+    getStoreOrderCount(storeId: number): Observable<{ count: number }> {
+      const headers = this.authService.getAuthHeaders();
+      return this.http.get<{ count: number }>(`${this.apiUrl}/${storeId}/orders/count`, {
+        headers,
+        withCredentials: true,
+     }).pipe(
+        catchError((error) => {
+          console.error('Error fetching store order count:', error);
+          return throwError(() => error);
+        })
+      );
+    }
+}
+  

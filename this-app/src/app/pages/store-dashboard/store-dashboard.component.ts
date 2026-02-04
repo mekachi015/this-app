@@ -30,11 +30,8 @@ interface Order {
 })
 export class StoreDashboardComponent implements OnInit {
   // Example recent orders (static for now)
-  recentOrders: Order[] = [
-    { id: 'ORD-001', customer: 'John Doe', products: '2 items', total: 4999.99, status: 'Completed' },
-    { id: 'ORD-002', customer: 'Jane Smith', products: '1 item', total: 2500.00, status: 'Pending' },
-    { id: 'ORD-003', customer: 'Mike Johnson', products: '3 items', total: 7500.00, status: 'Cancelled' }
-  ];
+  recentOrders: any[] = [];
+  orderCount: number = 0;
 
   //date and time
   selectedDays: string[] = [];
@@ -301,9 +298,84 @@ export class StoreDashboardComponent implements OnInit {
 
   // Add method to handle store selection
   onStoreSelected(store: Store): void {
-    this.selectedStore = store;
-   
- }
+          console.log('Store selected:', store.storeName, 'storeId:', store.storeId);
+        console.log('Owner ID:', this.storeModel.ownerId);
+        
+        this.selectedStore = store;
+    
+        if (store.storeId && this.storeModel.ownerId) {
+            // Load orders using ownerId but filter for this store
+            this.loadStoreOrders(store.storeId);
+            // Load order count using storeId
+            this.loadOrderCount(store.storeId);
+        } else {
+            console.error('Missing storeId or ownerId');
+            console.log('storeId:', store.storeId);
+            console.log('ownerId:', this.storeModel.ownerId);
+        }
+
+  }
+
+  loadStoreOrders(storeId: number): void {
+    console.log('Loading orders for storeId:', storeId, 'using ownerId:', this.storeModel.ownerId);
+        
+        this.isLoading = true;
+        
+        if (!this.storeModel.ownerId) {
+            console.error('Owner ID is not available');
+            this.errorMessage = 'Cannot load orders: Please log in again';
+            this.isLoading = false;
+            return;
+        }
+        
+        this.storeAdminService.getStoreOrders(this.storeModel.ownerId).subscribe({
+            next: (orders) => {
+                console.log('All orders received from API:', orders);
+                
+                // Filter orders to only show orders for this specific store
+                const storeOrders = orders.filter(order => order.storeId === storeId);
+                
+                console.log('Filtered orders for store ' + storeId + ':', storeOrders);
+                
+                this.recentOrders = storeOrders;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                console.error('Error loading orders:', error);
+                console.error('Error details:', error.message, error.status);
+                this.errorMessage = 'Failed to load orders: ' + error.message;
+                this.isLoading = false;
+            }
+        });
+}
+
+loadOrderCount(storeId: number): void {
+  this.storeAdminService.getStoreOrderCount(storeId).subscribe({
+    next: (response) => {
+      this.orderCount = response.count;
+      console.log('Order count:', this.orderCount);
+    },
+    error: (error) => {
+      console.error('Error loading order count:', error);
+    }
+  });
+}
+
+viewOrderDetails(orderId: number): void {
+  if (!this.selectedStore?.storeId) return;
+  
+  this.storeAdminService.getStoreOrderById(this.selectedStore.storeId, orderId).subscribe({
+    next: (order) => {
+      console.log('Order details:', order);
+      // You can display this in a modal or navigate to order details page
+      alert(`Order Details:\nID: ${order.orderId}\nTotal: R${order.totalAmount}\nStatus: ${order.orderStatus}`);
+    },
+    error: (error) => {
+      console.error('Error loading order details:', error);
+      this.errorMessage = 'Failed to load order details';
+    }
+  });
+}
 
    createProduct(): void {
   

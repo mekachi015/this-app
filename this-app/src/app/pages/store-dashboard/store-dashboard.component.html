@@ -441,40 +441,58 @@
 
       <!-- Recent Orders -->
       <section class="orders-section">
-        <div class="section-header">
-          <h2>Recent Orders</h2>
-          <button class="view-all-btn">View All</button>
-        </div>
-        <div class="orders-table-container">
-          <table class="orders-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Products</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let order of recentOrders">
-                <td data-label="Order ID">{{ order.id }}</td>
-                <td data-label="Customer">{{ order.customer }}</td>
-                <td data-label="Products">{{ order.products }}</td>
-                <td data-label="Total">R{{ order.total.toFixed(2) }}</td>
-                <td data-label="Status">
-                  <span class="status-badge" [class]="order.status.toLowerCase()">
-                    {{ order.status }}
-                  </span>
-                </td>
-                <td data-label="Actions">
-                  <button class="action-btn">
-                    <i class="fas fa-ellipsis-v"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+  <div class="section-header">
+    <h2>Recent Orders</h2>
+    <span *ngIf="selectedStore" class="order-count-badge">{{ orderCount }} total orders</span>
+    <button class="view-all-btn">View All</button>
+  </div>
+  
+  <!-- Show message if no store is selected -->
+  <div class="empty-state" *ngIf="!selectedStore">
+    <i class="fas fa-store"></i>
+    <p>Select a store to view its orders</p>
+  </div>
+  
+  <!-- Show actual orders when store is selected -->
+  <div class="orders-table-container" *ngIf="selectedStore && recentOrders.length > 0">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of recentOrders">
+          <td data-label="Order ID">#{{ order.orderId }}</td>
+          <td data-label="Customer">Customer {{ order.userId }}</td>
+          <td data-label="Items">{{ order.itemCount }} items</td>
+          <td data-label="Total">R{{ order.totalAmount.toFixed(2) }}</td>
+          <td data-label="Status">
+            <span class="status-badge" [class]="order.orderStatus.toLowerCase()">
+              {{ order.orderStatus }}
+            </span>
+          </td>
+          <td data-label="Date">{{ order.orderDate | date:'short' }}</td>
+          <td data-label="Actions">
+            <button class="action-btn" (click)="viewOrderDetails(order.orderId)">
+              <i class="fas fa-eye"></i> View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Empty state when no orders -->
+  <div class="empty-state" *ngIf="selectedStore && recentOrders.length === 0 && !isLoading">
+    <i class="fas fa-inbox"></i>
+    <h3>No Orders Yet</h3>
+    <p>{{ selectedStore.storeName }} hasn't received any orders yet</p>
+  </div>
+</section>
