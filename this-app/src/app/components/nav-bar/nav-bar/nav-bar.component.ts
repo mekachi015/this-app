@@ -32,6 +32,7 @@ export class NavBarComponent {
     {label: 'Driver', route: '/login/driver', icon: 'car'},
     {label: 'Cart', route: '/cart', icon: 'shopping-cart'},
     { label: "Wishlist", route: "/wishlist", icon: "heart" },
+    { label: 'Orders', route: '/customer-orders', icon: 'box' }
     
   ];
 

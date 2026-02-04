@@ -298,55 +298,61 @@ export class StoreDashboardComponent implements OnInit {
 
   // Add method to handle store selection
   onStoreSelected(store: Store): void {
-          console.log('Store selected:', store.storeName, 'storeId:', store.storeId);
-        console.log('Owner ID:', this.storeModel.ownerId);
-        
-        this.selectedStore = store;
-    
-        if (store.storeId && this.storeModel.ownerId) {
-            // Load orders using ownerId but filter for this store
-            this.loadStoreOrders(store.storeId);
-            // Load order count using storeId
-            this.loadOrderCount(store.storeId);
-        } else {
-            console.error('Missing storeId or ownerId');
-            console.log('storeId:', store.storeId);
-            console.log('ownerId:', this.storeModel.ownerId);
-        }
-
+       console.log('Store selected:', store.storeName, 'storeId:', store.storeId);
+  
+  this.selectedStore = store;
+  
+  // Use the store's ownerId for loading orders
+  const ownerIdForOrders = store.ownerId;
+  
+  console.log('Store Owner ID (for orders):', ownerIdForOrders);
+  console.log('Current storeModel ownerId (for store creation):', this.storeModel.ownerId);
+  
+  if (store.storeId && ownerIdForOrders) {
+    // Pass the store's ownerId to load orders
+    this.loadStoreOrders(store.storeId, ownerIdForOrders);
+    // Load order count using storeId
+    this.loadOrderCount(store.storeId);
+  } else {
+    console.error('Missing storeId or ownerId');
+    console.log('storeId:', store.storeId);
+    console.log('ownerId from store:', ownerIdForOrders);
+    this.errorMessage = 'Cannot load orders: Missing store or owner information';
+  }
   }
 
-  loadStoreOrders(storeId: number): void {
-    console.log('Loading orders for storeId:', storeId, 'using ownerId:', this.storeModel.ownerId);
-        
-        this.isLoading = true;
-        
-        if (!this.storeModel.ownerId) {
-            console.error('Owner ID is not available');
-            this.errorMessage = 'Cannot load orders: Please log in again';
-            this.isLoading = false;
-            return;
-        }
-        
-        this.storeAdminService.getStoreOrders(this.storeModel.ownerId).subscribe({
-            next: (orders) => {
-                console.log('All orders received from API:', orders);
-                
-                // Filter orders to only show orders for this specific store
-                const storeOrders = orders.filter(order => order.storeId === storeId);
-                
-                console.log('Filtered orders for store ' + storeId + ':', storeOrders);
-                
-                this.recentOrders = storeOrders;
-                this.isLoading = false;
-            },
-            error: (error) => {
-                console.error('Error loading orders:', error);
-                console.error('Error details:', error.message, error.status);
-                this.errorMessage = 'Failed to load orders: ' + error.message;
-                this.isLoading = false;
-            }
-        });
+  loadStoreOrders(storeId: number,ownerId: number): void {
+    console.log('Loading orders for storeId:', storeId, 'using ownerId:', ownerId);
+  
+  this.isLoading = true;
+  
+  if (!ownerId) {
+    console.error('Owner ID is not available');
+    this.errorMessage = 'Cannot load orders: Owner ID not found';
+    this.isLoading = false;
+    return;
+  }
+  
+  // Use the passed ownerId (from store) instead of this.storeModel.ownerId
+  this.storeAdminService.getStoreOrders(ownerId).subscribe({
+    next: (orders) => {
+      console.log('All orders received from API:', orders);
+      
+      // Filter orders to only show orders for this specific store
+      const storeOrders = orders.filter(order => order.storeId === storeId);
+      
+      console.log('Filtered orders for store ' + storeId + ':', storeOrders);
+      
+      this.recentOrders = storeOrders;
+      this.isLoading = false;
+    },
+    error: (error) => {
+      console.error('Error loading orders:', error);
+      console.error('Error details:', error.message, error.status);
+      this.errorMessage = 'Failed to load orders: ' + error.message;
+      this.isLoading = false;
+    }
+  });
 }
 
 loadOrderCount(storeId: number): void {

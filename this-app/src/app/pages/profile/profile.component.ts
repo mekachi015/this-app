@@ -274,6 +274,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       case 'Privacy':
         // this.router.navigate(['/privacy']);
         break;
+        case 'Addresses':  // Add this case
+      this.router.navigate(['/addresses']);
+      break;
       case 'Vehicle Information':
         // this.router.navigate(['/driver/vehicle']);
         break;
@@ -358,6 +361,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   goToAddressPage() {
-    this.router.navigate(['/address-page']);
+    this.router.navigate(['/addresses']);
   }
 }

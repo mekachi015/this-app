@@ -247,7 +247,7 @@ public List<OrderDTO> getOrdersByUserId(Long userId) {
  * Get order count for a store owner
  */
 public Long getOrderCountByOwnerId(Long ownerId) {
-    Store_Owners storeOwner = storeOwnerRepo.findByOwnerId(ownerId)
+    Store_Owners storeOwner = storeOwnerRepo.findByOwnerId (ownerId)
             .orElseThrow(() -> new RuntimeException("Store owner not found"));
 
     return orderRepo.countByStore_StoreOwner(storeOwner);
