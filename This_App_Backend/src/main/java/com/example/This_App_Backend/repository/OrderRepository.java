@@ -33,11 +33,14 @@ public interface OrderRepository extends JpaRepository<CustomerOrders,Long> {
     Optional<CustomerOrders> findByOrderIdAndStore(Long orderId, Stores store);
 
     // Find all orders for stores owned by a specific store owner
-List<CustomerOrders> findByStore_StoreOwnerOrderByOrderDateDesc(Store_Owners storeOwner);
+    List<CustomerOrders> findByStore_StoreOwnerOrderByOrderDateDesc(Store_Owners storeOwner);
 
-// Count orders for a specific store owner
-Long countByStore_StoreOwner(Store_Owners storeOwner);
+    // Count orders for a specific store owner
+    Long countByStore_StoreOwner(Store_Owners storeOwner);
 
+    //driver operations
+    List<CustomerOrders> findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc(String orderStatus);
+    List<CustomerOrders> findByAssignedDriverOrderByOrderDateDesc(User driver);
 }
 
 

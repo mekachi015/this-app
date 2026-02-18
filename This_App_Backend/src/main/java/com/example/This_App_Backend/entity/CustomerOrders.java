@@ -50,7 +50,8 @@ public class CustomerOrders {
     // Many Orders can be assigned to one Driver (can be null)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id") // Maps to driver_id in orders table (can be null)
-    private Drivers driver;
+    private User assignedDriver;
+    //private Drivers driver;
 
     // Many Orders have one delivery User_Address
     @ManyToOne(fetch = FetchType.LAZY)

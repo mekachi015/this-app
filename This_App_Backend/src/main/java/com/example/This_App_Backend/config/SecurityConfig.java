@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/redefine/users**").hasRole("ADMIN")
                         .requestMatchers("/api/users/*/profile-picture").authenticated()
                         .requestMatchers("/api/orders/**").authenticated()
+                        .requestMatchers("/api/driver/**").hasRole("DRIVER")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
