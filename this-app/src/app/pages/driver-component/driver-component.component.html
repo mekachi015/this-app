@@ -1,67 +1,115 @@
 <div class="driver-dashboard">
+
+  <!-- Feedback messages -->
+  <div class="success-banner" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="loading-banner" *ngIf="isLoading">Loading...</div>
+
   <div class="dashboard-grid">
+
     <section class="map-section">
       <!-- Map implementation will go here -->
     </section>
 
+    <!-- Current Active Delivery -->
     <section class="delivery-card">
       <div class="card-header">
         <h2>Current Delivery</h2>
-        <span class="status-badge" [ngClass]="currentDelivery.status.status">
-          {{currentDelivery.status.status | titlecase}}
+        <span class="status-badge" *ngIf="currentOrder" [ngClass]="currentOrder.orderStatus">
+          {{ currentOrder.orderStatus | titlecase }}
         </span>
       </div>
 
-      <div class="delivery-content">
+      <div class="delivery-content" *ngIf="currentOrder; else noCurrentOrder">
+
         <div class="customer-info">
-          <h3>{{currentDelivery.customerName}}</h3>
-          <p>{{currentDelivery.location.address}}</p>
-          <p>{{currentDelivery.location.city}}, {{currentDelivery.location.postalCode}}</p>
+          <h3>Order #{{ currentOrder.orderId }}</h3>
+          <p>{{ currentOrder.storeName }}</p>
+          <p *ngIf="currentOrder.deliveryAddress">
+            {{ currentOrder.deliveryAddress.addressLine1 }},
+            {{ currentOrder.deliveryAddress.city }},
+            {{ currentOrder.deliveryAddress.postalCode }}
+          </p>
+          <p>Total: R{{ currentOrder.totalAmount }}</p>
         </div>
 
         <div class="items-list">
           <ul>
-            <li *ngFor="let item of currentDelivery.items">
-              <span>{{item.name}}</span>
-              <span>x{{item.quantity}}</span>
+            <li *ngFor="let item of currentOrder.items">
+              <span>{{ item.productName }}</span>
+              <span>x{{ item.quantity }}</span>
+              <span>R{{ item.itemTotal }}</span>
             </li>
           </ul>
         </div>
 
         <div class="action-buttons">
-          <button class="primary" 
-                  (click)="startDelivery()"
-                  [disabled]="currentDelivery.status.status !== 'pending'">
-            Start Delivery
-          </button>
           <button class="primary"
                   (click)="markAsDelivered()"
-                  [disabled]="currentDelivery.status.status !== 'in-progress'">
+                  [disabled]="currentOrder.orderStatus !== 'OUT_FOR_DELIVERY'">
             Complete Delivery
+          </button>
+          <button class="secondary"
+                  (click)="markAsFailed()"
+                  [disabled]="currentOrder.orderStatus !== 'OUT_FOR_DELIVERY'">
+            Mark Failed
           </button>
           <button class="primary" (click)="callCustomer()">
             Contact Customer
           </button>
         </div>
       </div>
+
+      <ng-template #noCurrentOrder>
+        <div class="delivery-content">
+          <p>No active delivery. Claim an order below.</p>
+        </div>
+      </ng-template>
     </section>
 
+    <!-- My Claimed Orders -->
     <section class="delivery-card upcoming-deliveries">
       <div class="card-header">
-        <h2>Upcoming Deliveries</h2>
+        <h2>My Orders</h2>
       </div>
       <div class="delivery-content">
-        <div class="delivery-item" *ngFor="let delivery of upcomingDeliveries">
-          <div class="time-badge">
-            {{delivery.estimatedDeliveryTime | date:'shortTime'}}
-          </div>
+        <p *ngIf="myOrders.length === 0">You have no claimed orders.</p>
+        <div class="delivery-item" *ngFor="let order of myOrders">
+          <div class="time-badge">{{ order.orderStatus | titlecase }}</div>
           <div class="delivery-details">
-            <h4>{{delivery.customerName}}</h4>
-            <p>{{delivery.location.address}}</p>
-            <span class="items-count">{{delivery.items.length}} items</span>
+            <h4>Order #{{ order.orderId }} — {{ order.storeName }}</h4>
+            <p *ngIf="order.deliveryAddress">{{ order.deliveryAddress.addressLine1 }}</p>
+            <span class="items-count">{{ order.itemCount }} items</span>
           </div>
         </div>
       </div>
     </section>
+
+
+    <!-- Available Orders to Claim -->
+    <section class="delivery-card upcoming-deliveries">
+      <div class="card-header">
+        <h2>Available Orders</h2>
+        <button class="refresh-btn" (click)="loadAvailableOrders()">Refresh</button>
+      </div>
+      <div class="delivery-content">
+        <p *ngIf="availableOrders.length === 0">No available orders at the moment.</p>
+        <div class="delivery-item" *ngFor="let order of availableOrders">
+          <div class="delivery-details">
+            <h4>Order #{{ order.orderId }} — {{ order.storeName }}</h4>
+            <p *ngIf="order.deliveryAddress">
+              {{ order.deliveryAddress.addressLine1 }}, {{ order.deliveryAddress.city }}
+            </p>
+            <span class="items-count">{{ order.itemCount }} items</span>
+            <span class="order-total">R{{ order.totalAmount }}</span>
+          </div>
+          <button class="primary" (click)="claimOrder(order.orderId)">
+            Claim Order
+          </button>
+        </div>
+      </div>
+    </section>
+
+    
   </div>
 </div>
