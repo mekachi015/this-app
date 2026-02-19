@@ -8,8 +8,17 @@
   <div class="dashboard-grid">
 
     <section class="map-section">
-      <!-- Map implementation will go here -->
-    </section>
+  <div id="delivery-map"></div>
+
+  <!-- ETA Banner -->
+  <div class="eta-banner" *ngIf="mapSerivce.eta">
+    🚗 {{ mapSerivce.eta }}
+  </div>
+
+  <div *ngIf="!currentOrder" class="map-overlay">
+    <p>Claim an order to see delivery route</p>
+  </div>
+</section>
 
     <!-- Current Active Delivery -->
     <section class="delivery-card">

@@ -5,6 +5,7 @@ import { DeliveryItem } from '../../models/delivery-models/delivery-item/Deliver
 import { OrderDTO } from '../../models/order-model/OrderDTO';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { DriverService } from '../../services/driver-service/driver.service';
+import { MapService } from '../../services/map-service/map.service';
 
 @Component({
   selector: 'app-driver-component',
@@ -23,14 +24,51 @@ export class DriverComponentComponent implements OnInit{
   errorMessage = '';
   successMessage = '';
 
+  private watchId!: number;
+
   constructor(
     private driverService: DriverService,
-    private authService: AuthService
+    private authService: AuthService,
+    public mapSerivce: MapService
   ) {}
 
   ngOnInit(): void {
     this.loadAvailableOrders();
     this.loadMyOrders();
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    await this.mapSerivce.initMap('delivery-map');
+      this.mapSerivce.invalidateSize(); // 👈 add this
+
+    this.startTracking();
+  }
+
+  startTracking(): void{
+    if(!navigator.geolocation){
+      return;
+    }
+
+    this.watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        this.mapSerivce.updateDriverLocation(latitude, longitude);
+
+        //when theres an active order show destination
+        if(this.currentOrder?.deliveryAddress){
+          const { addressLine1, addressLine2, city, postalCode } = this.currentOrder.deliveryAddress;
+          this.mapSerivce.setDestination(`${addressLine1} ${addressLine2}`, city, postalCode); 
+        }
+      },
+      (err) => console.error('Geolocation error:', err),
+      { enableHighAccuracy: true , maximumAge: 10000 }
+    );
+  }
+
+  ngOnDestroy(): void {
+    if(this.watchId){
+      navigator.geolocation.clearWatch(this.watchId);
+    }
   }
 
   // -------------------------------------------------------------------------
