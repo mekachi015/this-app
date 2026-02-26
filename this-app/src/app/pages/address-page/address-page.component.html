@@ -9,6 +9,7 @@
       <p>{{ address.addressLine3 }}</p>
       <p>{{ address.city }}, {{ address.province }} - {{ address.postalCode }}</p>
       <p>Type: {{ address.addressType }}</p>
+      <button (click)="editAddress(address)">Edit</button>
       <button (click)="deleteAddress(address.addressId)">Delete</button>
     </div>
 
@@ -59,7 +60,7 @@
       </label>
     </div>
 
-    <button type="submit" [disabled]="addressForm.invalid">Save Address</button>
+    <button type="submit" [disabled]="addressForm.invalid">{{ editingAddressId !== null ? 'Update Address' : 'Save Address' }}</button>
   </form>
 
  

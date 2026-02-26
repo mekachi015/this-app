@@ -28,6 +28,9 @@ interface Order {
   styleUrl: './store-dashboard.component.scss',
 })
 export class StoreDashboardComponent implements OnInit {
+  daysOfWeek: string[] = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+  ];
   // Example recent orders (static for now)
   recentOrders: any[] = [];
   orderCount: number = 0;
@@ -74,6 +77,10 @@ export class StoreDashboardComponent implements OnInit {
     storeBusinessHours: '',
     storeLogo: '',
     ownerId: 0,
+    startDay: 'Monday',
+    endDay: 'Friday',
+    startTime: '08:00',
+    endTime: '17:00',
   };
 
   // Default models
@@ -523,7 +530,7 @@ export class StoreDashboardComponent implements OnInit {
 
   //update business hours
   updateBusinessHours(): void {
-    if (this.selectedDays.length === 0 || this.openTime || this.closeTime) {
+    if (!this.storeModel.startDay || !this.storeModel.endDay || !this.storeModel.startTime || !this.storeModel.endTime) {
       Swal.fire({
         icon: 'warning',
         title: 'Please select days and times for business hours.',
@@ -531,29 +538,11 @@ export class StoreDashboardComponent implements OnInit {
       return;
     }
 
-    //Formate days string
-    let dayString: string;
-    if (this.selectedDays.length === 7) {
-      dayString = 'Everyday';
-    } else if (
-      this.selectedDays.length === 5 &&
-      !this.selectedDays.includes('Saturday') &&
-      !this.selectedDays.includes('Sunday')
-    ) {
-      dayString = 'Mon - Fri';
-    } else {
-      dayString = this.selectedDays.join(', ');
-    }
-
-    //formate times for display
-    const formattedOpenTime = this.formatTimeForDisplay(this.openTime);
-    const formattedCloseTime = this.formatTimeForDisplay(this.closeTime);
-
-    //combine and update store model
-    const finalHours = `${dayString}: ${formattedOpenTime} - ${formattedCloseTime}`;
-
+    // Format days and times
+    const formattedStartTime = this.formatTimeForDisplay(this.storeModel.startTime);
+    const formattedEndTime = this.formatTimeForDisplay(this.storeModel.endTime);
+    const finalHours = `${this.storeModel.startDay} - ${this.storeModel.endDay}, ${formattedStartTime} - ${formattedEndTime}`;
     this.storeModel.storeBusinessHours = finalHours;
-    // ...existing code...
   }
 
   loadProductsCount(storeId: number): void {

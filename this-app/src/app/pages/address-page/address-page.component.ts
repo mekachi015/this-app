@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AddressService } from '../../services/address-service/address.service';
 import { Address } from '../../models/address-model/address';
@@ -11,9 +12,11 @@ import { CommonModule } from '@angular/common';
   templateUrl: './address-page.component.html',
   styleUrls: ['./address-page.component.scss']
 })
+
 export class AddressPageComponent implements OnInit {
   addressForm: FormGroup;
   addresses: Address[] = [];
+  editingAddressId: number | null = null;
 
   constructor(private fb: FormBuilder, private addressService: AddressService) {
     this.addressForm = this.fb.group({
@@ -43,31 +46,88 @@ export class AddressPageComponent implements OnInit {
   });
   }
 
+
   onSubmit(): void {
     if (this.addressForm.valid) {
-    this.addressService.createAddress(this.addressForm.value).subscribe({
-      next: () => {
-        this.loadAddresses();
-        console.log('Address added successfully');
-        this.addressForm.reset();
-      },
-      error: (error) => {
-        console.error('Error creating address:', error);
-        // Display error to user
+      if (this.editingAddressId !== null) {
+        // Update existing address
+        this.addressService.updateAddress(this.editingAddressId, this.addressForm.value).subscribe({
+          next: () => {
+            this.loadAddresses();
+            Swal.fire({
+              icon: 'success',
+              title: 'Address updated',
+              text: 'Your address has been updated successfully.'
+            });
+            this.addressForm.reset();
+            this.editingAddressId = null;
+          },
+          error: (error) => {
+            console.error('Error updating address:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Update failed',
+              text: 'There was an error updating the address.'
+            });
+          }
+        });
+      } else {
+        // Create new address
+        this.addressService.createAddress(this.addressForm.value).subscribe({
+          next: () => {
+            this.loadAddresses();
+            Swal.fire({
+              icon: 'success',
+              title: 'Address added',
+              text: 'Your address has been added successfully.'
+            });
+            this.addressForm.reset();
+          },
+          error: (error) => {
+            console.error('Error creating address:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Add failed',
+              text: 'There was an error adding the address.'
+            });
+          }
+        });
       }
-    });
-  }
+    }
   }
 
   deleteAddress(addressId: number): void {
     this.addressService.deleteAddress(addressId).subscribe({
     next: () => {
       this.loadAddresses();
-      console.log('Address deleted successfully');
+      Swal.fire({
+        icon: 'success',
+        title: 'Address deleted',
+        text: 'The address has been deleted.'
+      });
     },
     error: (error) => {
       console.error('Error deleting address:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Delete failed',
+        text: 'There was an error deleting the address.'
+      });
     }
   });
+  }
+
+  editAddress(address: Address): void {
+    this.addressForm.patchValue({
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2,
+      addressLine3: address.addressLine3,
+      city: address.city,
+      province: address.province,
+      postalCode: address.postalCode,
+      addressType: address.addressType,
+      isDefault: address.isDefault || false
+    });
+    this.editingAddressId = address.addressId;
   }
 }

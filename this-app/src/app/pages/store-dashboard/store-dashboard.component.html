@@ -106,9 +106,27 @@
           </div>
 
           <div class="form-group">
-            <label for="storeBusinessHours">Business Hours</label>
-            <input type="text" id="storeBusinessHours" name="storeBusinessHours"
-              [(ngModel)]="storeModel.storeBusinessHours" required>
+            <label>Business Hours</label>
+            <div class="business-hours-row">
+              <label for="startDay">Start Day</label>
+              <select id="startDay" [(ngModel)]="storeModel.startDay" name="startDay" required>
+                <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+              </select>
+              <label for="endDay">End Day</label>
+              <select id="endDay" [(ngModel)]="storeModel.endDay" name="endDay" required>
+                <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+              </select>
+            </div>
+            <div class="business-hours-row">
+              <label for="startTime">Start Time</label>
+              <input type="time" id="startTime" [(ngModel)]="storeModel.startTime" name="startTime" required>
+              <label for="endTime">End Time</label>
+              <input type="time" id="endTime" [(ngModel)]="storeModel.endTime" name="endTime" required>
+            </div>
+            <button type="button" class="btn-secondary" (click)="updateBusinessHours()">Set Business Hours</button>
+            <div *ngIf="storeModel.storeBusinessHours">
+              <small>Business Hours: {{ storeModel.storeBusinessHours }}</small>
+            </div>
           </div>
 
           <div class="form-actions">
@@ -196,9 +214,27 @@
             </div>
 
             <div class="form-group">
-              <label for="storeBusinessHours">Business Hours</label>
-              <input type="text" id="storeBusinessHours" name="storeBusinessHours"
-                [(ngModel)]="storeModel.storeBusinessHours" required>
+              <label>Business Hours</label>
+              <div class="business-hours-row">
+                <label for="editStartDay">Start Day</label>
+                <select id="editStartDay" [(ngModel)]="storeModel.startDay" name="editStartDay" required>
+                  <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+                </select>
+                <label for="editEndDay">End Day</label>
+                <select id="editEndDay" [(ngModel)]="storeModel.endDay" name="editEndDay" required>
+                  <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+                </select>
+              </div>
+              <div class="business-hours-row">
+                <label for="editStartTime">Start Time</label>
+                <input type="time" id="editStartTime" [(ngModel)]="storeModel.startTime" name="editStartTime" required>
+                <label for="editEndTime">End Time</label>
+                <input type="time" id="editEndTime" [(ngModel)]="storeModel.endTime" name="editEndTime" required>
+              </div>
+              <button type="button" class="btn-secondary" (click)="updateBusinessHours()">Set Business Hours</button>
+              <div *ngIf="storeModel.storeBusinessHours">
+                <small>Business Hours: {{ storeModel.storeBusinessHours }}</small>
+              </div>
             </div>
 
             <div class="form-actions">
