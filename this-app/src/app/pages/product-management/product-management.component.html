@@ -35,7 +35,13 @@
   <!-- Product Grid - Fixed condition -->
   <div *ngIf="products && products.length > 0; else noProducts" class="product-grid">
     <div class="product-card" *ngFor="let product of products; let i = index">
-      <img [src]="product.imageUrl || 'assets/placeholder.png'" [alt]="product.productName" />
+      <!-- Image with delete overlay -->
+  <div class="product-image-wrapper">
+    <img [src]="product.imageUrl || 'assets/placeholder.png'" [alt]="product.productName" />
+    <button class="delete-overlay-btn" (click)="deleteProduct(product.productId!)">
+      <i class="fas fa-trash"></i>
+    </button>
+  </div>
       
       <div class="info">
         <h3>{{ product.productName }}</h3>

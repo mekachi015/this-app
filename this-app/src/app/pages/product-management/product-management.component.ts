@@ -8,6 +8,7 @@ import { AuthService } from '../../services/authentication-service/auth.service'
 import { Product } from '../../models/store-admin-models/product-admin/product';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { Store } from '../../models/store-admin-models/store-admin/Store';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-product-management',
@@ -88,14 +89,10 @@ export class ProductManagementComponent implements OnInit {
       const storeId = +params['id'];
       if (isNaN(storeId) || storeId <= 0) {
         this.errorMessage = 'Invalid Store ID';
-        console.error('Invalid storeId:', params['id']);
         return;
       }
-      
       // Assign storeId to productModel immediately
       this.productModel.storeId = storeId;
-      console.log('✅ Set productModel.storeId to:', this.productModel.storeId);
-      
       this.loadStore(storeId);
       //this.loadProducts(storeId);
     });
@@ -103,14 +100,10 @@ export class ProductManagementComponent implements OnInit {
 
   // ---------------------- Store Loading ----------------------
   loadStore(storeId: number): void {
-  console.log('Loading store with ID:', storeId);
-  
   this.isLoading = true;
   this.errorMessage = '';
-  
   this.storeAdminService.getStoreById(storeId).subscribe({
     next: (store) => {
-      console.log('Store loaded successfully: for products', store);
       this.store = store;
       this.storeOwnerId = this.currentUserId ?? null;
       this.productModel.storeId = storeId;
@@ -121,52 +114,37 @@ export class ProductManagementComponent implements OnInit {
     error: (error) => {
       this.errorMessage = 'Error loading store: ' + (error.error?.message || error.message);
       this.isLoading = false;
-      console.error('Store loading error:', error);
     }
   });
 }
 
   // ---------------------- Product Management ----------------------
   loadProducts(storeId: number): void {
-    console.log('Loading products for store ID:', storeId);
-
     this.isLoading = true;
     this.errorMessage = '';
-    
     this.productService.getStoreProducts(storeId).subscribe({
       next: (products) => {
         // Ensure products is always an array
         this.products = Array.isArray(products) ? products : [];
-        console.log('✅ Loaded products:', this.products);
-        console.log('✅ Products count:', this.products.length);
         this.isLoading = false;
       },
       error: (error) => {
         this.errorMessage = 'Error loading products: ' + (error.error?.message || error.message);
         this.products = []; // Reset to empty array on error
         this.isLoading = false;
-        console.error('❌ Product loading error:', error);
       }
     });
   }
 
   onSubmit(): void {
-    console.log('Form submitted!');
-    console.log('Editing product:', this.editingProduct);
-    
     if (this.editingProduct) {
       this.updateProduct();
     } else {
       this.createProduct();
     }
-
-    console.log("edited product:" , this.editingProduct);
   }
 
   createProduct(): void {
-    console.log('Creating product for store ID:', this.productModel.storeId);
-    console.log('Current user:', this.currentUserId);
-    
     // Validate storeId
     if (!this.productModel?.storeId) {
       this.errorMessage = 'Store ID is missing';
@@ -188,18 +166,21 @@ export class ProductManagementComponent implements OnInit {
       this.selectedFile
     ).subscribe({
       next: (product) => {
-        console.log('✅ Product created successfully:', product);
         // Add the new product to the array
         this.products = [...this.products, product];
         this.resetProductForm();
         this.loadProducts(this.productModel.storeId);
         this.loadProductsCount(this.productModel.storeId);
         this.isLoading = false;
-        alert('Product created successfully!');
-        
+         Swal.fire({
+           icon: 'success',
+           title: 'Product Created',
+           text: 'Product has been created successfully!',
+           timer: 2000,
+           showConfirmButton: false,
+         });
       },
       error: (error) => {
-        console.error('❌ Product creation failed:', error);
         this.errorMessage = error.error?.message || error.message || 'Error creating product';
         this.isLoading = false;
       }
@@ -207,7 +188,6 @@ export class ProductManagementComponent implements OnInit {
   }
 
   editProduct(product: Product): void {
-     console.log('Called editing for product:', product);
   this.editingProduct = { ...product };
   
   // CRITICAL: Preserve the original storeId from the loaded store
@@ -223,18 +203,10 @@ export class ProductManagementComponent implements OnInit {
   
   this.previewUrl = product.imageUrl || null;
   this.showProductForm = true;
-  
-  // Log to verify
-  console.log('✅ Editing product with storeId:', this.productModel.storeId);
 
   }
 
   updateProduct(): void {
-  console.log('🔍 UPDATE VALIDATION:');
-  console.log('  - currentUserId:', this.currentUserId);
-  console.log('  - productId:', this.editingProduct?.productId);
-  console.log('  - storeId:', this.productModel?.storeId);
-  
   // VALIDATION - Add these checks
   if (!this.editingProduct?.productId) {
     this.errorMessage = 'Product ID is missing';
@@ -261,61 +233,72 @@ export class ProductManagementComponent implements OnInit {
     storeId: this.productModel.storeId,  // Make sure this is set
     userId: this.currentUserId           // This is required!
   };
-  
-  console.log('📤 Calling updateProduct service with:', {
-    productId: this.editingProduct.productId,
-    dto: updateDTO,
-    hasFile: !!this.selectedFile
-  });
-  
   this.isLoading = true;
   this.errorMessage = '';
-  
   this.productService.updateProduct(
     this.editingProduct.productId,
     updateDTO,  // Use the proper DTO
     this.selectedFile
   ).subscribe({
     next: (updatedProduct) => {
-      console.log('✅ Product updated successfully:', updatedProduct);
       this.loadProducts(this.productModel.storeId);
       this.loadProductsCount(this.productModel.storeId);
 
 
       this.resetProductForm();
       this.isLoading = false;
-      alert('Product updated successfully!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Product Updated',
+        text: 'Product has been updated successfully!',
+        timer: 2000,
+        showConfirmButton: false,
+      });
     },
     error: (error) => {
-      console.error('❌ Product update failed:', error);
-      console.error('❌ Error details:', error.error);
-      console.error('❌ Status:', error.status);
       this.errorMessage = error.error?.message || error.message || 'Failed to update product';
       this.isLoading = false;
     }
   });
 }
 
-  deleteProduct(productId: number, userId: number, storeId: number): void {
-    // if (!confirm('Are you sure you want to delete this product?')) return;
-
-    // this.isLoading = true;
-    // this.errorMessage = '';
-
-    // this.productService.deleteProduct(storeId, productId).subscribe({
-    //   next: () => {
-    //     console.log('✅ Product deleted successfully');
-    //     // Remove product from array immutably
-    //     this.products = this.products.filter(p => p.productId !== productId);
-    //     this.isLoading = false;
-    //     alert('Product deleted successfully!');
-    //   },
-    //   error: (error) => {
-    //     console.error('❌ Product deletion failed:', error);
-    //     this.errorMessage = error.error?.message || error.message || 'Failed to delete product';
-    //     this.isLoading = false;
-    //   }
-    // });
+  deleteProduct(productId: number): void {
+     Swal.fire({
+    title: 'Delete Product?',
+    text: 'This action cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ea5455',
+    cancelButtonColor: '#edf2f7',
+    confirmButtonText: 'Yes, delete it',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.isLoading = true;
+      this.productService.deleteProduct(productId).subscribe({
+        next: () => {
+          this.products = this.products.filter(p => p.productId !== productId);
+          this.loadProductsCount(this.productModel.storeId);
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted',
+            text: 'Product has been deleted.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        },
+        error: (error) => {
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Delete Failed',
+            text: error.error?.message || 'Failed to delete product'
+          });
+        }
+      });
+    }
+  });
   }
 
   resetProductForm(): void {
@@ -376,18 +359,17 @@ export class ProductManagementComponent implements OnInit {
 
     this.selectedFile = file;
     const reader = new FileReader();
-    
+
     reader.onload = () => {
       this.previewUrl = reader.result;
       this.errorMessage = '';
     };
-    
+
     reader.onerror = () => {
       this.errorMessage = 'Error reading file';
     };
-    
+
     reader.readAsDataURL(file);
-    console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
   }
 
   isImageFile(file: File): boolean {
@@ -409,14 +391,14 @@ export class ProductManagementComponent implements OnInit {
   // ---------------------- Statistics ----------------------
 
   loadProductsCount(storeId: number): void {
-      this.productService.getProductCountByStore(storeId).subscribe({
-    next: (response) => {
-      this.totalProductCount = response.totalProducts;
-    },
-    error: (error) => {
-      console.error('Error loading product count:', error);
-    }
-  });
+    this.productService.getProductCountByStore(storeId).subscribe({
+      next: (response) => {
+        this.totalProductCount = response.totalProducts;
+      },
+      error: (error) => {
+        // Error loading product count
+      }
+    });
   }
   getTotalStock(): number {
     return this.products.reduce((total, product) => total + (product.stockQuantity || 0), 0);

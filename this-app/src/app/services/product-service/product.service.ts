@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, throwError, Observable } from 'rxjs';
 import { Product } from '../../models/store-admin-models/product-admin/product';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { UpdateProductDTO } from '../../models/store-admin-models/product-admin/UpdateProductDTO';
@@ -133,8 +133,21 @@ export class ProductService {
     return this.http.get<Product[]>(url);
   }
 
-  deleteProduct(storeId: number, productId: number) {
-    return console.log('Deleting product not implemented yet');
+  deleteProduct(productId: number): Observable<void> {
+    const token = this.authService.token;
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+
+    return this.http
+      .delete<void>(`${this.baseUrl}/${productId}`, {
+        headers,
+        withCredentials: true,
+      })
+      .pipe(
+        catchError((error) => {
+          console.error('Error deleting product:', error);
+          return throwError(() => error);
+        }),
+      );
   }
 
   //seach products method
