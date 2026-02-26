@@ -309,4 +309,30 @@ export class StoreAdminServiceService {
     })
   );
 }
+
+getOrdersByStoreId(storeId: number): Observable<any> {
+  const headers = this.getAuthenticatedHeaders();
+  return this.http.get<any>(
+    `http://localhost:9091/api/orders/${storeId}/orders`,
+    { headers, withCredentials: true }
+  ).pipe(
+    catchError((error) => {
+      console.error('Error fetching store orders:', error);
+      return throwError(() => error);
+    })
+  );
+}
+
+getAllOrdersByUserId(userId: number): Observable<any> {
+  const headers = this.getAuthenticatedHeaders();
+  return this.http.get<any>(
+    `http://localhost:9091/api/orders/owner/${userId}/all`,
+    { headers, withCredentials: true }
+  ).pipe(
+    catchError((error) => {
+      console.error('Error fetching all orders by user:', error);
+      return throwError(() => error);
+    })
+  );
+}
 }
