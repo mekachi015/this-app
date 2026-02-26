@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import {HttpClient, HttpHeaders} from "@angular/common/http";
-import {Store} from "../../models/store-admin-models/store-admin/Store";
-import {StoreDTO} from "../../models/store-admin-models/store-admin/StoreDTO";
-import {catchError, Observable, throwError} from "rxjs";
-import { AuthService } from "../authentication-service/auth.service";
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Store } from '../../models/store-admin-models/store-admin/Store';
+import { StoreDTO } from '../../models/store-admin-models/store-admin/StoreDTO';
+import { catchError, Observable, throwError } from 'rxjs';
+import { AuthService } from '../authentication-service/auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,8 +11,12 @@ import { AuthService } from "../authentication-service/auth.service";
 export class StoreAdminServiceService {
   private apiUrl = 'http://localhost:9091/api/stores';
   private apiStoreProductsUrl = 'http://localhost:9091/api/products/store';
+  private countApi = 'http://localhost:9091/api/products/redefine';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {}
 
   createStore(storeDto: StoreDTO): Observable<Store> {
     const token = this.authService.token;
@@ -34,13 +38,13 @@ export class StoreAdminServiceService {
         catchError((error) => {
           console.error('Store creation error:', error);
           return throwError(() => error);
-        })
+        }),
       );
   }
 
   createStoreWithLogo(
     storeData: any,
-    logoFile: File | null
+    logoFile: File | null,
   ): Observable<Store> {
     const formData = new FormData();
 
@@ -62,7 +66,7 @@ export class StoreAdminServiceService {
       'storeData',
       new Blob([JSON.stringify(storeDTO)], {
         type: 'application/json',
-      })
+      }),
     );
 
     // Append logo file if provided
@@ -89,7 +93,7 @@ export class StoreAdminServiceService {
           console.error('Store creation error:', error);
           console.error('Error details:', error.error);
           return throwError(() => error);
-        })
+        }),
       );
   }
 
@@ -114,7 +118,7 @@ export class StoreAdminServiceService {
       catchError((error) => {
         console.error('Error fetching public stores:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -166,7 +170,7 @@ export class StoreAdminServiceService {
         catchError((error) => {
           console.error('Error fetching user stores:', error);
           return throwError(() => error);
-        })
+        }),
       );
   }
 
@@ -219,57 +223,77 @@ export class StoreAdminServiceService {
   }
 
   //Search stores
-    searchStores(searchTerm: string): Observable<Store[]>{
-        const url = `${this.apiUrl}/search?q=${encodeURIComponent(searchTerm)}`;
-        return this.http.get<Store[]>(url).pipe(
-          catchError((error) => {
-            console.error('Error searching stores:', error);
-            return throwError(() => error);
-          })
-        );
-    }
+  searchStores(searchTerm: string): Observable<Store[]> {
+    const url = `${this.apiUrl}/search?q=${encodeURIComponent(searchTerm)}`;
+    return this.http.get<Store[]>(url).pipe(
+      catchError((error) => {
+        console.error('Error searching stores:', error);
+        return throwError(() => error);
+      }),
+    );
+  }
 
-
-    //get all orders for a store
-    getStoreOrders(ownerId: number): Observable<any[]> {
-  const headers = this.authService.getAuthHeaders();
-  return this.http.get<any[]>(`${this.apiUrl}/owner/${ownerId}/orders`, {
-    headers,
-    withCredentials: true,
-  }).pipe(
-    catchError((error) => {
-      console.error('Error fetching store orders:', error);
-      return throwError(() => error);
-    })
-  );
-}
-
-
-    //get specific order by id for a store
-    getStoreOrderById(storeId: number, orderId: number): Observable<any> {
-      const headers  = this.authService.getAuthHeaders();
-      return this.http.get<any>(`${this.apiUrl}/${storeId}/orders/${orderId}`, {
+  //get all orders for a store
+  getStoreOrders(ownerId: number): Observable<any[]> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http
+      .get<any[]>(`${this.apiUrl}/owner/${ownerId}/orders`, {
         headers,
         withCredentials: true,
-      }).pipe(
+      })
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching store orders:', error);
+          return throwError(() => error);
+        }),
+      );
+  }
+
+  //get specific order by id for a store
+  getStoreOrderById(storeId: number, orderId: number): Observable<any> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http
+      .get<any>(`${this.apiUrl}/${storeId}/orders/${orderId}`, {
+        headers,
+        withCredentials: true,
+      })
+      .pipe(
         catchError((error) => {
           console.error('Error fetching store order by id:', error);
           return throwError(() => error);
-        })
+        }),
       );
-    }
+  }
 
-    getStoreOrderCount(storeId: number): Observable<{ count: number }> {
-      const headers = this.authService.getAuthHeaders();
-      return this.http.get<{ count: number }>(`${this.apiUrl}/${storeId}/orders/count`, {
+  getStoreOrderCount(storeId: number): Observable<{ count: number }> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http
+      .get<{ count: number }>(`${this.apiUrl}/${storeId}/orders/count`, {
         headers,
         withCredentials: true,
-     }).pipe(
+      })
+      .pipe(
         catchError((error) => {
           console.error('Error fetching store order count:', error);
           return throwError(() => error);
-        })
+        }),
       );
-    }
+  }
+
+  getStoreCountByOwner(
+    userId: number,
+  ): Observable<{ userId: number; totalStores: number }> {
+    const headers = this.getAuthenticatedHeaders();
+    return this.http
+      .get<{
+        userId: number;
+        totalStores: number;
+      }>(`${this.countApi}/users/${userId}/stores/count`, { headers, withCredentials: true })
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching store count:', error);
+          return throwError(() => error);
+        }),
+      );
+  }
 }
-  

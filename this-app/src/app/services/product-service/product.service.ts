@@ -3,19 +3,19 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Product } from '../../models/store-admin-models/product-admin/product';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
-import { UpdateProductDTO } from '../../models/store-admin-models/product-admin/UpdateProductDTO'; 
+import { UpdateProductDTO } from '../../models/store-admin-models/product-admin/UpdateProductDTO';
 import { AuthService } from '../authentication-service/auth.service';
 import { Store } from '../../models/store-admin-models/store-admin/Store';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProductService {
-private baseUrl = 'http://localhost:9091/api/products/redefine';
+  private baseUrl = 'http://localhost:9091/api/products/redefine';
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   /**
@@ -23,41 +23,41 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
    * POST: /api/products/redefine/users/{userId}/stores/{storeId}
    */
   createProduct(
- storeId: number,
-  productData: CreateProductDTO,
-  logoFile: File | null
-): Observable<Product> {
-  const formData = new FormData();
-  
-  formData.append('storeId', storeId.toString());
-  formData.append('productName', productData.productName);
-  formData.append('productDescription', productData.productDescription);
-  formData.append('productPrice', productData.productPrice.toString());
-  formData.append('stockQuantity', productData.stockQuantity.toString());
-  formData.append('category', productData.category);
-  
-  if (logoFile) {
-    formData.append('logoFile', logoFile);
+    storeId: number,
+    productData: CreateProductDTO,
+    logoFile: File | null,
+  ): Observable<Product> {
+    const formData = new FormData();
+
+    formData.append('storeId', storeId.toString());
+    formData.append('productName', productData.productName);
+    formData.append('productDescription', productData.productDescription);
+    formData.append('productPrice', productData.productPrice.toString());
+    formData.append('stockQuantity', productData.stockQuantity.toString());
+    formData.append('category', productData.category);
+
+    if (logoFile) {
+      formData.append('logoFile', logoFile);
+    }
+
+    // Get ONLY the auth token - NO Content-Type!
+    const token = this.authService.token;
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      // ⚠️ DO NOT set Content-Type here!
+    });
+
+    const url = `${this.baseUrl}/post/products`;
+
+    console.log('🔑 Token exists:', !!token);
+    console.log('📍 URL:', url);
+
+    return this.http.post<Product>(url, formData, {
+      headers,
+      withCredentials: true,
+    });
   }
-
-  // Get ONLY the auth token - NO Content-Type!
-  const token = this.authService.token;
-  
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-    // ⚠️ DO NOT set Content-Type here!
-  });
-
-  const url = `${this.baseUrl}/post/products`;
-
-  console.log('🔑 Token exists:', !!token);
-  console.log('📍 URL:', url);
-
-  return this.http.post<Product>(url, formData, {
-    headers,
-    withCredentials: true
-  });
-}
 
   /**
    * Update an existing product
@@ -66,11 +66,9 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
   updateProduct(
     productId: number,
     productData: CreateProductDTO,
-    logoFile: File | null
+    logoFile: File | null,
   ): Observable<Product> {
     const formData = new FormData();
-
-     
 
     // Append each field individually
     formData.append('productName', productData.productName);
@@ -87,7 +85,7 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
     const token = this.authService.token;
 
     const headers = new HttpHeaders({
-      'Authorization' : `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     });
 
     const url = `${this.baseUrl}/${productId}`;
@@ -96,12 +94,12 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
       url,
       productId,
       productData,
-      hasFile: !!logoFile
+      hasFile: !!logoFile,
     });
 
     return this.http.put<Product>(url, formData, {
       headers,
-      withCredentials: true
+      withCredentials: true,
     });
   }
 
@@ -110,45 +108,63 @@ private baseUrl = 'http://localhost:9091/api/products/redefine';
    * Note: You'll need to add this endpoint to your backend if it doesn't exist
    */
   getStoreProducts(storeId: number): Observable<Product[]> {
-   const token = this.authService.token;
+    const token = this.authService.token;
 
-   const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-   })
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
 
-   const url = `${this.baseUrl}/stores/${storeId}/products`;
+    const url = `${this.baseUrl}/stores/${storeId}/products`;
 
-   return this.http.get<Product[]>(url, {
+    return this.http.get<Product[]>(url, {
       headers,
-      withCredentials: true
-   });
+      withCredentials: true,
+    });
   }
 
-   /**
+  /**
    * Get all products for a store
    * Note: You'll need to add this endpoint to your backend if it doesn't exist
    */
   getAllStoreProductsPublic(storeId: number): Observable<Product[]> {
-  const url = `${this.baseUrl}/stores/${storeId}/products/public`;
+    const url = `${this.baseUrl}/stores/${storeId}/products/public`;
 
-  return this.http.get<Product[]>(url); 
-}
-  
-  deleteProduct(storeId: number, productId: number){
-    return (console.log('Deleting product not implemented yet'));
+    return this.http.get<Product[]>(url);
+  }
+
+  deleteProduct(storeId: number, productId: number) {
+    return console.log('Deleting product not implemented yet');
   }
 
   //seach products method
   searchProducts(searchTerm: string): Observable<Product[]> {
     const url = `${this.baseUrl}/search?q=${encodeURIComponent(searchTerm)}`;
-      return this.http.get<Product[]>(url);
-
+    return this.http.get<Product[]>(url);
   }
 
   //search products by store
-  searchProductsByStore(storeId: number, searchTerm: string): Observable<Product[]> {
-  const url = `${this.baseUrl}/stores/${storeId}/search?q=${encodeURIComponent(searchTerm)}`;
-  return this.http.get<Product[]>(url);
-}
+  searchProductsByStore(
+    storeId: number,
+    searchTerm: string,
+  ): Observable<Product[]> {
+    const url = `${this.baseUrl}/stores/${storeId}/search?q=${encodeURIComponent(searchTerm)}`;
+    return this.http.get<Product[]>(url);
+  }
+
+  //get product count by store
+  getProductCountByStore(
+    storeId: number,
+  ): Observable<{ storeId: number; totalProducts: number }> {
+    const token = this.authService.token;
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    return this.http.get<{ storeId: number; totalProducts: number }>(
+      `${this.baseUrl}/stores/${storeId}/products/count`,
+      { headers, withCredentials: true },
+    );
+  }
 }

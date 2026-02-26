@@ -25,6 +25,13 @@
     <button class="btn secondary" (click)="goBackToStores()">← Back to Dashboard</button>
   </div>
 
+  <div class="product-count-bar" *ngIf="store">
+  <span class="count-badge">
+    <i class="fas fa-box"></i>
+    {{ totalProductCount }} {{ totalProductCount === 1 ? 'Product' : 'Products' }}
+  </span>
+</div>
+
   <!-- Product Grid - Fixed condition -->
   <div *ngIf="products && products.length > 0; else noProducts" class="product-grid">
     <div class="product-card" *ngFor="let product of products; let i = index">

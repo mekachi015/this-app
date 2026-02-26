@@ -40,6 +40,8 @@ export class ProductManagementComponent implements OnInit {
   products: Product[] = [];
   editingProduct: Product | null = null;
 
+  totalProductCount: number = 0; // For statistics
+
   // UI state
   isLoading = false;
   errorMessage = '';
@@ -113,6 +115,7 @@ export class ProductManagementComponent implements OnInit {
       this.storeOwnerId = this.currentUserId ?? null;
       this.productModel.storeId = storeId;
       this.loadProducts(storeId);
+      this.loadProductsCount(storeId);
       this.isLoading = false;
     },
     error: (error) => {
@@ -190,6 +193,7 @@ export class ProductManagementComponent implements OnInit {
         this.products = [...this.products, product];
         this.resetProductForm();
         this.loadProducts(this.productModel.storeId);
+        this.loadProductsCount(this.productModel.storeId);
         this.isLoading = false;
         alert('Product created successfully!');
         
@@ -275,6 +279,7 @@ export class ProductManagementComponent implements OnInit {
     next: (updatedProduct) => {
       console.log('✅ Product updated successfully:', updatedProduct);
       this.loadProducts(this.productModel.storeId);
+      this.loadProductsCount(this.productModel.storeId);
 
 
       this.resetProductForm();
@@ -402,6 +407,17 @@ export class ProductManagementComponent implements OnInit {
   }
 
   // ---------------------- Statistics ----------------------
+
+  loadProductsCount(storeId: number): void {
+      this.productService.getProductCountByStore(storeId).subscribe({
+    next: (response) => {
+      this.totalProductCount = response.totalProducts;
+    },
+    error: (error) => {
+      console.error('Error loading product count:', error);
+    }
+  });
+  }
   getTotalStock(): number {
     return this.products.reduce((total, product) => total + (product.stockQuantity || 0), 0);
   }

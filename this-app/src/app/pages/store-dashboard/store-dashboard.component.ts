@@ -38,6 +38,9 @@ export class StoreDashboardComponent implements OnInit {
   openTime: string = '07:00';
   closeTime: string = '18:00';
 
+  totalProducts: number = 0;
+  totalStores: number = 0;
+
   // File upload properties
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
@@ -152,6 +155,7 @@ export class StoreDashboardComponent implements OnInit {
         console.log('OwnerId is:', this.storeModel.ownerId);
         this.stores = stores;
         this.isLoading = false;
+        this.loadStoresCount();
         // Automatically select first store if available
         if (this.stores.length > 0) {
           this.selectedStore = this.stores[0];
@@ -311,6 +315,8 @@ export class StoreDashboardComponent implements OnInit {
   if (store.storeId && ownerIdForOrders) {
     // Pass the store's ownerId to load orders
     this.loadStoreOrders(store.storeId, ownerIdForOrders);
+
+    this.loadProductsCount(store.storeId);
     // Load order count using storeId
     this.loadOrderCount(store.storeId);
   } else {
@@ -541,5 +547,30 @@ viewOrderDetails(orderId: number): void {
 
     this.storeModel.storeBusinessHours = finalHours;
     console.log('Updated business hours to:', finalHours);
+  }
+
+  loadProductsCount(storeId: number): void {
+     this.productService.getProductCountByStore(storeId).subscribe({
+    next: (response) => {
+      this.totalProducts = response.totalProducts;
+    },
+    error: (error) => {
+      console.error('Error loading product count:', error);
+    }
+  });
+  }
+
+  loadStoresCount(): void {
+     const user = this.authService.currentUserValue;
+  if (!user?.id) return;
+
+  this.storeAdminService.getStoreCountByOwner(Number(user.id!)).subscribe({
+    next: (response) => {
+      this.totalStores = response.totalStores;
+    },
+    error: (error) => {
+      console.error('Error loading store count:', error);
+    }
+  });
   }
 }
