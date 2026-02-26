@@ -28,6 +28,7 @@ export class NavBarComponent {
     { label: 'Home', route: '/home', icon: 'home' },
     { label: 'Profile', route: '/profile', icon: 'user-circle' },
     { label: 'Settings', route: '/settings', icon: 'cog' },
+    {label: 'Address', route: '/addresses', icon: 'map-marker-alt'},
     { label: 'Administration', route: '/login/admin', icon: 'cogs' },
     {label: 'Driver', route: '/login/driver', icon: 'car'},
     {label: 'Cart', route: '/cart', icon: 'shopping-cart'},
