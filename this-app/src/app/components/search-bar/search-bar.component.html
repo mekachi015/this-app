@@ -1,6 +1,7 @@
 <div class="search-container">
   <div class="store-name">{{ storeName || (searchType === 'stores' ? 'ALL STORES' : 'ALL PRODUCTS') }}</div>
   
+
   <div class="search-box">
     <i class="fas fa-search search-icon"></i>
     <input 
@@ -11,13 +12,13 @@
       class="search-input"
     />
     <i *ngIf="searchQuery" 
-       class="fas fa-times clear-icon" 
+       class="fas fa-times clear-icon inside-input" 
        (click)="clearSearch()"></i>
     <i *ngIf="isSearching" class="fas fa-spinner fa-spin loading-icon"></i>
   </div>
 
   <!-- Dropdown for search results -->
-  <ul *ngIf="searchType === 'stores' && searchResultsList.length > 0" class="dropdown">
+  <ul *ngIf="searchType === 'stores' && searchResultsList.length > 0" class="dropdown styled-dropdown">
     <li *ngFor="let store of searchResultsList" (click)="onStoreSelect(store)">
       <div class="store-item">
         <span class="store-name">{{ store.storeName }}</span>

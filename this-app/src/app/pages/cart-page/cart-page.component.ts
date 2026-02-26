@@ -5,6 +5,7 @@ import { CartService } from '../../services/cart-service/cart.service';
 import {  CartResponse } from '../../models/cart-model/CartResponse';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 
 
@@ -33,10 +34,15 @@ export class CartPageComponent implements OnInit {
   ngOnInit(): void {
     this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
 
-    if (this.currentUserId > 0){
+   if (this.currentUserId > 0) {
       this.loadUserCart();
-    } else{
-      this.errorMessage = 'User not authenticated.';
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Not Authenticated',
+        text: 'Please log in to view your cart.',
+        confirmButtonColor: '#e91e8c',
+      }).then(() => this.router.navigate(['/login']));
     }
   }
 
@@ -47,22 +53,29 @@ export class CartPageComponent implements OnInit {
 
   loadUserCart(): void{
     this.isLoading = true;
-    this.errorMessage = '';
 
     this.cartService.getCartByUser(this.currentUserId).subscribe({
       next: (response: CartResponse) => {
-        if (response && response.data){
+        if (response && response.data) {
           this.cartItems = Array.isArray(response.data) ? response.data : [response.data];
-          console.log('Cart items loaded:', this.cartItems);
         } else {
-          this.errorMessage = response.message || 'failed to load cart.';
+          Swal.fire({
+            icon: 'info',
+            title: 'Cart Empty',
+            text: response.message || 'Your cart has no items yet.',
+            confirmButtonColor: '#e91e8c',
+          });
         }
         this.isLoading = false;
-      }, 
+      },
       error: (err) => {
-        this.errorMessage = 'An error occurred while loading the cart.';
-        console.error('Error loading cart:', err);
         this.isLoading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Load Cart',
+          text: 'An error occurred while loading your cart. Please try again.',
+          confirmButtonColor: '#e91e8c',
+        });
       }
     });
   }
@@ -88,7 +101,7 @@ export class CartPageComponent implements OnInit {
   }
 
   updateQuantity(item: CartDTO, newQuantity: number): void {
-    this.cartService.updateQuantity(item.cartItemId, this.currentUserId, newQuantity).subscribe({
+   this.cartService.updateQuantity(item.cartItemId, this.currentUserId, newQuantity).subscribe({
       next: (response: CartResponse) => {
         if (response.success && response.data) {
           const updatedItem = response.data as CartDTO;
@@ -96,90 +109,182 @@ export class CartPageComponent implements OnInit {
           if (index !== -1) {
             this.cartItems[index] = updatedItem;
           }
-          console.log('Quantity updated successfully');
+
+          // Subtle toast — doesn't interrupt the user
+          Swal.fire({
+            toast: true,
+            position: 'bottom-end',
+            icon: 'success',
+            title: 'Quantity updated',
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+          });
         }
       },
-      error: (err) => {
-        console.error('Failed to update quantity:', err);
-        alert('Failed to update quantity. Please try again.');
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Update Failed',
+          text: 'Failed to update quantity. Please try again.',
+          confirmButtonColor: '#e91e8c',
+        });
       }
     });
   }
 
   removeItem(item: CartDTO): void {
-    if (!confirm(`Are you sure you want to remove ${item.productName} from your cart?`)) {
-      return;
-    }
+    Swal.fire({
+      icon: 'warning',
+      title: 'Remove Item?',
+      text: `Are you sure you want to remove "${item.productName}" from your cart?`,
+      showCancelButton: true,
+      confirmButtonColor: '#e91e8c',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, remove it',
+      cancelButtonText: 'Keep it',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
 
-    this.cartService.removeCartItem(item.cartItemId, this.currentUserId).subscribe({
-      next: (response: CartResponse) => {
-        if (response.success) {
-          this.cartItems = this.cartItems.filter(i => i.cartItemId !== item.cartItemId);
-          console.log('Item removed successfully');
+      this.cartService.removeCartItem(item.cartItemId, this.currentUserId).subscribe({
+        next: (response: CartResponse) => {
+          if (response.success) {
+            this.cartItems = this.cartItems.filter(i => i.cartItemId !== item.cartItemId);
+            Swal.fire({
+              toast: true,
+              position: 'bottom-end',
+              icon: 'success',
+              title: `"${item.productName}" removed`,
+              showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+            });
+          }
+        },
+        error: () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Remove Failed',
+            text: 'Failed to remove the item. Please try again.',
+            confirmButtonColor: '#e91e8c',
+          });
         }
-      },
-      error: (err) => {
-        console.error('Failed to remove item:', err);
-        alert('Failed to remove item. Please try again.');
-      }
+      });
     });
   }
 
   clearCart(): void {
-    if (!confirm('Are you sure you want to clear your entire cart?')) {
-      return;
-    }
+    Swal.fire({
+      icon: 'warning',
+      title: 'Clear Entire Cart?',
+      text: 'This will remove all items from your cart. This action cannot be undone.',
+      showCancelButton: true,
+      confirmButtonColor: '#e91e8c',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, clear it',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
 
-    this.cartService.clearCart(this.currentUserId).subscribe({
-      next: (response: CartResponse) => {
-        if (response.success) {
-          this.cartItems = [];
-          console.log('Cart cleared successfully');
+      this.cartService.clearCart(this.currentUserId).subscribe({
+        next: (response: CartResponse) => {
+          if (response.success) {
+            this.cartItems = [];
+            Swal.fire({
+              icon: 'success',
+              title: 'Cart Cleared',
+              text: 'All items have been removed from your cart.',
+              confirmButtonColor: '#e91e8c',
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          }
+        },
+        error: () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed to Clear Cart',
+            text: 'Something went wrong. Please try again.',
+            confirmButtonColor: '#e91e8c',
+          });
         }
-      },
-      error: (err) => {
-        console.error('Failed to clear cart:', err);
-        alert('Failed to clear cart. Please try again.');
-      }
+      });
     });
   }
 
   proceedToCheckout(): void {
-  if (this.cartItems.length === 0) {
-    alert('Your cart is empty');
-    return;
-  }
-
-  this.isLoading = true;
-  this.errorMessage = '';
-
-  this.cartService.checkout(this.currentUserId).subscribe({
-    next: (response: CartResponse) => {
-      if (response.success) {
-        console.log('Checkout successful:', response);
-        
-        // Clear cart items from UI
-        this.cartItems = [];
-        
-        // Show success message
-        alert(`Checkout successful! ${response.orderCount} order(s) placed. Total: R${response.grandTotal}`);
-        
-        // Navigate to orders page or order confirmation
-        this.router.navigate(['/orders']);
-      } else {
-        this.errorMessage = response.message || 'Checkout failed';
-        alert(this.errorMessage);
-      }
-      this.isLoading = false;
-    },
-    error: (err) => {
-      this.errorMessage = 'An error occurred during checkout.';
-      console.error('Checkout error:', err);
-      alert(this.errorMessage);
-      this.isLoading = false;
+   if (this.cartItems.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cart is Empty',
+        text: 'Add some items before checking out.',
+        confirmButtonColor: '#e91e8c',
+      });
+      return;
     }
-  });
-}
+
+    // Confirm before checkout
+    Swal.fire({
+      icon: 'question',
+      title: 'Confirm Checkout',
+      html: `
+        <p>You're about to place an order for:</p>
+        <strong>R${this.total.toFixed(2)}</strong>
+        <p style="font-size:0.85rem;color:#888">(includes R${this.shipping.toFixed(2)} shipping)</p>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#e91e8c',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Place Order',
+      cancelButtonText: 'Review Cart',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.isLoading = true;
+
+      Swal.fire({
+        title: 'Processing your order...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      this.cartService.checkout(this.currentUserId).subscribe({
+        next: (response: CartResponse) => {
+          this.isLoading = false;
+
+          if (response.success) {
+            this.cartItems = [];
+            Swal.fire({
+              icon: 'success',
+              title: 'Order Placed!',
+              html: `
+                <p>${response.orderCount} order(s) placed successfully.</p>
+                <p><strong>Total: R${response.grandTotal}</strong></p>
+              `,
+              confirmButtonColor: '#e91e8c',
+              confirmButtonText: 'View My Orders',
+            }).then(() => this.router.navigate(['/orders']));
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Checkout Failed',
+              text: response.message || 'Something went wrong during checkout.',
+              confirmButtonColor: '#e91e8c',
+            });
+          }
+        },
+        error: () => {
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Checkout Error',
+            text: 'An unexpected error occurred. Please try again.',
+            confirmButtonColor: '#e91e8c',
+          });
+        }
+      });
+    });
+  }
 
   
 

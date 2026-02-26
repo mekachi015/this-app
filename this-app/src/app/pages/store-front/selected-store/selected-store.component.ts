@@ -8,7 +8,9 @@ import { ProductService } from '../../../services/product-service/product.servic
 import { AuthService } from '../../../services/authentication-service/auth.service';
 import { CartService } from '../../../services/cart-service/cart.service';
 import { CartResponse } from '../../../models/cart-model/CartResponse'; 
+import Swal from 'sweetalert2';
 import { Store } from '../../../models/store-admin-models/store-admin/Store'; // Import the base interface
+import { WishlistService } from '../../../services/wishlist-service/wishlist.service';
 
 // Create a more specific interface for this component
 interface SelectedStore extends Store {
@@ -38,18 +40,41 @@ export class SelectedStoreComponent implements OnInit {
 
   // To store search results
   searchResultsList: Product[] = [];
+  wishlisted: Set<number> = new Set();
 
   constructor(
     private route: ActivatedRoute,
     private storeService: StoreAdminServiceService,
     private productService: ProductService,
     private authService: AuthService,
-    private cartService: CartService
+    private cartService: CartService,
+    private wishlistService: WishlistService
   ) {}
 
   ngOnInit(): void {
     this.getStoreFromRoute();
     this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
+    this.loadWishlistState();
+  }
+
+  loadWishlistState(): void {
+      if (!this.currentUserId) return;
+
+    this.wishlistService.getUserWishlist(this.currentUserId).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const items = Array.isArray(response.data) ? response.data : [response.data];
+          items.forEach((item: any) => {
+            if (item.productId) this.wishlisted.add(item.productId);
+          });
+        }
+      },
+      error: () => {} // silently fail — not critical
+    });
+  }
+
+  isWishlisted(productId: number): boolean {
+    return this.wishlisted.has(productId);
   }
 
   onSearch(): void {
@@ -114,9 +139,13 @@ export class SelectedStoreComponent implements OnInit {
 
   addToCart(product: Product): void {
     if (!this.currentUserId || this.currentUserId === 0) {
-      // Redirect to login page if user is not logged in
-      alert('Please log in to add items to your cart.');
-      this.authService.redirectToLogin(); // Ensure this method is implemented in AuthService
+      Swal.fire({
+        icon: 'info',
+        title: 'Login Required',
+        text: 'Please log in to add items to your cart.'
+      }).then(() => {
+        this.authService.redirectToLogin();
+      });
       return;
     }
 
@@ -129,21 +158,106 @@ export class SelectedStoreComponent implements OnInit {
       next: (response: CartResponse) => {
         if (response.success) {
           console.log('Product added to cart successfully:', response);
-          alert(`${product.productName} has been added to your cart!`);
+          Swal.fire({
+            icon: 'success',
+            title: 'Added to Cart',
+            text: `${product.productName} has been added to your cart!`
+          });
         } else {
           console.error('Failed to add product:', response.message);
-          alert(response.message || 'Failed to add product to cart.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Add to Cart Failed',
+            text: response.message || 'Failed to add product to cart.'
+          });
         }
       },
       error: (err) => {
         console.error('Failed to add product to cart:', err);
-        alert('Failed to add product to cart. Please try again.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Add to Cart Failed',
+          text: 'Failed to add product to cart. Please try again.'
+        });
       }
     });
   }
 
-  zoomProduct(product: Product): void {
-    console.log('Zooming product:', product);
+   addToWishlist(product: any): void {
+    if (!this.currentUserId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Not Logged In',
+        text: 'Please log in to add items to your wishlist.',
+        confirmButtonColor: '#e91e8c',
+      });
+      return;
+    }
+
+    // If already wishlisted — remove it
+    if (this.isWishlisted(product.productId)) {
+      this.wishlistService.getUserWishlist(this.currentUserId).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            const items = Array.isArray(response.data) ? response.data : [response.data];
+            const match = items.find((i: any) => i.productId === product.productId);
+            if (match) {
+              this.wishlistService.removeFromWishlist(match.wishlistId, this.currentUserId).subscribe({
+                next: (res) => {
+                  if (res.success) {
+                    this.wishlisted.delete(product.productId);
+                    Swal.fire({
+                      toast: true,
+                      position: 'bottom-end',
+                      icon: 'info',
+                      title: `"${product.productName}" removed from wishlist`,
+                      showConfirmButton: false,
+                      timer: 2000,
+                      timerProgressBar: true,
+                    });
+                  }
+                },
+                error: () => {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Could not remove from wishlist. Please try again.',
+                    confirmButtonColor: '#e91e8c',
+                  });
+                }
+              });
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    // Otherwise — add it
+    this.wishlistService.addProductToWishlist(this.currentUserId, product.productId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.wishlisted.add(product.productId);
+          Swal.fire({
+            toast: true,
+            position: 'bottom-end',
+            icon: 'success',
+            title: `"${product.productName}" added to wishlist ❤️`,
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          });
+        }
+      },
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Wishlist Error',
+          text: 'Could not add to wishlist. Please try again.',
+          confirmButtonColor: '#e91e8c',
+        });
+      }
+    });
   }
 
   onProductSelect(product: Product): void {

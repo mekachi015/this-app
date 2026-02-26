@@ -45,6 +45,10 @@ export class SearchBarComponent {
 
   onSearchChange(): void {
     this.searchSubject.next(this.searchQuery);
+    // If search bar is cleared, also clear the dropdown for stores
+    if (!this.searchQuery && this.searchType === 'stores') {
+      this.searchResultsList = [];
+    }
   }
 
   private performSearch(searchTerm: string): void {
@@ -110,8 +114,10 @@ export class SearchBarComponent {
 
   clearSearch(): void {
     this.searchQuery = '';
-    // This emit call is now valid
     this.searchResults.emit([]);
+    if (this.searchType === 'stores') {
+      this.searchResultsList = [];
+    }
   }
 
   get placeholderText(): string {
