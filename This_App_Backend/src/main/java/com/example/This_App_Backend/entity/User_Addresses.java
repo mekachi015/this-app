@@ -28,21 +28,21 @@ public class User_Addresses {
     @JoinColumn(name = "user_id", nullable = false) // Foreign key to Users table
     private User user; // Link to the User entity
 
-    @Column(name = "address_line1", nullable = false, length = 255) 
-    private String addressLine1; // First line of the address
+    @Column(name = "street_number", nullable = false, length = 255) 
+    private String streetNumber; // First line of the address (e.g., "123")
 
-    @Column(name = "address_line2", length = 255)
-    private String addressLine2; // Second line of the address (optional)
+    @Column(name = "street_name", nullable = false, length = 255)
+    private String streetName; // Second line of the address (optional)
 
-    @Column(name = "address_line3", length = 255)
-    private String addressLine3; // Third line of the address (optional)
+    @Column(name = "suburb", nullable = false, length = 255)
+    private String suburb; // Third line of the address (optional)
 
     @Column(name = "city", nullable = false, length = 100)  
     private String city; // City of the address
 
     //Change this to province even in the database
-    @Column(name = "state", nullable = false, length = 100)
-    private String state; // Should store province instead of state
+    @Column(name = "province", nullable = false, length = 100)
+    private String province; // Should store province instead of state
 
     @Column(name = "postal_code", nullable = false, length = 20)
     private String postalCode; // Postal code of the address

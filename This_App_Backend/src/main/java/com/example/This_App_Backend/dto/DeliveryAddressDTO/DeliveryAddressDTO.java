@@ -9,9 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeliveryAddressDTO {
   private Long addressId;
-  private String addressLine1;
-  private String addressLine2;
-  private String city;
+  private String StreetNumber;
+  private String StreetName;
+  private String Suburb;
+  private String City;
   private String province;
   private String postalCode;
 }

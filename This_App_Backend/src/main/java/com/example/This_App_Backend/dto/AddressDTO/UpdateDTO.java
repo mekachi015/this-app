@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdateDTO {
 
-    private String addressLine1;
-    private String addressLine2;
-    private String addressLine3;
+    private String streetNumber;
+    private String streetName;
+    private String suburb;
 
     private String city;
     private String province;

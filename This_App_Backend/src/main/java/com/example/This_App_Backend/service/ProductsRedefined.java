@@ -8,6 +8,7 @@ import com.example.This_App_Backend.repository.ProductsRepository;
 import com.example.This_App_Backend.repository.StoreRepository;
 import com.example.This_App_Backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.apache.catalina.Store;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -113,6 +114,25 @@ public class ProductsRedefined {
 
         return savedProduct;
     }
+
+    public void deleteProduct(Long productId, Long userId){
+        Products products = productsRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with id:" + productId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id:" + userId));
+
+//        Stores store = storeRepository.findById(storeId)
+//                .orElseThrow(() -> new IllegalArgumentException("store id"+ storeId));
+
+        if (user.getUserType() != User.UserType.ADMIN){
+            throw new IllegalArgumentException("User does not have permission to delete this product");
+        }
+
+        productsRepository.delete(products);
+
+    }
+
 
     //get all products for a specific store
     public List<ProductsDTO> getAllProductsByStore(Long storeId){
@@ -230,5 +250,26 @@ public class ProductsRedefined {
         dto.setUserId(product.getCreatedBy().getUserId());
         return dto;
     }
+
+    //Total number of products for a specific store
+    public long getProductsCountByStore(Long storeId){
+        Stores store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("Store not found with id:"+ storeId));
+
+        return productsRepository.countByStore(store);
+    }
+
+    //Total number of stores owned by a specific owner(admin)
+    public long getStoreCountByStoreOwner(Long userId){
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+
+        if (user.getUserType() != User.UserType.ADMIN) {
+            throw new IllegalArgumentException("USER_NOT_ADMIN");
+        }
+
+        return storeRepository.countByStoreOwner_User_UserId(userId);
+    }
+
 
 }

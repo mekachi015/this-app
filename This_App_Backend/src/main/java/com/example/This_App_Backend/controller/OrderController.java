@@ -133,16 +133,96 @@ public class OrderController {
         }
     }
 
-    //total order count for a store
-      @GetMapping("/{storeId}/orders/count")
-    public ResponseEntity<?> getStoreOrderCount(@PathVariable Long storeId) {
+    //get All orders according to
+    @GetMapping("/owner/{userId}/all")
+    public ResponseEntity<?> getAllOrdersByUserId(
+            @PathVariable Long userId,
+            Authentication authentication) {
         try {
-            Long count = orderService.getStoreOrderCount(storeId);
-            return ResponseEntity.ok(new CountResponse(count));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(
-                    new ErrorResponse(e.getMessage())
-            );
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "User must be logged in"));
+            }
+
+            List<OrderDTO> orders = orderService.getAllOrdersByUserId(userId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("userId", userId);
+            response.put("data", orders);
+            response.put("count", orders.size());
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            return switch (e.getMessage()) {
+                case "USER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+                case "USER_NOT_ADMIN" -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "User is not an admin"));
+                case "STORE_OWNER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "No store owner profile found for this user"));
+                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("success", false, "message", "Unexpected error"));
+            };
+        }
+    }
+
+//    //total order count for a store
+//      @GetMapping("/orders/count/{userId}")
+//    public ResponseEntity<?> getStoreOrderCount(@PathVariable Long userId,
+//                                                Authentication authentication) {
+//        try {
+//            if(authentication == null || !authentication.isAuthenticated()){
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                        .body(Map.of("success", false, "message", "User must be logged in"));
+//            }
+//            Long count = orderService.getOrderCountByOwnerId(userId);
+//
+//            return ResponseEntity.ok(Map.of(
+//                    "success", true,
+//                    "userId", userId,
+//                    "totalOrders", count
+//            ));
+//        } catch (IllegalArgumentException e) {
+//            return switch (e.getMessage()) {
+//                case "USER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                        .body(Map.of("success", false, "message", "User not found"));
+//                case "STORE_OWNER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                        .body(Map.of("success", false, "message", "No store owner profile found for this user"));
+//                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                        .body(Map.of("success", false, "message", "Unexpected error"));
+//            };
+//        }
+//    }
+
+    @GetMapping("/owner/count/{userId}")
+    public ResponseEntity<?> getOrderCountByOwner(
+            @PathVariable Long userId,
+            Authentication authentication) {
+        try {
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "User must be logged in"));
+            }
+
+            Long count = orderService.getOrderCountByUserId(userId);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "userId", userId,
+                    "totalOrders", count
+            ));
+
+        } catch (IllegalArgumentException e) {
+            return switch (e.getMessage()) {
+                case "USER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+                case "USER_NOT_ADMIN" -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "User is not an admin"));
+                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("success", false, "message", "Unexpected error"));
+            };
         }
     }
 

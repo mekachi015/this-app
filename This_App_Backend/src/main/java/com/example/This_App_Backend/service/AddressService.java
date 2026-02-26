@@ -40,11 +40,11 @@ public class AddressService {
 
         User_Addresses addresses = new User_Addresses();
         addresses.setUser(user);
-        addresses.setAddressLine1(dto.getAddressLine1());
-        addresses.setAddressLine2(dto.getAddressLine2());
-        addresses.setAddressLine3(dto.getAddressLine3());
+        addresses.setStreetNumber(dto.getStreetNumber());
+        addresses.setStreetName(dto.getStreetName());
+        addresses.setSuburb(dto.getSuburb());
         addresses.setCity(dto.getCity());
-        addresses.setState(dto.getProvince());
+        addresses.setProvince(dto.getProvince());
         addresses.setPostalCode(dto.getPostalCode());
         addresses.setAddressType(dto.getAddressType() != null ? dto.getAddressType() : "SHIPPING");
         addresses.setDefault(dto.getIsDefault() != null ? dto.getIsDefault() : false);
@@ -109,11 +109,11 @@ public class AddressService {
             });
         }
 
-        if (dto.getAddressLine1() != null) address.setAddressLine1(dto.getAddressLine1());
-        if (dto.getAddressLine2() != null) address.setAddressLine2(dto.getAddressLine2());
-        if (dto.getAddressLine3() != null) address.setAddressLine3(dto.getAddressLine3());
+        if (dto.getStreetNumber() != null) address.setStreetNumber(dto.getStreetNumber());
+        if (dto.getStreetName() != null) address.setStreetName(dto.getStreetName());
+        if (dto.getSuburb() != null) address.setSuburb(dto.getSuburb());
         if (dto.getCity() != null) address.setCity(dto.getCity());
-        if (dto.getProvince() != null) address.setState(dto.getProvince());
+        if (dto.getProvince() != null) address.setProvince(dto.getProvince());
         if (dto.getPostalCode() != null) address.setPostalCode(dto.getPostalCode());
         if (dto.getAddressType() != null) address.setAddressType(dto.getAddressType());
         if (dto.getIsDefault() != null) address.setDefault(dto.getIsDefault());
@@ -163,11 +163,11 @@ public class AddressService {
 
         dto.setAddressId(addresses.getAddressId());
         dto.setUserId(addresses.getUser().getUserId());
-        dto.setAddressLine1(addresses.getAddressLine1());
-        dto.setAddressLine2(addresses.getAddressLine2());
-        dto.setAddressLine3(addresses.getAddressLine3());
+        dto.setStreetNumber(addresses.getStreetNumber());
+        dto.setStreetName(addresses.getStreetName());
+        dto.setSuburb(addresses.getSuburb());
         dto.setCity(addresses.getCity());
-        dto.setProvince(addresses.getState());
+        dto.setProvince(addresses.getProvince());
         dto.setPostalCode(addresses.getPostalCode());
         dto.setAddressType(addresses.getAddressType());
         dto.setIsDefault(addresses.isDefault());

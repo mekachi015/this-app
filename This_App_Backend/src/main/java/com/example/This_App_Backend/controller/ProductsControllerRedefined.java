@@ -2,6 +2,7 @@ package com.example.This_App_Backend.controller;
 
 import com.example.This_App_Backend.dto.StoresDTO.ProductsDTO;
 import com.example.This_App_Backend.entity.Products;
+import com.example.This_App_Backend.entity.Stores;
 import com.example.This_App_Backend.entity.User;
 import com.example.This_App_Backend.repository.UserRepository;
 import com.example.This_App_Backend.service.FileStorageService;
@@ -138,6 +139,36 @@ public class ProductsControllerRedefined {
         }
     }
 
+
+    //Delete the product
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<?> deleteProduct(
+            @PathVariable Long productId,
+            Authentication authentication
+    ) {
+        String ownerUsername = authentication.getName();
+        User authenticatedUser = userService.getUserByUsername(ownerUsername)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+
+
+        try{
+            productsService.deleteProduct(productId,authenticatedUser.getUserId());
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return switch (e.getMessage()) {
+                case "PRODUCT_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Product not found"));
+                case "USER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "User not found"));
+                case "USER_NOT_ADMIN" -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "User does not have permission to delete products"));
+                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("message", "Unexpected error"));
+            };
+        }
+    }
+
     /**
      * Get : Retrieve all products for a specific strore
      *
@@ -188,6 +219,41 @@ public class ProductsControllerRedefined {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "An unexpected error occurred: " + e.getMessage()));
+        }
+    }
+
+    //get products coount
+    @GetMapping("/stores/{storesId}/products/count")
+    public ResponseEntity<?> getProductsCount(@PathVariable Long storesId) {
+        try{
+            long count = productsService.getProductsCountByStore(storesId);
+
+            return ResponseEntity.ok(Map.of("storeId", storesId, "totalProducts", count));
+        }catch (IllegalArgumentException e){
+            if ("STORE_NOT_FOUND".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Store not found"));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Unexpected error"));
+        }
+    }
+
+    //get store count
+    @GetMapping("/users/{userId}/stores/count")
+    public ResponseEntity<?> getProductsCountByUser(@PathVariable Long userId) {
+        try {
+            long count = productsService.getStoreCountByStoreOwner(userId);
+            return ResponseEntity.ok(Map.of("userId", userId, "totalStores", count));
+        } catch (IllegalArgumentException e) {
+            return switch (e.getMessage()) {
+                case "USER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "User not found"));
+                case "USER_NOT_ADMIN" -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "User is not an admin"));
+                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("message", "Unexpected error"));
+            };
         }
     }
 

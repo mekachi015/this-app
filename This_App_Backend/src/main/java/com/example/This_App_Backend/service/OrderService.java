@@ -144,11 +144,44 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
-    public Long getOrderCountByOwnerId(Long ownerId) {
-        Store_Owners storeOwner = storeOwnerRepo.findByOwnerId(ownerId)
-                .orElseThrow(() -> new RuntimeException("Store owner not found"));
+//    public Long getOrderCountByOwnerId(Long userId) {
+//        User user = userRepo.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("User not found not found"));
+//
+//        if (user.getUserType() != User.UserType.ADMIN) {
+//            throw new RuntimeException("Only admins can view their orders");
+//        }
+//
+//        return orderRepo.countByStore_StoreOwner(user);
+//    }
 
-        return orderRepo.countByStore_StoreOwner(storeOwner);
+    public Long getOrderCountByUserId(Long userId){
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found not found"));
+
+        if (user.getUserType() != User.UserType.ADMIN) {
+            throw new RuntimeException("Only admins can view their orders");
+        }
+
+        return orderRepo.countByStore_StoreOwner_User_UserId(userId);
+    }
+
+
+    public List<OrderDTO> getAllOrdersByUserId(Long userId){
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getUserType() != User.UserType.ADMIN) {
+            throw new RuntimeException("Only admins can view their orders");
+        }
+
+        Store_Owners storeOwners =  storeOwnerRepo.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("User is not a store owner"));
+
+        return orderRepo.findByStore_StoreOwnerOrderByOrderDateDesc(storeOwners)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     // -------------------------------------------------------------------------
@@ -224,10 +257,11 @@ public class OrderService {
         DeliveryAddressDTO dto = new DeliveryAddressDTO();
 
         dto.setAddressId(addresses.getAddressId());
-        dto.setAddressLine1(addresses.getAddressLine1());
-        dto.setAddressLine2(addresses.getAddressLine2());
+        dto.setStreetNumber(addresses.getStreetNumber());
+        dto.setStreetName(addresses.getStreetName());
+        dto.setSuburb(addresses.getSuburb());
         dto.setCity(addresses.getCity());
-        dto.setProvince(addresses.getState());
+        dto.setProvince(addresses.getProvince());
         dto.setPostalCode(addresses.getPostalCode());
 
         return dto;

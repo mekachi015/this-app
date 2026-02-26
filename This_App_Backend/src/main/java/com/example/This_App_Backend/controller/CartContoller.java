@@ -331,16 +331,16 @@ public class CartContoller {
 
     private String formatAddress(User_Addresses address){
         StringBuilder sb = new StringBuilder();
-        sb.append(address.getAddressLine1());
+        sb.append(address.getStreetNumber());
 
-        if (address.getAddressLine2() != null && !address.getAddressLine2().trim().isEmpty()) {
-            sb.append(", ").append(address.getAddressLine2());
+        if (address.getStreetName() != null && !address.getStreetName().trim().isEmpty()) {
+            sb.append(" ").append(address.getStreetName());
         }
-        if (address.getAddressLine3() != null && !address.getAddressLine3().trim().isEmpty()) {
-            sb.append(", ").append(address.getAddressLine3());
+        if (address.getSuburb() != null && !address.getSuburb().trim().isEmpty()) {
+            sb.append(", ").append(address.getSuburb());
         }
         sb.append(", ").append(address.getCity());
-        sb.append(", ").append(address.getState());
+        sb.append(", ").append(address.getProvince());
         sb.append(" ").append(address.getPostalCode());
         return sb.toString();
     }

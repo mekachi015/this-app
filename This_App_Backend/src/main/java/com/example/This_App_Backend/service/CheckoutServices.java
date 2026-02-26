@@ -248,8 +248,12 @@ public class CheckoutServices {
         }
 
         // Validate address completeness
-        if (deliveryAddress.getAddressLine1() == null ||
-                deliveryAddress.getAddressLine1().trim().isEmpty()) {
+        if (deliveryAddress.getStreetNumber() == null ||
+                deliveryAddress.getStreetName() == null ||
+                deliveryAddress.getSuburb() == null ||
+                deliveryAddress.getCity() == null ||
+                deliveryAddress.getProvince() == null ||
+                deliveryAddress.getPostalCode() == null) {
             throw new RuntimeException(
                     "Delivery address is incomplete. Please update your address."
             );
@@ -276,19 +280,17 @@ public class CheckoutServices {
         return dto;
     }
 
-    private String formatAddress(User_Addresses address) {
+        private String formatAddress(User_Addresses address) {
         StringBuilder sb = new StringBuilder();
-        sb.append(address.getAddressLine1());
-        if (address.getAddressLine2() != null && !address.getAddressLine2().trim().isEmpty()) {
-            sb.append(", ").append(address.getAddressLine2());
-        }
-        if (address.getAddressLine3() != null && !address.getAddressLine3().trim().isEmpty()) {
-            sb.append(", ").append(address.getAddressLine3());
+        sb.append(address.getStreetNumber());
+        sb.append(" ");
+        sb.append(address.getStreetName());
+        if (address.getSuburb() != null && !address.getSuburb().trim().isEmpty()) {
+            sb.append(", ").append(address.getSuburb());
         }
         sb.append(", ").append(address.getCity());
-        sb.append(", ").append(address.getState());
+        sb.append(", ").append(address.getProvince());
         sb.append(" ").append(address.getPostalCode());
         return sb.toString();
     }
-
 }

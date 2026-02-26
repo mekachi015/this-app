@@ -36,8 +36,9 @@ public interface OrderRepository extends JpaRepository<CustomerOrders,Long> {
     List<CustomerOrders> findByStore_StoreOwnerOrderByOrderDateDesc(Store_Owners storeOwner);
 
     // Count orders for a specific store owner
-    Long countByStore_StoreOwner(Store_Owners storeOwner);
+    Long countByStore_StoreOwner(Store_Owners storeOwners);
 
+    Long countByStore_StoreOwner_User_UserId(Long userId);
     //driver operations
     List<CustomerOrders> findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc(String orderStatus);
     List<CustomerOrders> findByAssignedDriverOrderByOrderDateDesc(User driver);

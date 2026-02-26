@@ -310,8 +310,12 @@ public class CartService {
         }
 
         // Validate address completeness
-        if (deliveryAddress.getAddressLine1() == null ||
-                deliveryAddress.getAddressLine1().trim().isEmpty()) {
+        if (deliveryAddress.getStreetNumber() == null ||
+                deliveryAddress.getStreetName() == null ||
+                deliveryAddress.getSuburb() == null ||
+                deliveryAddress.getCity() == null ||
+                deliveryAddress.getProvince() == null ||
+                deliveryAddress.getPostalCode() == null) {
             throw new RuntimeException("Delivery address is incomplete. Please update your address.");
         }
 
