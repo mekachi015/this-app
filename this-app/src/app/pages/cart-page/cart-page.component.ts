@@ -263,7 +263,7 @@ export class CartPageComponent implements OnInit {
               `,
               confirmButtonColor: '#e91e8c',
               confirmButtonText: 'View My Orders',
-            }).then(() => this.router.navigate(['/orders']));
+            }).then(() => this.router.navigate(['/customer-orders']));
           } else {
             Swal.fire({
               icon: 'error',

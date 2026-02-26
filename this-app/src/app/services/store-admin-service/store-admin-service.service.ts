@@ -296,4 +296,17 @@ export class StoreAdminServiceService {
         }),
       );
   }
+
+  getOrderCountByUserId(userId: number): Observable<{ userId: number; totalOrders: number }> {
+   const headers = this.getAuthenticatedHeaders();
+  return this.http.get<{ userId: number; totalOrders: number }>(
+    `http://localhost:9091/api/orders/owner/count/${userId}`,  // was /owner/${userId}/count
+    { headers, withCredentials: true }
+  ).pipe(
+    catchError((error) => {
+      console.error('Error fetching order count by user:', error);
+      return throwError(() => error);
+    })
+  );
+}
 }

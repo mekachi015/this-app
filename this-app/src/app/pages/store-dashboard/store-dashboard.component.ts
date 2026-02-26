@@ -8,7 +8,8 @@ import { Router } from '@angular/router';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { ProductService } from '../../services/product-service/product.service';
 import { Product } from '../../models/store-admin-models/product-admin/product';
-import { time } from 'console';
+
+import Swal from 'sweetalert2';
 
 
 
@@ -116,11 +117,13 @@ export class StoreDashboardComponent implements OnInit {
       this.errorMessage = 'Access denied. Admin privileges required.';
       return;
     }
-    
-    //set the owner Id for the store
+
+    // set the owner Id for the store
     const user = this.authService.currentUserValue;
-    if(user?.id){
+    if (user?.id) {
       this.storeModel.ownerId = user.id;
+      // Load total order count for all stores owned by this user
+      this.loadOrderCount(Number(user.id));
     }
 
     this.loadStores();
@@ -130,8 +133,7 @@ export class StoreDashboardComponent implements OnInit {
      if (store.storeId) {
     this.router.navigate(['/product-management', store.storeId])
       .then(() => {
-        console.log('Navigating to product management for store:', store.storeName);
-        console.log('Navigating to product management for store:', store.storeId);
+
 
       })
       .catch(error => {
@@ -152,7 +154,6 @@ export class StoreDashboardComponent implements OnInit {
     this.isLoading = true;
     this.storeAdminService.getUserStores().subscribe({
       next: (stores) => {
-        console.log('OwnerId is:', this.storeModel.ownerId);
         this.stores = stores;
         this.isLoading = false;
         this.loadStoresCount();
@@ -162,7 +163,6 @@ export class StoreDashboardComponent implements OnInit {
          // this.loadProducts();
         }
 
-        console.log('Loaded stores:', stores);
       },
       error: () => {
         this.errorMessage = 'Failed to load stores. Please try again later.';
@@ -173,7 +173,7 @@ export class StoreDashboardComponent implements OnInit {
 
   createStore(): void {
     this.createStoreWithLogo();
-    console.log('Creating store with data:', this.storeModel);
+    // ...existing code...
   }
 
   createStoreWithLogo(): void {
@@ -190,8 +190,7 @@ export class StoreDashboardComponent implements OnInit {
     return;
   }
 
-  console.log('Creating store with data:', this.storeModel);
-  console.log('Selected logo file:', this.selectedStoreFile);
+
 
   this.isLoading = true;
 
@@ -201,18 +200,16 @@ export class StoreDashboardComponent implements OnInit {
     this.selectedStoreFile  // This can be null - backend handles it
   ).subscribe({
     next: (store) => {
-      console.log('Store created successfully:', store);
       this.stores.push(store);
       this.resetStoreForm();
       this.isLoading = false;
-      alert('Store created successfully!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Store created successfully!'
+      });
       this.loadStores();
     },
     error: (error) => {
-      console.error('Store creation failed:', error);
-      console.error('Error status:', error.status);
-      console.error('Error body:', error.error);
-      
       // More detailed error message
       let errorMsg = 'Failed to create store: ';
       if (error.error && typeof error.error === 'string') {
@@ -222,9 +219,13 @@ export class StoreDashboardComponent implements OnInit {
       } else {
         errorMsg += 'Unknown error occurred';
       }
-      
       this.errorMessage = errorMsg;
       this.isLoading = false;
+      Swal.fire({
+        icon: 'error',
+        title: 'Store creation failed',
+        text: errorMsg
+      });
     }
   });
   }
@@ -241,7 +242,7 @@ export class StoreDashboardComponent implements OnInit {
     this.storePreviewUrl = store.storeLogo;
   }
   
-  console.log("Editing store:", this.storeModel);
+  // ...existing code...
   }
 
   updateStore(): void {
@@ -256,7 +257,10 @@ export class StoreDashboardComponent implements OnInit {
         if (index !== -1) this.stores[index] = updatedStore;
         this.resetStoreForm();
         this.isLoading = false;
-        alert('Store updated successfully!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Store updated successfully!'
+        });
       },
       error: () => {
         this.errorMessage = 'Failed to update store.';
@@ -266,18 +270,33 @@ export class StoreDashboardComponent implements OnInit {
   }
 
   deleteStore(storeId: number): void {
-    if (!confirm('Are you sure you want to delete this store?')) return;
-    this.isLoading = true;
-
-    this.storeAdminService.deleteStore(storeId).subscribe({
-      next: () => {
-        this.stores = this.stores.filter(s => s.storeId !== storeId);
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Failed to delete store.';
-        this.isLoading = false;
-      }
+    Swal.fire({
+      title: 'Are you sure you want to delete this store?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      this.isLoading = true;
+      this.storeAdminService.deleteStore(storeId).subscribe({
+        next: () => {
+          this.stores = this.stores.filter(s => s.storeId !== storeId);
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'success',
+            title: 'Store deleted successfully!'
+          });
+        },
+        error: () => {
+          this.errorMessage = 'Failed to delete store.';
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed to delete store.'
+          });
+        }
+      });
     });
   }
 
@@ -302,73 +321,59 @@ export class StoreDashboardComponent implements OnInit {
 
   // Add method to handle store selection
   onStoreSelected(store: Store): void {
-       console.log('Store selected:', store.storeName, 'storeId:', store.storeId);
-  
   this.selectedStore = store;
-  
   // Use the store's ownerId for loading orders
   const ownerIdForOrders = store.ownerId;
-  
-  console.log('Store Owner ID (for orders):', ownerIdForOrders);
-  console.log('Current storeModel ownerId (for store creation):', this.storeModel.ownerId);
-  
   if (store.storeId && ownerIdForOrders) {
     // Pass the store's ownerId to load orders
     this.loadStoreOrders(store.storeId, ownerIdForOrders);
-
     this.loadProductsCount(store.storeId);
     // Load order count using storeId
     this.loadOrderCount(store.storeId);
   } else {
-    console.error('Missing storeId or ownerId');
-    console.log('storeId:', store.storeId);
-    console.log('ownerId from store:', ownerIdForOrders);
     this.errorMessage = 'Cannot load orders: Missing store or owner information';
   }
   }
 
   loadStoreOrders(storeId: number,ownerId: number): void {
-    console.log('Loading orders for storeId:', storeId, 'using ownerId:', ownerId);
-  
-  this.isLoading = true;
-  
-  if (!ownerId) {
-    console.error('Owner ID is not available');
-    this.errorMessage = 'Cannot load orders: Owner ID not found';
-    this.isLoading = false;
-    return;
-  }
-  
-  // Use the passed ownerId (from store) instead of this.storeModel.ownerId
-  this.storeAdminService.getStoreOrders(ownerId).subscribe({
-    next: (orders) => {
-      console.log('All orders received from API:', orders);
-      
-      // Filter orders to only show orders for this specific store
-      const storeOrders = orders.filter(order => order.storeId === storeId);
-      
-      console.log('Filtered orders for store ' + storeId + ':', storeOrders);
-      
-      this.recentOrders = storeOrders;
+    this.isLoading = true;
+    if (!ownerId) {
+      this.errorMessage = 'Cannot load orders: Owner ID not found';
       this.isLoading = false;
-    },
-    error: (error) => {
-      console.error('Error loading orders:', error);
-      console.error('Error details:', error.message, error.status);
-      this.errorMessage = 'Failed to load orders: ' + error.message;
-      this.isLoading = false;
+      Swal.fire({
+        icon: 'error',
+        title: 'Cannot load orders',
+        text: 'Owner ID not found'
+      });
+      return;
     }
-  });
+    // Use the passed ownerId (from store) instead of this.storeModel.ownerId
+    this.storeAdminService.getStoreOrders(ownerId).subscribe({
+      next: (orders) => {
+        // Filter orders to only show orders for this specific store
+        const storeOrders = orders.filter(order => order.storeId === storeId);
+        this.recentOrders = storeOrders;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to load orders: ' + error.message;
+        this.isLoading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to load orders',
+          text: error.message
+        });
+      }
+    });
 }
 
-loadOrderCount(storeId: number): void {
-  this.storeAdminService.getStoreOrderCount(storeId).subscribe({
+loadOrderCount(userId: number): void {
+  this.storeAdminService.getOrderCountByUserId(userId).subscribe({
     next: (response) => {
-      this.orderCount = response.count;
-      console.log('Order count:', this.orderCount);
+      this.orderCount = response.totalOrders;
     },
     error: (error) => {
-      console.error('Error loading order count:', error);
+      this.errorMessage = 'Failed to load total order count.';
     }
   });
 }
@@ -378,12 +383,14 @@ viewOrderDetails(orderId: number): void {
   
   this.storeAdminService.getStoreOrderById(this.selectedStore.storeId, orderId).subscribe({
     next: (order) => {
-      console.log('Order details:', order);
-      // You can display this in a modal or navigate to order details page
-      alert(`Order Details:\nID: ${order.orderId}\nTotal: R${order.totalAmount}\nStatus: ${order.orderStatus}`);
+      Swal.fire({
+        icon: 'info',
+        title: 'Order Details',
+        html: `<b>ID:</b> ${order.orderId}<br><b>Total:</b> R${order.totalAmount}<br><b>Status:</b> ${order.orderStatus}`
+      });
     },
     error: (error) => {
-      console.error('Error loading order details:', error);
+      // ...existing code...
       this.errorMessage = 'Failed to load order details';
     }
   });
@@ -398,7 +405,10 @@ viewOrderDetails(orderId: number): void {
   handleProductCreated(): void {
    // this.loadProducts();
     this.resetProductForm();
-    alert('Product created successfully!');
+    Swal.fire({
+      icon: 'success',
+      title: 'Product created successfully!'
+    });
     this.isLoading = false;
   }
 
@@ -463,7 +473,10 @@ viewOrderDetails(orderId: number): void {
       this.uploadStoreLogo(Number(this.editingStore.storeId));
     } else if (this.uploadContext === 'product') {
       this.newProduct.imageUrl = this.previewUrl as string;
-      alert('Product image set successfully!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Product image set successfully!'
+      });
       this.resetUpload();
     }
   }
@@ -472,13 +485,20 @@ viewOrderDetails(orderId: number): void {
     this.isLoading = true;
     this.storeAdminService.uploadStoreLogo(storeId, this.selectedStoreFile!).subscribe({
       next: () => {
-        alert('Store logo uploaded successfully!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Store logo uploaded successfully!'
+        });
         this.resetStoreUpload();
         this.loadStores();
         this.isLoading = false;
       },
       error: () => {
         this.errorMessage = 'Failed to upload logo.';
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to upload logo.'
+        });
         this.isLoading = false;
       }
     });
@@ -520,7 +540,10 @@ viewOrderDetails(orderId: number): void {
   //update business hours 
   updateBusinessHours(): void{
     if(this.selectedDays.length === 0 || this.openTime || this.closeTime){
-      alert('Please select days and times for business hours.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Please select days and times for business hours.'
+      });
       return;
     }
 
@@ -546,7 +569,7 @@ viewOrderDetails(orderId: number): void {
     const finalHours = `${dayString}: ${formattedOpenTime} - ${formattedCloseTime}`;
 
     this.storeModel.storeBusinessHours = finalHours;
-    console.log('Updated business hours to:', finalHours);
+    // ...existing code...
   }
 
   loadProductsCount(storeId: number): void {
@@ -555,7 +578,7 @@ viewOrderDetails(orderId: number): void {
       this.totalProducts = response.totalProducts;
     },
     error: (error) => {
-      console.error('Error loading product count:', error);
+      // ...existing code...
     }
   });
   }
@@ -569,7 +592,7 @@ viewOrderDetails(orderId: number): void {
       this.totalStores = response.totalStores;
     },
     error: (error) => {
-      console.error('Error loading store count:', error);
+      // ...existing code...
     }
   });
   }
