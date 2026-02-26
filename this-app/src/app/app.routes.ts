@@ -18,8 +18,8 @@ import { AddressPageComponent } from './pages/address-page/address-page.componen
 
 export const routes: Routes = [
   { path: '', component: StorePageComponent },
-  { path: 'login', component: NewAuthComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER'] } },
-  { path: 'sign-up', component: NewAuthComponent , canActivate: [AuthGuard], data: { roles: ['CUSTOMER'] } },
+  { path: 'login', component: NewAuthComponent },
+  { path: 'sign-up', component: NewAuthComponent  },
   { path: 'login/admin', component: NewAuthComponent , canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },
   { path: 'login/driver', component: NewAuthComponent , canActivate: [AuthGuard], data: { roles: ['DRIVER'] } },
   { path: 'sign-up/admin', component: NewAuthComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN'] } },

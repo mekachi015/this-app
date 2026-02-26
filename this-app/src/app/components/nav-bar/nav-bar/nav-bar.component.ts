@@ -28,12 +28,13 @@ export class NavBarComponent {
     { label: 'Home', route: '/home', icon: 'home' },
     { label: 'Profile', route: '/profile', icon: 'user-circle' },
     { label: 'Settings', route: '/settings', icon: 'cog' },
-    {label: 'Address', route: '/addresses', icon: 'map-marker-alt'},
+    { label: 'Address', route: '/addresses', icon: 'map-marker-alt'},
     { label: 'Administration', route: '/login/admin', icon: 'cogs' },
     {label: 'Driver', route: '/login/driver', icon: 'car'},
     {label: 'Cart', route: '/cart', icon: 'shopping-cart'},
     { label: "Wishlist", route: "/wishlist", icon: "heart" },
-    { label: 'Orders', route: '/customer-orders', icon: 'box' }
+    { label: 'Orders', route: '/customer-orders', icon: 'box' },
+    
     
   ];
 
@@ -72,6 +73,7 @@ export class NavBarComponent {
     if (this.authService.isLoggedIn()) {
       this.authService.logout();
     } else {
+      console.log('Navigating to login page...');
       this.router.navigate(['/login']);
     }
     this.toggleSidebar();
