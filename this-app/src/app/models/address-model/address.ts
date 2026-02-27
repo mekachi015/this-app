@@ -1,8 +1,8 @@
 export interface Address {
   addressId: number;
-  addressLine1: string;
-  addressLine2?: string;
-  addressLine3?: string;
+  streetNumber: string;
+  streetName?: string;
+  suburb?: string;
   city: string;
   province: string;
   postalCode: string;

@@ -49,7 +49,7 @@
       <p><strong>Date:</strong> {{ selectedOrder.createdAt | date }}</p>
       <p><strong>Total:</strong> R{{ selectedOrder.totalAmount?.toFixed(2) }}</p>
       <p><strong>Status:</strong> {{ selectedOrder.orderStatus }}</p>
-      <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress?.addressLine1 }}, {{ selectedOrder.deliveryAddress?.city }}, {{ selectedOrder.deliveryAddress?.province }}</p>
+      <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress?.streetNumber }}, {{ selectedOrder.deliveryAddress?.city }}, {{ selectedOrder.deliveryAddress?.province }}</p>
       <h3>Items:</h3>
       <ul>
         <li *ngFor="let item of selectedOrder.items">

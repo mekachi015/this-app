@@ -1,7 +1,7 @@
 export interface DeliveryAddressDTO {
   addressId: number;
-  addressLine1: string;
-  addressLine2?: string;
+  streetNumber: string;
+  streetName?: string;
   city: string;
   province: string;
   postalCode: string;

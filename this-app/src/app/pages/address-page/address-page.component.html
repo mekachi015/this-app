@@ -4,9 +4,8 @@
    <div class="address-list">
     <h2>Your Saved Addresses</h2>
     <div *ngFor="let address of addresses" class="address-item">
-      <p>{{ address.addressLine1 }}</p>
-      <p>{{ address.addressLine2 }}</p>
-      <p>{{ address.addressLine3 }}</p>
+      <p>{{ address.streetName }}, {{ address.streetNumber }}</p>
+      <p>{{ address.suburb }}</p>
       <p>{{ address.city }}, {{ address.province }} - {{ address.postalCode }}</p>
       <p>Type: {{ address.addressType }}</p>
       <button (click)="editAddress(address)">Edit</button>
@@ -15,18 +14,18 @@
 
   <form [formGroup]="addressForm" (ngSubmit)="onSubmit()">
     <div>
-      <label for="addressLine1">Address Line 1</label>
-      <input id="addressLine1" formControlName="addressLine1" type="text" required>
+      <label for="addressLine1">Street Number</label>
+      <input id="addressLine1" formControlName="streetNumber" type="text" required>
     </div>
 
     <div>
-      <label for="addressLine2">Address Line 2</label>
-      <input id="addressLine2" formControlName="addressLine2" type="text">
+      <label for="addressLine2">Street Name</label>
+      <input id="addressLine2" formControlName="streetName" type="text">
     </div>
 
     <div>
-      <label for="addressLine3">Address Line 3</label>
-      <input id="addressLine3" formControlName="addressLine3" type="text">
+      <label for="addressLine3">Suburb</label>
+      <input id="addressLine3" formControlName="suburb" type="text">
     </div>
 
     <div>

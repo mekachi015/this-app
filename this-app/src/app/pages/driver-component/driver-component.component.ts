@@ -56,8 +56,8 @@ export class DriverComponentComponent implements OnInit{
 
         //when theres an active order show destination
         if(this.currentOrder?.deliveryAddress){
-          const { addressLine1, addressLine2, city, postalCode } = this.currentOrder.deliveryAddress;
-          this.mapSerivce.setDestination(`${addressLine1} ${addressLine2}`, city, postalCode); 
+          const { streetNumber, streetName, city, postalCode } = this.currentOrder.deliveryAddress;
+          this.mapSerivce.setDestination(`${streetNumber} ${streetName}`, city, postalCode); 
         }
       },
       (err) => console.error('Geolocation error:', err),
@@ -155,7 +155,7 @@ export class DriverComponentComponent implements OnInit{
     if (!this.currentOrder) return;
     this.clearMessages();
 
-    this.driverService.updateOrderStatus(this.currentOrder.orderId, 'FAILED_DELIVERY').subscribe({
+    this.driverService.updateOrderStatus(this.currentOrder.orderId, 'FAILED').subscribe({
       next: (order) => {
         this.successMessage = `Order #${order.orderId} marked as failed delivery`;
         this.currentOrder = null;

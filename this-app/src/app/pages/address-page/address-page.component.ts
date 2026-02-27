@@ -20,9 +20,9 @@ export class AddressPageComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private addressService: AddressService) {
     this.addressForm = this.fb.group({
-      addressLine1: ['', Validators.required],
-      addressLine2: [''],
-      addressLine3: [''],
+      streetNumber: ['', Validators.required],
+      streetName: [''],
+      suburb: [''],
       city: ['', Validators.required],
       province: ['', Validators.required],
       postalCode: ['', Validators.required],
@@ -119,9 +119,9 @@ export class AddressPageComponent implements OnInit {
 
   editAddress(address: Address): void {
     this.addressForm.patchValue({
-      addressLine1: address.addressLine1,
-      addressLine2: address.addressLine2,
-      addressLine3: address.addressLine3,
+      streetNumber: address.streetNumber,
+      streetName: address.streetName,
+      suburb: address.suburb,
       city: address.city,
       province: address.province,
       postalCode: address.postalCode,

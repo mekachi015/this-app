@@ -75,11 +75,11 @@ export class DriverService {
    * Update the status of a claimed order
    * Valid transitions: OUT_FOR_DELIVERY → DELIVERED | FAILED_DELIVERY
    */
-  updateOrderStatus(orderId: number, status: 'DELIVERED' | 'FAILED_DELIVERY'): Observable<OrderDTO> {
+  updateOrderStatus(orderId: number, status: 'DELIVERED' | 'FAILED'): Observable<OrderDTO> {
     const headers = this.authService.getAuthHeaders();
     return this.http.patch<OrderDTO>(
-      `${this.baseUrl}/${orderId}/status`,
-      { status },
+      `${this.baseUrl}/${orderId}/status?driverId=${this.userId}&status=${status}`,
+      {},
       { headers }
     ).pipe(
       catchError(err => throwError(() => err.error?.message || 'Failed to update order status'))

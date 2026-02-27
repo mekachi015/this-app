@@ -35,7 +35,7 @@
           <h3>Order #{{ currentOrder.orderId }}</h3>
           <p>{{ currentOrder.storeName }}</p>
           <p *ngIf="currentOrder.deliveryAddress">
-            {{ currentOrder.deliveryAddress.addressLine1 }},
+            {{ currentOrder.deliveryAddress.streetNumber }} {{ currentOrder.deliveryAddress.streetName }},
             {{ currentOrder.deliveryAddress.city }},
             {{ currentOrder.deliveryAddress.postalCode }}
           </p>
@@ -87,7 +87,7 @@
           <div class="time-badge">{{ order.orderStatus | titlecase }}</div>
           <div class="delivery-details">
             <h4>Order #{{ order.orderId }} — {{ order.storeName }}</h4>
-            <p *ngIf="order.deliveryAddress">{{ order.deliveryAddress.addressLine1 }}</p>
+            <p *ngIf="order.deliveryAddress">{{ order.deliveryAddress.streetNumber }} {{ order.deliveryAddress.streetName }}</p>
             <span class="items-count">{{ order.itemCount }} items</span>
           </div>
         </div>
@@ -107,7 +107,8 @@
           <div class="delivery-details">
             <h4>Order #{{ order.orderId }} — {{ order.storeName }}</h4>
             <p *ngIf="order.deliveryAddress">
-              {{ order.deliveryAddress.addressLine1 }}, {{ order.deliveryAddress.city }}
+              {{ order.deliveryAddress.streetNumber }} {{ order.deliveryAddress.streetName }},
+              {{ order.deliveryAddress.city }}
             </p>
             <span class="items-count">{{ order.itemCount }} items</span>
             <span class="order-total">R{{ order.totalAmount }}</span>
