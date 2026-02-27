@@ -30,6 +30,7 @@ public class OrderDTO {
     //Store details
     private Long storeId;
     private String storeName;
+    private String storeAddress; // for delivery start position
 
     //Delivery address
     private DeliveryAddressDTO deliveryAddress;

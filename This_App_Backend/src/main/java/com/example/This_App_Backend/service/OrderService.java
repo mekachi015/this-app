@@ -222,6 +222,7 @@ public class OrderService {
         if (orders.getStore() != null) {
             dto.setStoreId(orders.getStore().getStoreId());
             dto.setStoreName(orders.getStore().getStoreName());
+            dto.setStoreAddress(orders.getStore().getStoreAddress());
         }
 
         // Delivery address
