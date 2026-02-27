@@ -1,5 +1,6 @@
 package com.example.This_App_Backend.repository;
 
+import com.example.This_App_Backend.Enuma.OrderStatus;
 import com.example.This_App_Backend.entity.CustomerOrders;
 import com.example.This_App_Backend.entity.User;
 import org.hibernate.query.Order;
@@ -40,7 +41,7 @@ public interface OrderRepository extends JpaRepository<CustomerOrders,Long> {
 
     Long countByStore_StoreOwner_User_UserId(Long userId);
     //driver operations
-    List<CustomerOrders> findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc(String orderStatus);
+    List<CustomerOrders> findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc(OrderStatus orderStatus);
     List<CustomerOrders> findByAssignedDriverOrderByOrderDateDesc(User driver);
 }
 

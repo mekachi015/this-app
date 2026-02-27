@@ -7,6 +7,8 @@ import org.hibernate.query.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import  com.example.This_App_Backend.Enuma.OrderStatus;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -157,7 +159,7 @@ public class CheckoutServices {
             CustomerOrders order = new CustomerOrders();
             order.setUser(user);
             order.setStore(store);
-            order.setOrderStatus("PENDING");
+            order.setOrderStatus(OrderStatus.PENDING);
             order.setDeliveryAddress(deliveryAddress);
             order.setIsAssignedDriver(false);
             order.setOrderDate(LocalDateTime.now());
@@ -268,7 +270,7 @@ public class CheckoutServices {
         dto.setOrderId(order.getOrderId());
         dto.setStoreId(order.getStore().getStoreId());
         dto.setStoreName(order.getStore().getStoreName());
-        dto.setOrderStatus(order.getOrderStatus());
+        dto.setOrderStatus(String.valueOf(OrderStatus.PENDING));
         dto.setTotalAmount(order.getTotalAmount());
         dto.setOrderDate(order.getOrderDate());
         dto.setItemCount(order.getOrderItems().size());

@@ -1,7 +1,9 @@
 package com.example.This_App_Backend.dto.OrderDTO;
 
+import com.example.This_App_Backend.Enuma.OrderStatus;
 import com.example.This_App_Backend.dto.DeliveryAddressDTO.DeliveryAddressDTO;
 import com.example.This_App_Backend.dto.DriversDTO.DriverDTO;
+import com.example.This_App_Backend.entity.CustomerOrders;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderDTO {
     private Long orderId;
-    private String orderStatus;
+    private OrderStatus orderStatus;
     private BigDecimal totalAmount;
     private BigDecimal shippingAmount;
     private BigDecimal subTotal;

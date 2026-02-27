@@ -1,9 +1,13 @@
 package com.example.This_App_Backend.controller;
 
+import com.example.This_App_Backend.dto.OrderDTO.OrderDTO;
 import com.example.This_App_Backend.service.DriverOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 import java.util.Map;
@@ -63,23 +67,32 @@ public class DriverOrderController {
     // Update status of a claimed order
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(
-            @PathVariable Long userId,
             @PathVariable Long orderId,
-            @RequestBody Map<String, String> body) {
+            @PathVariable Long userId,
+            @RequestParam String status,
+            Authentication authentication) {
         try {
-            String newStatus = body.get("status");
-
-            if (newStatus == null || newStatus.isBlank()) {
-                return ResponseEntity.badRequest().body("Status cannot be empty");
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "User must be logged in"));
             }
 
-            return ResponseEntity.ok(driverOrderService.updateOrderStatus(userId, orderId, newStatus));
+            OrderDTO updated = driverOrderService.updateOrderStatus(userId, orderId, status);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Order status updated to " + status,
+                    "data", updated
+            ));
+
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", e.getMessage()));
         }
+    }
     }
 
 
 
-}
+
 

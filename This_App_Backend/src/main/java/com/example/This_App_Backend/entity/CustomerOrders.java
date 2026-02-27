@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.This_App_Backend.Enuma.OrderStatus;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -33,8 +34,9 @@ public class CustomerOrders {
     @ManyToOne(fetch = FetchType.LAZY)
     private Stores store; // Link to the Store entity
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 50)
-    private String orderStatus; // e.g., 'pending', 'shipped', 'delivered', 'cancelled'
+    public OrderStatus orderStatus;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;

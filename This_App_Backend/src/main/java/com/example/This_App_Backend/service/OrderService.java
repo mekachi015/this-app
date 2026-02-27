@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.This_App_Backend.repository.StoreRepository;
 import com.example.This_App_Backend.repository.StoreOwnerRepository;
+import com.example.This_App_Backend.Enuma.OrderStatus;
+
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -94,7 +96,14 @@ public class OrderService {
         Stores store = storeRepo.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Store not found"));
 
-        return orderRepo.findByStoreAndOrderStatusOrderByOrderDateDesc(store, orderStatus)
+        OrderStatus status;
+        try {
+            status = OrderStatus.valueOf(orderStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("INVALID_STATUS");
+        }
+
+        return orderRepo.findByStoreAndOrderStatusOrderByOrderDateDesc(store, String.valueOf(status))
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -192,7 +201,7 @@ public class OrderService {
         OrderDTO dto = new OrderDTO();
 
         dto.setOrderId(orders.getOrderId());
-        dto.setOrderStatus(orders.getOrderStatus());
+        dto.setOrderStatus(orders.orderStatus);
         dto.setTotalAmount(orders.getTotalAmount());
         dto.setShippingAmount(orders.getShippingAmount()); // was incorrectly dto.getShippingAmount()
 

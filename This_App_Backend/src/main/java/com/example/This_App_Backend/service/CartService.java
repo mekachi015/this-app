@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import  com.example.This_App_Backend.Enuma.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -223,7 +224,7 @@ public class CartService {
             CustomerOrders order = new CustomerOrders();
             order.setUser(user);
             order.setStore(store); // Set the associated store
-            order.setOrderStatus("PENDING_PAYMENT");
+            order.setOrderStatus(OrderStatus.PENDING);
             order.setOrderDate(LocalDateTime.now());
             order.setTotalAmount(storeTotalAmount.add(shippingAmountPerStore)); // Include shipping
             order.setShippingAmount(shippingAmountPerStore); // Set shipping amount

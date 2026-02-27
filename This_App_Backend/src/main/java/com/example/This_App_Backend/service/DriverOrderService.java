@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.example.This_App_Backend.Enuma.OrderStatus;
 
 @Service
 @Transactional
@@ -31,7 +32,7 @@ public class DriverOrderService {
         verifyDriver(userId);
 
         List<CustomerOrders> orders = orderRepo.
-                findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc("PENDING_PAYMENT");
+                findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc(OrderStatus.PENDING);
 
         return orders.stream()
                 .map(orderService::convertToDTO)
@@ -45,7 +46,7 @@ public class DriverOrderService {
         CustomerOrders order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if(!order.getOrderStatus().equals("PENDING_PAYMENT")) {
+        if(!order.getOrderStatus().equals(OrderStatus.PENDING)) {
             throw new RuntimeException("Order is not available to be claimed");
         }
 
@@ -55,7 +56,7 @@ public class DriverOrderService {
 
         order.setAssignedDriver(driver); //update entity
         order.setIsAssignedDriver(true);
-        order.setOrderStatus("OUT_FOR_DELIVERY");
+        order.setOrderStatus(OrderStatus.OUT_FOR_DELIVERY);
         return orderService.convertToDTO(orderRepo.save(order));
     }
 
@@ -66,18 +67,24 @@ public class DriverOrderService {
         CustomerOrders order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        // Check if order has a driver assigned at all
         if (order.getAssignedDriver() == null) {
             throw new RuntimeException("This order has no assigned driver");
         }
 
-        // Check if the assigned driver matches the requesting user
         if (!order.getAssignedDriver().getUserId().equals(driver.getUserId())) {
             throw new RuntimeException("This order is not assigned to you");
         }
 
-        validateStatusTransition(order.getOrderStatus(), newStatus);
-        order.setOrderStatus(newStatus);
+        OrderStatus parsedStatus;
+        try {
+            parsedStatus = OrderStatus.valueOf(newStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status: " + newStatus +
+                    ". Valid values: DELIVERED, FAILED");
+        }
+
+        validateStatusTransition(order.getOrderStatus(), parsedStatus);
+        order.setOrderStatus(parsedStatus);
 
         return orderService.convertToDTO(orderRepo.save(order));
     }
@@ -121,18 +128,15 @@ public class DriverOrderService {
         return user;
     }
 
-    private void validateStatusTransition(String current, String next){
-        switch (current) {
-            case "OUT_FOR_DELIVERY":
-                if (next.equals("DELIVERED") || next.equals("FAILED_DELIVERY")) return;
-                break;
-            case "DELIVERED":
-            case "FAILED_DELIVERY":
-                throw new RuntimeException("Order is already in a terminal state: " + current);
-            default:
-                throw new RuntimeException("Cannot update status from: " + current);
+    private void validateStatusTransition(OrderStatus current, OrderStatus next) {
+        if (current == OrderStatus.OUT_FOR_DELIVERY) {
+            if (next == OrderStatus.DELIVERED || next == OrderStatus.FAILED) return;
+            throw new RuntimeException("From OUT_FOR_DELIVERY you can only set DELIVERED or FAILED");
         }
-        throw new RuntimeException("Invalid status transition from " + current + " to " + next);
+        if (current == OrderStatus.DELIVERED || current == OrderStatus.FAILED) {
+            throw new RuntimeException("Order is already in a terminal state: " + current);
+        }
+        throw new RuntimeException("Cannot update status from: " + current);
     }
 
 
