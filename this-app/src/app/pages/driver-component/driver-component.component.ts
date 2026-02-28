@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Delivery } from '../../models/delivery-models/delivery/delivery';
-import { DeliveryItem } from '../../models/delivery-models/delivery-item/DeliveryItem';
 import { OrderDTO } from '../../models/order-model/OrderDTO';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { DriverService } from '../../services/driver-service/driver.service';
 import { MapService } from '../../services/map-service/map.service';
+
+const BACKEND_URL = 'http://localhost:9091';
 
 @Component({
   selector: 'app-driver-component',
@@ -52,13 +52,8 @@ export class DriverComponentComponent implements OnInit{
     this.watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
+        // Only update the driver marker — route is drawn by loadRouteForCurrentOrder()
         this.mapSerivce.updateDriverLocation(latitude, longitude);
-
-        //when theres an active order show destination
-        if(this.currentOrder?.deliveryAddress){
-          const { streetNumber, streetName, city, postalCode } = this.currentOrder.deliveryAddress;
-          this.mapSerivce.setDestination(`${streetNumber} ${streetName}`, city, postalCode); 
-        }
       },
       (err) => console.error('Geolocation error:', err),
       { enableHighAccuracy: true , maximumAge: 10000 }
@@ -97,7 +92,9 @@ export class DriverComponentComponent implements OnInit{
         this.myOrders = orders;
 
         // Set the first OUT_FOR_DELIVERY order as the current active delivery
-        this.currentOrder = orders.find(o => o.orderStatus === 'OUT_FOR_DELIVERY') || null;
+        const active = orders.find(o => o.orderStatus === 'OUT_FOR_DELIVERY') || null;
+        this.currentOrder = active;
+        if (active) this.loadRouteForCurrentOrder(active);
       },
       error: (err) => {
         this.errorMessage = err;
@@ -116,6 +113,7 @@ export class DriverComponentComponent implements OnInit{
       next: (order) => {
         this.successMessage = `Order #${order.orderId} claimed successfully`;
         this.currentOrder = order;
+        this.loadRouteForCurrentOrder(order);
 
         // Remove from available, add to my orders
         this.availableOrders = this.availableOrders.filter(o => o.orderId !== orderId);
@@ -181,6 +179,32 @@ export class DriverComponentComponent implements OnInit{
   private clearMessages(): void {
     this.errorMessage = '';
     this.successMessage = '';
+  }
+
+  /**
+   * Geocodes store address + delivery address via Photon in the browser,
+   * then calls POST /api/map/route/by-coords on the backend (ORS routing),
+   * and draws the resulting store → delivery route on the Leaflet map.
+   */
+  private loadRouteForCurrentOrder(order: OrderDTO): void {
+    if (!order.storeAddress || !order.deliveryAddress) return;
+
+    const token = this.authService.token;
+    if (!token) return;
+
+    const { streetNumber, streetName, city } = order.deliveryAddress;
+    const deliveryQuery = `${streetNumber} ${streetName ?? ''} ${city}`.trim();
+    const storeQuery = order.storeAddress!;
+
+    this.mapSerivce.getOrderRoute(storeQuery, deliveryQuery, BACKEND_URL, token)
+      .subscribe({
+        next: (route) => {
+          this.mapSerivce.showOrderRoute(route);
+        },
+        error: (err) => {
+          console.warn('Route load failed:', err);
+        }
+      });
   }
 
 }

@@ -1,6 +1,20 @@
-import { Inject,  Injectable, PLATFORM_ID } from '@angular/core';
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { isPlatformBrowser } from '@angular/common';
+import { Observable, switchMap, forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+export interface RouteResponseDTO {
+  originLat: number;
+  originLng: number;
+  originAddress: string;
+  destinationLat: number;
+  destinationLng: number;
+  destinationAddress: string;
+  eta: string;
+  distanceKm: number;
+  durationSeconds: number;
+}
 
 
 //fix leaflet marker icon issue with angular
@@ -175,6 +189,103 @@ export class MapService {
   const remainingMins = minutes % 60;
   return `${hours}h ${remainingMins}min away · ${km} km`;
 }
+
+  /**
+   * Takes a RouteResponseDTO (from getOrderRoute) and draws it on the Leaflet map:
+   * - Places a shop marker at the store (origin) coords
+   * - Places a package marker at the delivery (destination) coords
+   * - Draws the road route polyline via ORS
+   * - Sets this.eta so the ETA banner in the template updates
+   */
+  showOrderRoute(route: RouteResponseDTO): void {
+    if (!this.map || !this.L) return;
+
+    // Store marker
+    const storeIcon = this.L.divIcon({
+      className: '',
+      html: `<div style="background:#4caf50;width:22px;height:22px;
+             border-radius:50%;border:3px solid white;
+             box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;
+             align-items:center;justify-content:center;font-size:11px;">🏪</div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+    });
+
+    const originPos = this.L.latLng(route.originLat, route.originLng);
+    const destPos   = this.L.latLng(route.destinationLat, route.destinationLng);
+
+    // Remove old destination marker and place store + delivery markers
+    if (this.destinationMarker) this.map.removeLayer(this.destinationMarker);
+
+    this.L.marker(originPos, { icon: storeIcon })
+      .addTo(this.map)
+      .bindPopup(`🏪 Pickup: ${route.originAddress}`);
+
+    this.destinationMarker = this.L.marker(destPos)
+      .addTo(this.map)
+      .bindPopup(`📦 Deliver to: ${route.destinationAddress}`)
+      .openPopup();
+
+    // Fit map to show both markers
+    this.map.fitBounds(this.L.latLngBounds([originPos, destPos]).pad(0.25));
+
+    // Draw the road route polyline via ORS directly (coords already available)
+    this.drawRoute(originPos, destPos);
+
+    // Set ETA from the backend response (already formatted)
+    this.eta = route.eta;
+  }
+
+  /**
+   * Geocodes storeAddress and deliveryAddress via Photon (browser — no rate limiting issues),
+   * then POSTs the coordinates to the backend which calls ORS routing and returns ETA + distance.
+   *
+   * Usage:
+   *   this.mapService.getOrderRoute(2, '73 Juta St Braamfontein', 'Sandton Johannesburg', token)
+   *     .subscribe(route => console.log(route.eta));
+   */
+  getOrderRoute(
+    storeAddress: string,
+    deliveryAddress: string,
+    backendBaseUrl: string,
+    token: string
+  ): Observable<RouteResponseDTO> {
+    const geocode = (query: string): Observable<[number, number]> => {
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ' South Africa')}&limit=1`;
+      return this.http.get<any>(url).pipe(
+        map(res => {
+          const coords = res.features?.[0]?.geometry?.coordinates;
+          if (!coords) throw new Error(`Could not geocode: ${query}`);
+          return [coords[1], coords[0]] as [number, number]; // [lat, lng]
+        })
+      );
+    };
+
+    return forkJoin({
+      origin: geocode(storeAddress),
+      dest: geocode(deliveryAddress)
+    }).pipe(
+      switchMap(({ origin, dest }) => {
+        const body = {
+          originLat: origin[0],
+          originLng: origin[1],
+          originAddress: storeAddress,
+          destLat: dest[0],
+          destLng: dest[1],
+          destAddress: deliveryAddress
+        };
+        const headers = new HttpHeaders({
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        });
+        return this.http.post<RouteResponseDTO>(
+          `${backendBaseUrl}/api/map/route/by-coords`,
+          body,
+          { headers }
+        );
+      })
+    );
+  }
 
   invalidateSize(): void {
     setTimeout(() => this.map?.invalidateSize(), 100);

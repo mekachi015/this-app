@@ -15,6 +15,7 @@ export interface OrderDTO{
   isAssignedDriver: boolean;
   storeId: number;
   storeName: string;
+  storeAddress?: string;   // store's street address used for route origin
   deliveryAddress: DeliveryAddressDTO;
   driver?: DriverDTO;
   items: OrderItemDTO[];
