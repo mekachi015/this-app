@@ -52,12 +52,12 @@
   <!-- Driver specific summary -->
   <div *ngIf="userType === UserType.DRIVER">
     <i class="fas fa-route"></i>
-    <div>Active Deliveries</div>
+    <div>Deliveries</div>
   </div>
   
   <div *ngIf="userType === UserType.DRIVER">
-    <i class="fas fa-dollar-sign"></i>
-    <div>Today's Earnings</div>
+    <i class="fas fa-wallet"></i>
+    <div>Wallet</div>
   </div>
   
   <div *ngIf="userType === UserType.DRIVER">
@@ -72,8 +72,8 @@
   </div>
   
   <div *ngIf="userType === UserType.ADMIN">
-    <i class="fas fa-chart-line"></i>
-    <div>System Status</div>
+    <i class="fas fa-wallet"></i>
+    <div>Wallet</div>
   </div>
   
   <div *ngIf="userType === UserType.ADMIN">
