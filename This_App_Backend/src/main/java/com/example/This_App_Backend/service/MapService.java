@@ -9,6 +9,7 @@ import com.example.This_App_Backend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -173,7 +174,19 @@ public class MapService {
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+        ResponseEntity<Map> response;
+        try {
+            response = restTemplate.postForEntity(url, request, Map.class);
+        } catch (HttpClientErrorException e) {
+            String msg = e.getResponseBodyAsString();
+            // ORS error 2010 = no routable road near the coordinates
+            if (msg.contains("2010")) {
+                throw new RuntimeException(
+                    "No drivable road found near one of the addresses. " +
+                    "Please check that the store and delivery addresses are correct.");
+            }
+            throw new RuntimeException("Routing service error: " + e.getMessage());
+        }
 
         Map<String, Object> data = response.getBody();
         if (data == null) throw new RuntimeException("ORS returned null response");
