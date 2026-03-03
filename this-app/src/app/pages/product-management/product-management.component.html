@@ -6,6 +6,14 @@
   </div>
 </ng-template>
 
+<!-- Product Creation Overlay -->
+<div class="creating-overlay" *ngIf="isCreatingProduct">
+  <div class="creating-box">
+    <div class="spinner"></div>
+    <p>Adding product&hellip;</p>
+  </div>
+</div>
+
 <!-- No Products Template -->
 <ng-template #noProducts>
   <div class="no-products">
@@ -114,10 +122,10 @@
 
         <!-- Form Buttons -->
         <div class="form-actions">
-          <button class="btn primary" type="submit" [disabled]="!productForm.valid">
+          <button class="btn primary" type="submit" [disabled]="!productForm.valid || isCreatingProduct">
             {{ editingProduct ? 'Update' : 'Create' }}
           </button>
-           <button class="btn cancel" type="button" (click)="resetProductForm()">Cancel</button> 
+           <button class="btn cancel" type="button" (click)="resetProductForm()" [disabled]="isCreatingProduct">Cancel</button> 
         </div>
       </form>
     </div>

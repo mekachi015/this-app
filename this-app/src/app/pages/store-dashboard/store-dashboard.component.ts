@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { Store } from '../../models/store-admin-models/store-admin/Store';
 import { StoreAdminServiceService } from '../../services/store-admin-service/store-admin-service.service';
@@ -28,6 +29,14 @@ interface Order {
   styleUrl: './store-dashboard.component.scss',
 })
 export class StoreDashboardComponent implements OnInit {
+
+  // --- Photon address autocomplete ---
+  addressSuggestions: { label: string; lat: number; lng: number }[] = [];
+  private addressDebounce: any;
+  addressConfirmed = false;
+
+  // --- Product creation loader ---
+  isCreatingProduct = false;
   daysOfWeek: string[] = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
   ];
@@ -112,7 +121,49 @@ export class StoreDashboardComponent implements OnInit {
     private storeAdminService: StoreAdminServiceService,
     private productService: ProductService,
     private router: Router,
+    private http: HttpClient,
   ) {}
+
+  // ---------------------- Address Autocomplete ----------------------
+  onAddressInput(query: string): void {
+    this.addressConfirmed = false;
+    clearTimeout(this.addressDebounce);
+    if (!query || query.length < 4) { this.addressSuggestions = []; return; }
+    this.addressDebounce = setTimeout(() => {
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ' South Africa')}&limit=5`;
+      this.http.get<any>(url).subscribe({
+        next: (res) => {
+          this.addressSuggestions = (res.features || []).map((f: any) => {
+            const p = f.properties;
+            const parts = [
+              p.housenumber,
+              p.street,
+              p.suburb ?? p.district,
+              p.city ?? p.county,
+              p.state,
+              p.postcode
+            ].filter(Boolean).join(', ');
+            return {
+              label: parts || p.name || 'Unknown',
+              lat: f.geometry.coordinates[1],
+              lng: f.geometry.coordinates[0]
+            };
+          });
+        },
+        error: () => this.addressSuggestions = []
+      });
+    }, 350);
+  }
+
+  selectAddress(suggestion: { label: string; lat: number; lng: number }): void {
+    this.storeModel.storeAddress = suggestion.label;
+    this.addressSuggestions = [];
+    this.addressConfirmed = true;
+  }
+
+  clearAddressSuggestions(): void {
+    setTimeout(() => this.addressSuggestions = [], 200);
+  }
 
   // ---------------------- Lifecycle ----------------------
   ngOnInit() {
@@ -386,7 +437,28 @@ export class StoreDashboardComponent implements OnInit {
       });
   }
 
-  createProduct(): void {}
+  createProduct(): void {
+    if (!this.selectedStore?.storeId) {
+      this.errorMessage = 'No store selected.';
+      return;
+    }
+
+    this.isCreatingProduct = true;
+    this.errorMessage = '';
+
+    this.productService
+      .createProduct(this.selectedStore.storeId, this.newProduct, this.selectedFile)
+      .subscribe({
+        next: () => {
+          this.isCreatingProduct = false;
+          this.handleProductCreated();
+        },
+        error: (err) => {
+          this.isCreatingProduct = false;
+          this.errorMessage = err?.error?.message || err?.message || 'Failed to create product. Please try again.';
+        }
+      });
+  }
 
   handleProductCreated(): void {
     // this.loadProducts();
