@@ -63,9 +63,9 @@ public class Payments {
     private PaymentStatus paymentStatus;
 
 
-    // Many Payments use one Payment_Method
+    // Many Payments use one Payment_Method (nullable - not required for PayFast redirect payments)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_method_id", nullable = false) // Maps to payment_method_id in payments table
+    @JoinColumn(name = "payment_method_id", nullable = true)
     private Payment_Methods paymentMethod;
 
     @Column(name ="payfast_payment_id")

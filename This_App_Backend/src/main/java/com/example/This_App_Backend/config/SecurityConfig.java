@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/**").hasRole("ADMIN")
                         .requestMatchers("/api/stores/**").hasRole("ADMIN")
                         .requestMatchers("/api/products/redefine/users**").hasRole("ADMIN")
+                        .requestMatchers("/api/wallet/**").authenticated()
                         .requestMatchers("/api/users/*/profile-picture").authenticated()
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers("/api/checkout/**").authenticated()
