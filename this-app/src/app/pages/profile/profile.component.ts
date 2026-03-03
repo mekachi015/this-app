@@ -74,6 +74,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   // Add these new methods
+  goToWallet(): void {
+    this.router.navigate(['/wallet']);
+  }
+
   onProfilePhotoClick(): void {
     this.fileInput.nativeElement.click();
   }

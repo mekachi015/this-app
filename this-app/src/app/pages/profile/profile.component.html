@@ -33,7 +33,7 @@
   </div>
   
   <!-- Common for all user types -->
-  <div *ngIf="userType === UserType.CUSTOMER">
+  <div *ngIf="userType === UserType.CUSTOMER" (click)="goToWallet()" style="cursor: pointer;">
     <i class="fas fa-wallet"></i>
     <div>Wallet</div>
   </div>
@@ -55,7 +55,7 @@
     <div>Deliveries</div>
   </div>
   
-  <div *ngIf="userType === UserType.DRIVER">
+  <div *ngIf="userType === UserType.DRIVER" (click)="goToWallet()" style="cursor: pointer;">
     <i class="fas fa-wallet"></i>
     <div>Wallet</div>
   </div>
@@ -71,7 +71,7 @@
     <div>Total Users</div>
   </div>
   
-  <div *ngIf="userType === UserType.ADMIN">
+  <div *ngIf="userType === UserType.ADMIN" (click)="goToWallet()" style="cursor: pointer;">
     <i class="fas fa-wallet"></i>
     <div>Wallet</div>
   </div>
