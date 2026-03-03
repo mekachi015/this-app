@@ -1,0 +1,141 @@
+<div class="checkout-wrapper">
+
+  <!-- ===== PAYMENT SUCCESS / CANCEL is handled via Swal in ngOnInit ===== -->
+
+  <ng-container *ngIf="paymentStatus === 'idle'">
+
+    <!-- Header -->
+    <div class="checkout-header">
+      <button class="back-btn" (click)="router.navigate(['/cart'])">&#8592; Back to Cart</button>
+      <h1>Checkout</h1>
+      <p *ngIf="storeName" class="store-label">Ordering from <strong>{{ storeName }}</strong></p>
+    </div>
+
+    <div class="checkout-body">
+
+      <!-- LEFT COLUMN -->
+      <div class="checkout-left">
+
+        <!-- Delivery Address Section -->
+        <section class="checkout-card">
+          <h2 class="section-title">
+            <span class="step-badge">1</span> Delivery Address
+          </h2>
+
+          <div *ngIf="isAddressLoading" class="skeleton-block"></div>
+
+          <ng-container *ngIf="!isAddressLoading">
+            <div *ngIf="addresses.length === 0" class="no-address">
+              <p>You have no saved addresses.</p>
+              <button class="link-btn" (click)="navigateToAddresses()">+ Add an Address</button>
+            </div>
+
+            <div *ngIf="addresses.length > 0" class="address-list">
+              <label
+                *ngFor="let addr of addresses"
+                class="address-option"
+                [class.selected]="selectedAddressId === addr.addressId">
+                <input
+                  type="radio"
+                  name="address"
+                  [value]="addr.addressId"
+                  [(ngModel)]="selectedAddressId"
+                />
+                <div class="address-details">
+                  <span class="addr-type">{{ addr.addressType }}</span>
+                  <span *ngIf="addr.isDefault" class="default-badge">Default</span>
+                  <p>
+                    {{ addr.streetNumber }} {{ addr.streetName }},
+                    {{ addr.suburb }}, {{ addr.city }},
+                    {{ addr.province }}, {{ addr.postalCode }}
+                  </p>
+                </div>
+              </label>
+
+              <button class="link-btn" (click)="navigateToAddresses()">Manage Addresses</button>
+            </div>
+          </ng-container>
+        </section>
+
+        <!-- Payment Method -->
+        <section class="checkout-card">
+          <h2 class="section-title">
+            <span class="step-badge">2</span> Payment Method
+          </h2>
+          <div class="payment-method">
+            <img src="assets/payfast-logo.png" alt="PayFast" class="payfast-logo"
+                 onerror="this.style.display='none'" />
+            <p>Pay securely via <strong>PayFast</strong> — supports credit/debit cards, instant EFT, and more.</p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN — Order Summary -->
+      <div class="checkout-right">
+        <section class="checkout-card summary-card">
+          <h2 class="section-title">
+            <span class="step-badge">3</span> Order Summary
+          </h2>
+
+          <div *ngIf="isCartLoading" class="skeleton-block"></div>
+
+          <ng-container *ngIf="!isCartLoading">
+            <div class="order-lines">
+              <div class="order-line" *ngFor="let item of cartItems">
+                <div class="line-info">
+                  <img
+                    *ngIf="item.productImage"
+                    [src]="item.productImage"
+                    [alt]="item.productName"
+                    class="item-thumb"
+                    onerror="this.style.display='none'"
+                  />
+                  <div>
+                    <span class="item-name">{{ item.productName }}</span>
+                    <span class="item-qty">× {{ item.quantity }}</span>
+                  </div>
+                </div>
+                <span class="item-price">R{{ item.subtotal.toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="totals">
+              <div class="total-row">
+                <span>Subtotal</span>
+                <span>R{{ subtotal.toFixed(2) }}</span>
+              </div>
+              <div class="total-row">
+                <span>Shipping</span>
+                <span>R{{ shipping.toFixed(2) }}</span>
+              </div>
+              <div class="total-row grand">
+                <span>Total</span>
+                <span>R{{ total.toFixed(2) }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <button
+            class="pay-btn"
+            (click)="proceedToPayment()"
+            [disabled]="isLoading || isCartLoading || cartItems.length === 0 || !selectedAddressId">
+            <span *ngIf="!isLoading">Pay R{{ total.toFixed(2) }} via PayFast</span>
+            <span *ngIf="isLoading">Redirecting...</span>
+          </button>
+
+          <p *ngIf="!selectedAddressId && addresses.length > 0" class="subtle-hint">
+            Select a delivery address to continue.
+          </p>
+          <p *ngIf="addresses.length === 0" class="subtle-hint warn">
+            Add a delivery address before paying.
+          </p>
+        </section>
+      </div>
+
+    </div>
+
+  </ng-container>
+</div>

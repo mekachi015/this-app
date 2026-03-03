@@ -6,6 +6,7 @@ import {  CartResponse } from '../../models/cart-model/CartResponse';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -13,7 +14,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-cart-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './cart-page.component.html',
   styleUrls: ['./cart-page.component.scss'],
 })
@@ -24,6 +25,15 @@ export class CartPageComponent implements OnInit {
   shipping: number = 150.00;
   isLoading: boolean = false;
   errorMessage: string = '';
+
+  /** The single store all cart items must belong to */
+  get cartStoreId(): number | null {
+    return this.cartItems.length > 0 ? this.cartItems[0].storeId : null;
+  }
+
+  get cartStoreName(): string | null {
+    return this.cartItems.length > 0 ? this.cartItems[0].storeName : null;
+  }
 
   constructor(
     private cartService: CartService,
@@ -58,6 +68,7 @@ export class CartPageComponent implements OnInit {
       next: (response: CartResponse) => {
         if (response && response.data) {
           this.cartItems = Array.isArray(response.data) ? response.data : [response.data];
+          this.validateSingleStore();
         } else {
           Swal.fire({
             icon: 'info',
@@ -78,6 +89,41 @@ export class CartPageComponent implements OnInit {
         });
       }
     });
+  }
+
+  /**
+   * Warns the user (and optionally clears the cart) if items from
+   * multiple stores somehow ended up in the cart.
+   */
+  private validateSingleStore(): void {
+    if (this.cartItems.length === 0) return;
+    const storeIds = new Set(this.cartItems.map(i => i.storeId));
+    if (storeIds.size > 1) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Multiple Stores Detected',
+        html: `Your cart contains items from <strong>${storeIds.size} different stores</strong>.<br>
+               Orders can only be placed from <strong>one store at a time</strong>.<br>
+               Please clear your cart and shop from a single store.`,
+        showCancelButton: true,
+        confirmButtonColor: '#e91e8c',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Clear Cart',
+        cancelButtonText: 'Keep Cart',
+      }).then(result => {
+        if (result.isConfirmed) {
+          this.clearCart();
+        }
+      });
+    }
+  }
+
+  /**
+   * Call this before adding an item from a different store to the cart.
+   * Returns true if the item can be added safely.
+   */
+  canAddFromStore(storeId: number): boolean {
+    return this.cartItems.length === 0 || this.cartStoreId === storeId;
   }
 
   get subtotal(): number {
@@ -213,7 +259,7 @@ export class CartPageComponent implements OnInit {
   }
 
   proceedToCheckout(): void {
-   if (this.cartItems.length === 0) {
+    if (this.cartItems.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'Cart is Empty',
@@ -223,67 +269,21 @@ export class CartPageComponent implements OnInit {
       return;
     }
 
-    // Confirm before checkout
-    Swal.fire({
-      icon: 'question',
-      title: 'Confirm Checkout',
-      html: `
-        <p>You're about to place an order for:</p>
-        <strong>R${this.total.toFixed(2)}</strong>
-        <p style="font-size:0.85rem;color:#888">(includes R${this.shipping.toFixed(2)} shipping)</p>
-      `,
-      showCancelButton: true,
-      confirmButtonColor: '#e91e8c',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Place Order',
-      cancelButtonText: 'Review Cart',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
-
-      this.isLoading = true;
-
+    // Enforce single-store rule before proceeding
+    const storeIds = new Set(this.cartItems.map(i => i.storeId));
+    if (storeIds.size > 1) {
       Swal.fire({
-        title: 'Processing your order...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
+        icon: 'error',
+        title: 'Mixed Stores',
+        html: `Your cart has items from <strong>${storeIds.size} different stores</strong>.<br>
+               You can only checkout from <strong>one store at a time</strong>.<br>
+               Please remove items from other stores before proceeding.`,
+        confirmButtonColor: '#e91e8c',
       });
+      return;
+    }
 
-      this.cartService.checkout(this.currentUserId).subscribe({
-        next: (response: CartResponse) => {
-          this.isLoading = false;
-
-          if (response.success) {
-            this.cartItems = [];
-            Swal.fire({
-              icon: 'success',
-              title: 'Order Placed!',
-              html: `
-                <p>${response.orderCount} order(s) placed successfully.</p>
-                <p><strong>Total: R${response.grandTotal}</strong></p>
-              `,
-              confirmButtonColor: '#e91e8c',
-              confirmButtonText: 'View My Orders',
-            }).then(() => this.router.navigate(['/customer-orders']));
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Checkout Failed',
-              text: response.message || 'Something went wrong during checkout.',
-              confirmButtonColor: '#e91e8c',
-            });
-          }
-        },
-        error: () => {
-          this.isLoading = false;
-          Swal.fire({
-            icon: 'error',
-            title: 'Checkout Error',
-            text: 'An unexpected error occurred. Please try again.',
-            confirmButtonColor: '#e91e8c',
-          });
-        }
-      });
-    });
+    this.router.navigate(['/checkout']);
   }
 
   

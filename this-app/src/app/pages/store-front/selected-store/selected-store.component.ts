@@ -154,30 +154,84 @@ export class SelectedStoreComponent implements OnInit {
       return;
     }
 
+    // Single-store enforcement: check what store is already in the cart
+    this.cartService.getCartByUser(this.currentUserId).subscribe({
+      next: (cartResponse: CartResponse) => {
+        const existingItems = Array.isArray(cartResponse.data)
+          ? cartResponse.data
+          : cartResponse.data ? [cartResponse.data] : [];
+
+        if (existingItems.length > 0) {
+          const cartStoreId = existingItems[0].storeId;
+          const thisStoreId = Number(this.storeId);
+
+          if (cartStoreId !== thisStoreId) {
+            const cartStoreName = existingItems[0].storeName;
+            Swal.fire({
+              icon: 'warning',
+              title: 'Different Store',
+              html: `Your cart already has items from <strong>${cartStoreName}</strong>.<br>
+                     You can only order from <strong>one store at a time</strong>.<br>
+                     Clear your cart first, then add from this store.`,
+              showCancelButton: true,
+              confirmButtonColor: '#e91e8c',
+              cancelButtonColor: '#6c757d',
+              confirmButtonText: 'Clear Cart & Add',
+              cancelButtonText: 'Keep Current Cart',
+            }).then(result => {
+              if (result.isConfirmed) {
+                this.cartService.clearCart(this.currentUserId).subscribe({
+                  next: () => this.doAddToCart(product),
+                  error: () => Swal.fire({ icon: 'error', title: 'Failed to clear cart', confirmButtonColor: '#e91e8c' })
+                });
+              }
+            });
+            return;
+          }
+        }
+
+        this.doAddToCart(product);
+      },
+      error: () => {
+        // If we can't fetch cart, still try to add
+        this.doAddToCart(product);
+      }
+    });
+  }
+
+  private doAddToCart(product: Product): void {
+    if (!product.productId) {
+      console.error('Invalid product. Cannot add to cart.');
+      return;
+    }
+
     this.cartService.addToCart(this.currentUserId, product.productId, 1).subscribe({
       next: (response: CartResponse) => {
         if (response.success) {
-          console.log('Product added to cart successfully:', response);
           Swal.fire({
+            toast: true,
+            position: 'bottom-end',
             icon: 'success',
-            title: 'Added to Cart',
-            text: `${product.productName} has been added to your cart!`
+            title: `${product.productName} added to cart!`,
+            showConfirmButton: false,
+            timer: 1800,
+            timerProgressBar: true,
           });
         } else {
-          console.error('Failed to add product:', response.message);
           Swal.fire({
             icon: 'error',
             title: 'Add to Cart Failed',
-            text: response.message || 'Failed to add product to cart.'
+            text: response.message || 'Failed to add product to cart.',
+            confirmButtonColor: '#e91e8c',
           });
         }
       },
-      error: (err) => {
-        console.error('Failed to add product to cart:', err);
+      error: () => {
         Swal.fire({
           icon: 'error',
           title: 'Add to Cart Failed',
-          text: 'Failed to add product to cart. Please try again.'
+          text: 'Failed to add product to cart. Please try again.',
+          confirmButtonColor: '#e91e8c',
         });
       }
     });
