@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/redefine/stores/*/products/public").permitAll()
                         .requestMatchers("/api/auth/**").permitAll() // Allow authentication endpoints
                         .requestMatchers("/api/users/register").permitAll() // Allow user registration
+                        .requestMatchers("/api/checkout/payfast-notify").permitAll()
                         .requestMatchers("/api/users/**").authenticated() // Protect other user endpoints
                         .requestMatchers("/h2-console/**").permitAll() // Allow H2 console
                         .requestMatchers("/api/addresses/**").authenticated()
@@ -47,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/redefine/users**").hasRole("ADMIN")
                         .requestMatchers("/api/users/*/profile-picture").authenticated()
                         .requestMatchers("/api/orders/**").authenticated()
+                        .requestMatchers("/api/checkout/**").authenticated()
                         .requestMatchers("/api/driver/**").hasRole("DRIVER")
                         .requestMatchers("/api/map/**").authenticated()
                         .anyRequest().authenticated())

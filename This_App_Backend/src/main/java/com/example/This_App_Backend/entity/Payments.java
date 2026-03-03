@@ -3,6 +3,7 @@ package com.example.This_App_Backend.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.example.This_App_Backend.Enuma.EscrowStatus;
 import com.example.This_App_Backend.Enuma.PaymentStatus;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -67,5 +68,15 @@ public class Payments {
     @JoinColumn(name = "payment_method_id", nullable = false) // Maps to payment_method_id in payments table
     private Payment_Methods paymentMethod;
 
+    @Column(name ="payfast_payment_id")
+    private String payfastPaymentId;
+
+    @Column(name = "payfast_transaction_id")
+    private String payfastTransactionId;
+
+    //Escrow control
+    @Enumerated(EnumType.STRING)
+    @Column(name = "escrow_status", nullable = false)
+    private EscrowStatus escrowStatus;
 
 }
