@@ -165,7 +165,7 @@ export class NewAuthComponent implements OnInit {
           Swal.fire({
             icon: 'success',
             title: 'Login Successful',
-            text: `Welcome back, ${user.username}! Redirecting you to your dashboard...`,
+            text: `Welcome back, ${user.firstname} ${user.lastname} !`,
             confirmButtonText: 'Continue',
             confirmButtonColor: '#e91e8c',
           }).then(() => {

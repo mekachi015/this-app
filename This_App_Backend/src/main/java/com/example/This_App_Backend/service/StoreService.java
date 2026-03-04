@@ -137,11 +137,13 @@ public class StoreService {
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Store_Owners storeOwner = storeOwnerRepo.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("You don't have any stores yet"));
+        Optional<Store_Owners> storeOwner = storeOwnerRepo.findByUser(user);
+        if (storeOwner.isEmpty()) {
+            return List.of();
+        }
 
         // Pass the entire Store_Owners entity, not just the ID
-        return storeRepo.findByStoreOwner(storeOwner);
+        return storeRepo.findByStoreOwner(storeOwner.get());
     }
 
     /**
@@ -198,7 +200,7 @@ public class StoreService {
         return logoUrl;
     }
 
-    //Search stores by name or description
+    //Search stores by name only
     public List<Stores> searchStores(String searchTerm){
         if(searchTerm == null || searchTerm.trim().isEmpty()){
             return getAllStores();
@@ -206,16 +208,8 @@ public class StoreService {
 
         String search = searchTerm.toLowerCase().trim();
         return storeRepo.findAll().stream()
-        .filter(store -> 
-            store.getStoreName().toLowerCase().contains(search) ||
-            (
-                store.getStoreDescription() != null && 
-                store.getStoreDescription().toLowerCase().contains(search) ||
-                (
-                    store.getStoreAddress() != null &&
-                    store.getStoreAddress().toLowerCase().contains(search))
-                )
-            ).toList();
+            .filter(store -> store.getStoreName().toLowerCase().contains(search))
+            .toList();
     }
 
 

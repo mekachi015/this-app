@@ -1,5 +1,89 @@
 .favorite-clothes-section{
-    margin-top: 3rem
+    margin-top: 3rem;
+    padding: 1.5rem;
+}
+
+.search-container {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  max-width: 600px;
+
+  .search-input-wrapper {
+    position: relative;
+    flex: 1;
+
+    .search-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #eef1f6;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+        border-color: #7367f0;
+      }
+    }
+  }
+
+  .search-button {
+    padding: 0.75rem 1.5rem;
+    background: #ff3366;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+      background: #e62958;
+    }
+  }
+}
+
+.search-results-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+  font-size: 0.9rem;
+  color: #4a5568;
+
+  .clear-search {
+    background: none;
+    border: 1px solid #d1d5db;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+    padding: 0;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+  }
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+  font-size: 0.95rem;
 }
 
 .favorite-stores-section{
@@ -57,75 +141,103 @@
 
 .clothes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 1rem;
 }
 
-.clothing-card {
-  background: #fff;
+.product-card {
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
 
-  img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 0.75rem;
+  &:hover {
+    transform: translateY(-4px);
   }
 
-  .clothing-info {
-    text-align: center;
+  .product-image {
+    position: relative;
+    height: 200px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wishlist-button {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      i {
+        color: #ccc;
+        font-size: 1rem;
+        transition: color 0.2s ease;
+      }
+
+      &:hover {
+        background: white;
+        transform: scale(1.1);
+
+        i {
+          color: #ff3366;
+        }
+      }
+    }
+  }
+
+  .product-info {
+    padding: 1.5rem;
 
     h3 {
-      font-size: .8rem;
       margin: 0 0 0.5rem;
-      color: #222;
-    }
-    p {
-      font-size: 0.7rem;
-      color: #666;
-      margin: 0;
-    }
-    .price {
-      font-weight: bold;
-      color: #ff3366;
-      margin-top: 0.5rem;
-    }
-  }
-
-  .remove-wishlist-btn {
-    width: 100%;
-    margin-top: 0.75rem;
-    padding: 0.5rem 1rem;
-    background: #ff3366;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    justify-content: center;
-
-    &:hover {
-      background: #e62958;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 51, 102, 0.3);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-
-    i {
       font-size: 1rem;
+      font-weight: 600;
+      color: #2d2d2d;
+    }
+
+    p {
+      margin: 0 0 0.75rem;
+      color: #4a5568;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .price {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ff3366;
+      margin-bottom: 1rem;
+    }
+
+    .add-to-cart {
+      width: 100%;
+      padding: 0.75rem;
+      background: #ff3366;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #f13b69;
+      }
     }
   }
 }

@@ -148,7 +148,7 @@ export class CheckoutPageComponent implements OnInit {
   }
 
   navigateToAddresses(): void {
-    this.router.navigate(['/addresses']);
+    this.router.navigate(['/addresses'], { queryParams: { returnTo: 'checkout' } });
   }
 
   proceedToPayment(): void {

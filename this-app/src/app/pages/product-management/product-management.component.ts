@@ -158,6 +158,18 @@ export class ProductManagementComponent implements OnInit {
       return;
     }
 
+    // Validate description length
+    if (this.productModel.productDescription && this.productModel.productDescription.length > 255) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Description Too Long',
+        text: `Product description cannot exceed 255 characters. You have entered ${this.productModel.productDescription.length}.`,
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#e91e8c',
+      });
+      return;
+    }
+
     this.isCreatingProduct = true;
     this.errorMessage = '';
     
@@ -223,7 +235,19 @@ export class ProductManagementComponent implements OnInit {
     this.errorMessage = 'User ID is missing';
     return;
   }
-  
+
+  // Validate description length
+  if (this.productModel.productDescription && this.productModel.productDescription.length > 255) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Description Too Long',
+      text: `Product description cannot exceed 255 characters. You have entered ${this.productModel.productDescription.length}.`,
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#e91e8c',
+    });
+    return;
+  }
+
   // CRITICAL: Create a proper DTO with ALL required fields
   const updateDTO: CreateProductDTO = {
     productName: this.productModel.productName,

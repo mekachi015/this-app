@@ -4,11 +4,13 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { AddressService } from '../../services/address-service/address.service';
 import { Address } from '../../models/address-model/address';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-address-page',
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
+
   templateUrl: './address-page.component.html',
   styleUrls: ['./address-page.component.scss']
 })
@@ -17,8 +19,14 @@ export class AddressPageComponent implements OnInit {
   addressForm: FormGroup;
   addresses: Address[] = [];
   editingAddressId: number | null = null;
+  private returnTo: string | null = null;
 
-  constructor(private fb: FormBuilder, private addressService: AddressService) {
+  constructor(
+    private fb: FormBuilder,
+    private addressService: AddressService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {
     this.addressForm = this.fb.group({
       streetNumber: ['', Validators.required],
       streetName: [''],
@@ -32,6 +40,7 @@ export class AddressPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.returnTo = this.route.snapshot.queryParamMap.get('returnTo');
     this.loadAddresses();
   }
 
@@ -80,6 +89,10 @@ export class AddressPageComponent implements OnInit {
               icon: 'success',
               title: 'Address added',
               text: 'Your address has been added successfully.'
+            }).then(() => {
+              if (this.returnTo === 'checkout') {
+                this.router.navigate(['/checkout']);
+              }
             });
             this.addressForm.reset();
           },
