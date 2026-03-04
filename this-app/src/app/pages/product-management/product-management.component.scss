@@ -1,4 +1,39 @@
 // Product image wrapper with overlay delete button
+.creating-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .creating-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    p {
+      font-size: 1rem;
+      color: #4a5568;
+      font-weight: 500;
+    }
+  }
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #e91e8c;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 .product-image-wrapper {
   position: relative;
   overflow: hidden;

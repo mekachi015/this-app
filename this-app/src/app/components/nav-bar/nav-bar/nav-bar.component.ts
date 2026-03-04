@@ -3,12 +3,14 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/authentication-service/auth.service';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 interface SidebarItem {
   icon: string;
   label: string;
   route: string;
   requiredRole?: string;
+  loginRoute?: string;
 }
 
 @Component({
@@ -28,14 +30,12 @@ export class NavBarComponent {
     { label: 'Home', route: '/home', icon: 'home' },
     { label: 'Profile', route: '/profile', icon: 'user-circle' },
     { label: 'Settings', route: '/settings', icon: 'cog' },
-    { label: 'Address', route: '/addresses', icon: 'map-marker-alt'},
-    { label: 'Administration', route: '/login/admin', icon: 'cogs' },
-    {label: 'Driver', route: '/login/driver', icon: 'car'},
-    {label: 'Cart', route: '/cart', icon: 'shopping-cart'},
-    { label: "Wishlist", route: "/wishlist", icon: "heart" },
-    { label: 'Orders', route: '/customer-orders', icon: 'box' },
-    
-    
+    { label: 'Address', route: '/addresses', icon: 'map-marker-alt', requiredRole: 'CUSTOMER', loginRoute: '/login' },
+    { label: 'Administration', route: '/dashboard', icon: 'cogs', requiredRole: 'ADMIN', loginRoute: '/login/admin' },
+    { label: 'Driver', route: '/driver', icon: 'car', requiredRole: 'DRIVER', loginRoute: '/login/driver' },
+    { label: 'Cart', route: '/cart', icon: 'shopping-cart', requiredRole: 'CUSTOMER', loginRoute: '/login' },
+    { label: 'Wishlist', route: '/wishlist', icon: 'heart', requiredRole: 'CUSTOMER', loginRoute: '/login' },
+    { label: 'Orders', route: '/customer-orders', icon: 'box', requiredRole: 'CUSTOMER', loginRoute: '/login' },
   ];
 
   toggleSidebar(): void {
@@ -47,20 +47,31 @@ export class NavBarComponent {
     const isLoggedIn = this.authService.isLoggedIn();
     const userRole = this.authService.getUserRole();
 
-    // // If user is not logged in
-    // if (!isLoggedIn) {
-    //   console.log('User not logged in, redirecting to login...');
-    //   this.router.navigate(['/login']);
-    //   return;
-    // }
+    if (item.requiredRole) {
+      if (!isLoggedIn) {
+        this.toggleSidebar();
+        Swal.fire({
+          icon: 'info',
+          title: 'Login Required',
+          text: `Please log in to access ${item.label}.`,
+          confirmButtonText: 'Go to Login'
+        }).then(() => {
+          this.router.navigate([item.loginRoute ?? '/login']);
+        });
+        return;
+      }
 
-    // // // If route has a required role, check it
-    // // if (item.requiredRole && userRole !== item.requiredRole) {
-    // //   alert(`Unauthorized access. You are logged in as ${userRole}`);
-    // //   return;
-    // // }
+      if (userRole !== item.requiredRole) {
+        this.toggleSidebar();
+        Swal.fire({
+          icon: 'error',
+          title: 'Access Denied',
+          text: `You need to be logged in as ${item.requiredRole.toLowerCase()} to access ${item.label}.`
+        });
+        return;
+      }
+    }
 
-    // Otherwise proceed with navigation
     this.router.navigate([item.route]);
     this.toggleSidebar();
   }

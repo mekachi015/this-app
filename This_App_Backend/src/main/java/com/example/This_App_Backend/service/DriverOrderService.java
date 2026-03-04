@@ -27,6 +27,9 @@ public class DriverOrderService {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private WalletService walletService;
+
     //View orders with pending payment status
     public List<OrderDTO> getAvailableOrder(Long userId) {
         verifyDriver(userId);
@@ -86,7 +89,14 @@ public class DriverOrderService {
         validateStatusTransition(order.getOrderStatus(), parsedStatus);
         order.setOrderStatus(parsedStatus);
 
-        return orderService.convertToDTO(orderRepo.save(order));
+        CustomerOrders saved = orderRepo.save(order);
+
+        // When the driver marks an order delivered, release escrow and credit wallets
+        if (parsedStatus == OrderStatus.DELIVERED) {
+            walletService.releaseEscrowForOrder(saved.getOrderId());
+        }
+
+        return orderService.convertToDTO(saved);
     }
 
     //View all orders assigned to this driver
@@ -138,6 +148,10 @@ public class DriverOrderService {
         }
         throw new RuntimeException("Cannot update status from: " + current);
     }
+
+    
+
+
 
 
 

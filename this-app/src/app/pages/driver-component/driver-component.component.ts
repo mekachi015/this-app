@@ -136,7 +136,8 @@ export class DriverComponentComponent implements OnInit{
 
     this.driverService.updateOrderStatus(this.currentOrder.orderId, 'DELIVERED').subscribe({
       next: (order) => {
-        this.successMessage = `Order #${order.orderId} marked as delivered`;
+        const id = order.orderId ?? order.id;
+        this.successMessage = `Order #${id} marked as delivered`;
         this.currentOrder = null;
         this.loadMyOrders(); // Refresh the list
       },
@@ -155,7 +156,8 @@ export class DriverComponentComponent implements OnInit{
 
     this.driverService.updateOrderStatus(this.currentOrder.orderId, 'FAILED').subscribe({
       next: (order) => {
-        this.successMessage = `Order #${order.orderId} marked as failed delivery`;
+        const id = order.orderId ?? order.id;
+        this.successMessage = `Order #${id} marked as failed delivery`;
         this.currentOrder = null;
         this.loadMyOrders();
       },

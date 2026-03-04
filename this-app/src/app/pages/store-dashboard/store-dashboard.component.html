@@ -5,6 +5,12 @@
     <p>Loading...</p>
   </div>
 
+  <!-- Product Creation Loader -->
+  <div class="loading-overlay" *ngIf="isCreatingProduct">
+    <div class="spinner"></div>
+    <p>Adding product to database&hellip;</p>
+  </div>
+
   <!-- Error Message -->
   <div class="error-message" *ngIf="errorMessage">
     <i class="fas fa-exclamation-circle"></i>
@@ -89,9 +95,24 @@
               required></textarea>
           </div>
 
-          <div class="form-group">
+          <div class="form-group address-autocomplete">
             <label for="storeAddress">Address</label>
-            <input type="text" id="storeAddress" name="storeAddress" [(ngModel)]="storeModel.storeAddress" required>
+            <input
+              type="text"
+              id="storeAddress"
+              name="storeAddress"
+              [(ngModel)]="storeModel.storeAddress"
+              (input)="onAddressInput(storeModel.storeAddress)"
+              (blur)="clearAddressSuggestions()"
+              autocomplete="off"
+              placeholder="Start typing an address…"
+              required>
+            <small class="address-hint" *ngIf="!addressConfirmed && storeModel.storeAddress">
+              ⚠ Select an address from the suggestions to ensure it can be routed.
+            </small>
+            <ul class="address-suggestions" *ngIf="addressSuggestions.length > 0">
+              <li *ngFor="let s of addressSuggestions" (mousedown)="selectAddress(s)">{{ s.label }}</li>
+            </ul>
           </div>
 
           <div class="form-group">
@@ -197,9 +218,24 @@
                 required></textarea>
             </div>
 
-            <div class="form-group">
+            <div class="form-group address-autocomplete">
               <label for="storeAddress">Address</label>
-              <input type="text" id="storeAddress" name="storeAddress" [(ngModel)]="storeModel.storeAddress" required>
+              <input
+                type="text"
+                id="storeAddress"
+                name="storeAddress"
+                [(ngModel)]="storeModel.storeAddress"
+                (input)="onAddressInput(storeModel.storeAddress)"
+                (blur)="clearAddressSuggestions()"
+                autocomplete="off"
+                placeholder="Start typing an address…"
+                required>
+              <small class="address-hint" *ngIf="!addressConfirmed && storeModel.storeAddress">
+                ⚠ Select an address from the suggestions to ensure it can be routed.
+              </small>
+              <ul class="address-suggestions" *ngIf="addressSuggestions.length > 0">
+                <li *ngFor="let s of addressSuggestions" (mousedown)="selectAddress(s)">{{ s.label }}</li>
+              </ul>
             </div>
 
             <div class="form-group">
@@ -375,8 +411,13 @@
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="btn-primary" [disabled]="!newProduct.imageUrl">Create Product</button>
-              <button type="button" class="btn-secondary" (click)="resetProductForm()">Cancel</button>
+              <button type="submit" class="btn-primary" [disabled]="!newProduct.imageUrl || isCreatingProduct">
+                <span *ngIf="isCreatingProduct">
+                  <i class="fas fa-spinner fa-spin"></i> Adding product…
+                </span>
+                <span *ngIf="!isCreatingProduct">Create Product</span>
+              </button>
+              <button type="button" class="btn-secondary" (click)="resetProductForm()" [disabled]="isCreatingProduct">Cancel</button>
             </div>
           </form>
         </div>

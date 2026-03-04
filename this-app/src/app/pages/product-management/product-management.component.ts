@@ -45,6 +45,7 @@ export class ProductManagementComponent implements OnInit {
 
   // UI state
   isLoading = false;
+  isCreatingProduct = false;
   errorMessage = '';
   showProductForm = false;
 
@@ -157,7 +158,7 @@ export class ProductManagementComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
+    this.isCreatingProduct = true;
     this.errorMessage = '';
     
     this.productService.createProduct(
@@ -171,7 +172,7 @@ export class ProductManagementComponent implements OnInit {
         this.resetProductForm();
         this.loadProducts(this.productModel.storeId);
         this.loadProductsCount(this.productModel.storeId);
-        this.isLoading = false;
+        this.isCreatingProduct = false;
          Swal.fire({
            icon: 'success',
            title: 'Product Created',
@@ -182,7 +183,7 @@ export class ProductManagementComponent implements OnInit {
       },
       error: (error) => {
         this.errorMessage = error.error?.message || error.message || 'Error creating product';
-        this.isLoading = false;
+        this.isCreatingProduct = false;
       }
     });
   }

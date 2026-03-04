@@ -79,11 +79,7 @@ public class DriverOrderController {
 
             OrderDTO updated = driverOrderService.updateOrderStatus(userId, orderId, status);
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Order status updated to " + status,
-                    "data", updated
-            ));
+            return ResponseEntity.ok(updated);
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

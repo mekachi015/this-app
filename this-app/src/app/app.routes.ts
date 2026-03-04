@@ -16,6 +16,7 @@ import { AuthGuard } from './services/Auth-gaurds/auth-guard';
 import { CustomerOrdersComponent } from './pages/customer-orders/customer-orders/customer-orders.component';
 import { AddressPageComponent } from './pages/address-page/address-page.component';
 import { CheckoutPageComponent } from './pages/checkout-page/checkout-page.component';
+import { WalletPageComponent } from './pages/wallet-page/wallet-page/wallet-page.component';
 
 export const routes: Routes = [
   { path: '', component: StorePageComponent },
@@ -39,6 +40,7 @@ export const routes: Routes = [
   { path : 'checkout', component: CheckoutPageComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER']}},
   { path : 'checkout/success', component: CheckoutPageComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER']}},
   { path : 'checkout/cancel', component: CheckoutPageComponent, canActivate: [AuthGuard], data: { roles: ['CUSTOMER']}},
+  { path: 'wallet', component: WalletPageComponent, canActivate: [AuthGuard], data: { roles: ['ADMIN', 'DRIVER', 'CUSTOMER'] } },
   { path: '**', redirectTo: 'stores', pathMatch: 'full' }, // Wildcard route should be last
 ];
 

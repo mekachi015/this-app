@@ -29,6 +29,7 @@ import com.example.This_App_Backend.entity.User_Addresses;
 import com.example.This_App_Backend.repository.CartRepo;
 import com.example.This_App_Backend.repository.OrderItemsRepository;
 import com.example.This_App_Backend.repository.OrderRepository;
+import com.example.This_App_Backend.repository.PaymentsRepository;
 import com.example.This_App_Backend.repository.PendingCheckoutRepository;
 import com.example.This_App_Backend.repository.ProductsRepository;
 import com.example.This_App_Backend.repository.UserAddressesRepository;
@@ -58,6 +59,9 @@ public class PayFastCheckoutService {
 
     @Autowired
     private OrderItemsRepository orderItemsRepo;
+
+    @Autowired
+    private PaymentsRepository paymentsRepo;
 
     @Autowired
     private ProductsRepository productsRepo;
@@ -274,6 +278,7 @@ public class PayFastCheckoutService {
         payment.setPayfastPaymentId(itnParams.get("m_payment_id"));
         payment.setPaymentStatus(PaymentStatus.COMPLETED);
         payment.setEscrowStatus(EscrowStatus.HELD);
+        paymentsRepo.save(payment);
 
         //clear the cart
         cartRepo.deleteAll(cartItems);
