@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Delivery } from '../../models/delivery-models/delivery/delivery';
-import { DeliveryItem } from '../../models/delivery-models/delivery-item/DeliveryItem';
+import { OrderDTO } from '../../models/order-model/OrderDTO';
+import { AuthService } from '../../services/authentication-service/auth.service';
+import { DriverService } from '../../services/driver-service/driver.service';
+import { MapService } from '../../services/map-service/map.service';
+
+const BACKEND_URL = 'http://localhost:9091';
 
 @Component({
   selector: 'app-driver-component',
@@ -12,131 +16,197 @@ import { DeliveryItem } from '../../models/delivery-models/delivery-item/Deliver
 })
 export class DriverComponentComponent implements OnInit{
 
-  currentDelivery: Delivery = {
-    id: 'del_001',
-    customerId: 'cust_001',
-    customerName: 'John Doe',
-    customerPhone: '+1234567890',
-    location: {
-      latitude: 40.7128,
-      longitude: -74.0060,
-      address: '123 Fashion Street',
-      city: 'New York',
-      postalCode: '10001'
-    },
-    status: {
-      id: 'status_001',
-      status: 'cancelled', // 'pending' | 'in-progress' | 'delivered' | 'cancelled'
-      timestamp: new Date()
-    },
-    items: [
-      { id: 'item_001', name: 'Designer Jeans', quantity: 1, price: 99.99 },
-      { id: 'item_002', name: 'Cotton T-Shirt', quantity: 2, price: 29.99 }
-    ],
-    estimatedDeliveryTime: new Date(Date.now() + 30 * 60000),
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
+  currentOrder: OrderDTO | null = null;
+  availableOrders: OrderDTO[] = [];
+  myOrders: OrderDTO[] = [];
 
-  upcomingDeliveries: Delivery[] = [
-    {
-    id: 'del_003',
-    customerId: 'cust_003',
-    customerName: 'Michael Johnson',
-    customerPhone: '+1234567892',
-    location: {
-      latitude: 40.7589,
-      longitude: -73.9851,
-      address: '789 Fifth Avenue',
-      city: 'New York',
-      postalCode: '10019'
-    },
-    status: {
-      id: 'status_003',
-      status: 'pending',
-      timestamp: new Date()
-    },
-    items: [
-      { id: 'item_005', name: 'Leather Jacket', quantity: 1, price: 299.99 },
-      { id: 'item_006', name: 'Designer Scarf', quantity: 1, price: 89.99 }
-    ],
-    estimatedDeliveryTime: new Date(Date.now() + 90 * 60000),
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: 'del_004',
-    customerId: 'cust_004',
-    customerName: 'Emma Davis',
-    customerPhone: '+1234567893',
-    location: {
-      latitude: 40.7527,
-      longitude: -73.9772,
-      address: '321 Park Avenue',
-      city: 'New York',
-      postalCode: '10016'
-    },
-    status: {
-      id: 'status_004',
-      status: 'pending',
-      timestamp: new Date()
-    },
-    items: [
-      { id: 'item_007', name: 'Evening Gown', quantity: 1, price: 459.99 },
-      { id: 'item_008', name: 'Clutch Purse', quantity: 1, price: 129.99 },
-      { id: 'item_009', name: 'High Heels', quantity: 1, price: 199.99 }
-    ],
-    estimatedDeliveryTime: new Date(Date.now() + 120 * 60000),
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: 'del_005',
-    customerId: 'cust_005',
-    customerName: 'Robert Wilson',
-    customerPhone: '+1234567894',
-    location: {
-      latitude: 40.7484,
-      longitude: -73.9857,
-      address: '567 Broadway',
-      city: 'New York',
-      postalCode: '10012'
-    },
-    status: {
-      id: 'status_005',
-      status: 'pending',
-      timestamp: new Date()
-    },
-    items: [
-      { id: 'item_010', name: 'Business Suit', quantity: 1, price: 599.99 },
-      { id: 'item_011', name: 'Dress Shoes', quantity: 1, price: 249.99 },
-      { id: 'item_012', name: 'Tie Set', quantity: 2, price: 79.99 }
-    ],
-    estimatedDeliveryTime: new Date(Date.now() + 150 * 60000),
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-  ];
+  isLoading = false;
+  errorMessage = '';
+  successMessage = '';
 
-  constructor() {}
+  private watchId!: number;
+
+  constructor(
+    private driverService: DriverService,
+    private authService: AuthService,
+    public mapSerivce: MapService
+  ) {}
 
   ngOnInit(): void {
-    //Initialize map and other resources
+    this.loadAvailableOrders();
+    this.loadMyOrders();
   }
 
-   async startDelivery(): Promise<void> {
-    // Implementation
-    console.log('Delivery started for:', this.currentDelivery.customerName);
+  async ngAfterViewInit(): Promise<void> {
+    await this.mapSerivce.initMap('delivery-map');
+      this.mapSerivce.invalidateSize(); // 👈 add this
+
+    this.startTracking();
   }
 
-  async markAsDelivered(): Promise<void> {
-    // Implementation
-    console.log('Delivery marked as delivered for:', this.currentDelivery.customerName);
+  startTracking(): void{
+    if(!navigator.geolocation){
+      return;
+    }
+
+    this.watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        // Only update the driver marker — route is drawn by loadRouteForCurrentOrder()
+        this.mapSerivce.updateDriverLocation(latitude, longitude);
+      },
+      (err) => console.error('Geolocation error:', err),
+      { enableHighAccuracy: true , maximumAge: 10000 }
+    );
   }
 
-  async callCustomer(): Promise<void> {
-    // Implementation
-    console.log('Calling customer:', this.currentDelivery.customerName);
+  ngOnDestroy(): void {
+    if(this.watchId){
+      navigator.geolocation.clearWatch(this.watchId);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Load available orders (unclaimed)
+  // -------------------------------------------------------------------------
+  loadAvailableOrders(): void {
+    this.isLoading = true;
+    this.driverService.getAvailableOrders().subscribe({
+      next: (orders) => {
+        this.availableOrders = orders;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.errorMessage = err;
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Load orders already claimed by this driver
+  // -------------------------------------------------------------------------
+  loadMyOrders(): void {
+    this.driverService.getMyOrders().subscribe({
+      next: (orders) => {
+        this.myOrders = orders;
+
+        // Set the first OUT_FOR_DELIVERY order as the current active delivery
+        const active = orders.find(o => o.orderStatus === 'OUT_FOR_DELIVERY') || null;
+        this.currentOrder = active;
+        if (active) this.loadRouteForCurrentOrder(active);
+      },
+      error: (err) => {
+        this.errorMessage = err;
+      }
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Claim an available order
+  // -------------------------------------------------------------------------
+  claimOrder(orderId: number): void {
+    this.isLoading = true;
+    this.clearMessages();
+
+    this.driverService.claimOrder(orderId).subscribe({
+      next: (order) => {
+        this.successMessage = `Order #${order.orderId} claimed successfully`;
+        this.currentOrder = order;
+        this.loadRouteForCurrentOrder(order);
+
+        // Remove from available, add to my orders
+        this.availableOrders = this.availableOrders.filter(o => o.orderId !== orderId);
+        this.myOrders.push(order);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.errorMessage = err;
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Mark current order as delivered
+  // -------------------------------------------------------------------------
+  markAsDelivered(): void {
+    if (!this.currentOrder) return;
+    this.clearMessages();
+
+    this.driverService.updateOrderStatus(this.currentOrder.orderId, 'DELIVERED').subscribe({
+      next: (order) => {
+        const id = order.orderId ?? order.id;
+        this.successMessage = `Order #${id} marked as delivered`;
+        this.currentOrder = null;
+        this.loadMyOrders(); // Refresh the list
+      },
+      error: (err) => {
+        this.errorMessage = err;
+      }
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Mark current order as failed delivery
+  // -------------------------------------------------------------------------
+  markAsFailed(): void {
+    if (!this.currentOrder) return;
+    this.clearMessages();
+
+    this.driverService.updateOrderStatus(this.currentOrder.orderId, 'FAILED').subscribe({
+      next: (order) => {
+        const id = order.orderId ?? order.id;
+        this.successMessage = `Order #${id} marked as failed delivery`;
+        this.currentOrder = null;
+        this.loadMyOrders();
+      },
+      error: (err) => {
+        this.errorMessage = err;
+      }
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Call customer (uses phone from delivery address area — adjust if needed)
+  // -------------------------------------------------------------------------
+  callCustomer(): void {
+    if (!this.currentOrder?.driver?.phoneNumber) {
+      this.errorMessage = 'No contact number available';
+      return;
+    }
+    window.location.href = `tel:${this.currentOrder.driver.phoneNumber}`;
+  }
+
+  private clearMessages(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  /**
+   * Geocodes store address + delivery address via Photon in the browser,
+   * then calls POST /api/map/route/by-coords on the backend (ORS routing),
+   * and draws the resulting store → delivery route on the Leaflet map.
+   */
+  private loadRouteForCurrentOrder(order: OrderDTO): void {
+    if (!order.storeAddress || !order.deliveryAddress) return;
+
+    const token = this.authService.token;
+    if (!token) return;
+
+    const { streetNumber, streetName, city } = order.deliveryAddress;
+    const deliveryQuery = `${streetNumber} ${streetName ?? ''} ${city}`.trim();
+    const storeQuery = order.storeAddress!;
+
+    this.mapSerivce.getOrderRoute(storeQuery, deliveryQuery, BACKEND_URL, token)
+      .subscribe({
+        next: (route) => {
+          this.mapSerivce.showOrderRoute(route);
+        },
+        error: (err) => {
+          console.warn('Route load failed:', err);
+        }
+      });
   }
 
 }

@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Store } from '../../../models/store-front/store.model';
+import { emit } from 'node:process';
 
 @Component({
   selector: 'app-near-you',
@@ -10,9 +11,11 @@ import { Store } from '../../../models/store-front/store.model';
 })
 export class NearYouComponent {
   @Input() store!: Store;
+  @Output() storeSelected = new EventEmitter<Store>();
 
-  selectStore(): void {
-  // Implement your logic here, or leave empty if not needed
-}
+   selectStore() {
+    // Handle store selection logic
+    this.storeSelected.emit(this.store);
+  }
 
 }

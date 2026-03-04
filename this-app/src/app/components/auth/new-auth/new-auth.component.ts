@@ -12,6 +12,7 @@ import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/authentication-service/auth.service';
 import { User } from '../../../models/user/user';
 import { Observable } from 'rxjs/internal/Observable';
+import Swal  from 'sweetalert2';
 
 @Component({
   selector: 'app-new-auth',
@@ -59,7 +60,7 @@ export class NewAuthComponent implements OnInit {
     } else {
       this.userType = 'CUSTOMER';
     }
-    console.log('User type set to:', this.userType);
+    // console.log('User type set to:', this.userType);
   }
 
   private initializeForm(): void {
@@ -104,15 +105,16 @@ export class NewAuthComponent implements OnInit {
     return password === confirmPassword ? null : { passwordMismatch: true };
   }
 
-  handleSubmit(): void {
-    console.log('HandleSubmit called');
-    console.log('Form valid:', this.formGroup.valid);
-    console.log('Form value:', this.formGroup.value);
-    console.log('Is login mode:', this.isLoginMode);
-
-    if (this.formGroup.invalid) {
-      console.log('Form is invalid, marking as touched');
+  handleSubmit(): void {  
+  if (this.formGroup.invalid) {
       this.markFormGroupTouched();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Form',
+        text: 'Please fill in all required fields correctly before submitting.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#e91e8c',
+      });
       return;
     }
 
@@ -120,22 +122,15 @@ export class NewAuthComponent implements OnInit {
     this.isLoading = true;
 
     if (this.isLoginMode) {
-      console.log('Calling login method');
       this.login();
     } else {
-      console.log('Calling register method');
       this.register();
     }
   }
 
   private login(): void {
-    console.log('Login method called');
-    console.log('Form valid:', this.formGroup.valid);
-    console.log('Form errors:', this.formGroup.errors);
-
     const { username, password } = this.formGroup.value;
-    console.log('Login attempt with:', { username, password: password });
-
+    
     // Use the appropriate login method based on userType
     let loginObservable: Observable<User>;
 
@@ -152,35 +147,55 @@ export class NewAuthComponent implements OnInit {
         break;
     }
 
+    Swal.fire({
+      title: 'Signing you in...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+      timer: 2000, // Simulate a delay for better UX
+      timerProgressBar: true,
+      confirmButtonColor: '#e91e8c',
+    });
+
     loginObservable.subscribe({
       next: (user) => {
-        console.log('Login successful, user:', user);
         this.isLoading = false;
-        if (user.userType === this.userType) {
-          this.navigateAfterSuccess();
+
+        // Validate user type access
+        if (this.validateUserTypeAccess(user.userType)) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful',
+            text: `Welcome back, ${user.username}! Redirecting you to your dashboard...`,
+            confirmButtonText: 'Continue',
+            confirmButtonColor: '#e91e8c',
+          }).then(() => {
+            this.navigateAfterSuccess();
+          })
         } else {
-          this.errorMessage = `Access denied. This page is for ${this.userType} users only.`;
+          Swal.fire({
+            icon: 'error',
+            title: 'Access Denied',
+            text: `Your account does not have ${this.userType.toLowerCase()} privileges. Please use the correct login page or contact support.`,
+          });
         }
       },
-       error: (error) => {
-      this.isLoading = false;
-      // Enhanced error message handling
-      if (error.status === 401) {
-        this.errorMessage = 'Invalid username or password. Please check your credentials and try again.';
-      } else if (error.status === 403) {
-        this.errorMessage = `Access denied. You don't have ${this.userType.toLowerCase()} privileges.`;
-      } else if (error.status === 404) {
-        this.errorMessage = 'User account not found. Please check your username or create a new account.';
-      } else {
-        this.errorMessage = error.message || 'Login failed. Please try again or contact support if the problem persists.';
-      }
-    },
+      error: (error) => {
+        this.isLoading = false;
+        // Enhanced error message handling
+       Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: this.getLoginErrorMessage(error),
+          confirmButtonColor: '#e91e8c',
+        });
+      },
     });
   }
 
   private validateUserTypeAccess(userType: string): boolean {
     return userType === this.userType;
   }
+
   getSignUpRoute(): string {
     switch (this.userType) {
       case 'ADMIN':
@@ -222,50 +237,58 @@ export class NewAuthComponent implements OnInit {
 
   private register(): void {
     if (this.formGroup.hasError('passwordMismatch')) {
-      this.errorMessage = 'Passwords do not match';
       this.isLoading = false;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Passwords Don\'t Match',
+        text: 'Please make sure your passwords match before continuing.',
+        confirmButtonColor: '#e91e8c',
+      });
       return;
     }
 
-    // Use the appropriate registration method based on userType
     let registerObservable: Observable<User>;
 
     switch (this.userType) {
       case 'DRIVER':
-        registerObservable = this.authService.registerDriver(
-          this.formGroup.value
-        );
+        registerObservable = this.authService.registerDriver(this.formGroup.value);
         break;
       case 'ADMIN':
-        registerObservable = this.authService.registerAdmin(
-          this.formGroup.value
-        );
+        registerObservable = this.authService.registerAdmin(this.formGroup.value);
         break;
-      case 'CUSTOMER':
       default:
-        registerObservable = this.authService.register(
-          this.formGroup.value,
-          this.userType
-        );
+        registerObservable = this.authService.register(this.formGroup.value, this.userType);
         break;
     }
+
+    // Show loading state
+    Swal.fire({
+      title: 'Creating your account...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
 
     registerObservable.subscribe({
       next: (user) => {
         this.isLoading = false;
-        this.navigateAfterSuccess();
+        Swal.fire({
+          icon: 'success',
+          title: 'Account Created!',
+          text: `Your ${this.userType.toLowerCase()} account has been created successfully.`,
+          confirmButtonColor: '#e91e8c',
+          timer: 2000,
+          showConfirmButton: false,
+        }).then(() => this.navigateAfterSuccess());
       },
       error: (error) => {
-      this.isLoading = false;
-      // Enhanced error message handling
-      if (error.status === 409) {
-        this.errorMessage = 'An account with this email or username already exists. Please use different credentials or try logging in.';
-      } else if (error.status === 400) {
-        this.errorMessage = error.message || 'Invalid registration data. Please check all fields and try again.';
-      } else {
-        this.errorMessage = error.message || 'Registration failed. Please try again or contact support if the problem persists.';
-      }
-    },
+        this.isLoading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Registration Failed',
+          text: this.getRegisterErrorMessage(error),
+          confirmButtonColor: '#e91e8c',
+        });
+      },
     });
   }
 
@@ -299,6 +322,23 @@ export class NewAuthComponent implements OnInit {
       icon.className = this.passwordVisibility[fieldId]
         ? 'fas fa-eye-slash'
         : 'fas fa-eye';
+    }
+  }
+
+   private getLoginErrorMessage(error: any): string {
+    switch (error.status) {
+      case 401: return 'Invalid username or password. Please check your credentials and try again.';
+      case 403: return `Access denied. You don't have ${this.userType.toLowerCase()} privileges.`;
+      case 404: return 'User account not found. Please check your username or create a new account.';
+      default:  return error.message || 'Login failed. Please try again or contact support.';
+    }
+  }
+
+  private getRegisterErrorMessage(error: any): string {
+    switch (error.status) {
+      case 409: return 'An account with this email or username already exists. Try logging in instead.';
+      case 400: return error.message || 'Invalid registration data. Please check all fields and try again.';
+      default:  return error.message || 'Registration failed. Please try again or contact support.';
     }
   }
 }

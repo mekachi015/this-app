@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.This_App_Backend.dto.AuthenticationRequest;
-import com.example.This_App_Backend.dto.AuthenticationResponse;
+import com.example.This_App_Backend.dto.AuthenticationDTO.AuthenticationRequest;
+import com.example.This_App_Backend.dto.AuthenticationDTO.AuthenticationResponse;
 import com.example.This_App_Backend.entity.User;
 import com.example.This_App_Backend.security.JwtUtil;
 import com.example.This_App_Backend.service.UserService;

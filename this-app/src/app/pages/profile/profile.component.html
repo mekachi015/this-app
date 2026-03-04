@@ -33,25 +33,31 @@
   </div>
   
   <!-- Common for all user types -->
-  <div *ngIf="userType === UserType.CUSTOMER">
+  <div *ngIf="userType === UserType.CUSTOMER" (click)="goToWallet()" style="cursor: pointer;">
     <i class="fas fa-wallet"></i>
     <div>Wallet</div>
   </div>
   
-  <div *ngIf="userType === UserType.CUSTOMER">
+  <div *ngIf="userType === UserType.CUSTOMER" (click)="goToOrders()">
     <i class="fas fa-box"></i>
-    <div>Orders</div>
+    <div >Orders</div>
   </div>
+
+  <!-- Added Address navigation for customers --> 
+   <!-- <div *ngIf="userType === UserType.CUSTOMER" (click)="goToAddressPage()" style="cursor: pointer;">
+    <i class="fas fa-map-marker-alt"></i>
+    <div>Address</div>
+  </div> -->
 
   <!-- Driver specific summary -->
   <div *ngIf="userType === UserType.DRIVER">
     <i class="fas fa-route"></i>
-    <div>Active Deliveries</div>
+    <div>Deliveries</div>
   </div>
   
-  <div *ngIf="userType === UserType.DRIVER">
-    <i class="fas fa-dollar-sign"></i>
-    <div>Today's Earnings</div>
+  <div *ngIf="userType === UserType.DRIVER" (click)="goToWallet()" style="cursor: pointer;">
+    <i class="fas fa-wallet"></i>
+    <div>Wallet</div>
   </div>
   
   <div *ngIf="userType === UserType.DRIVER">
@@ -65,9 +71,9 @@
     <div>Total Users</div>
   </div>
   
-  <div *ngIf="userType === UserType.ADMIN">
-    <i class="fas fa-chart-line"></i>
-    <div>System Status</div>
+  <div *ngIf="userType === UserType.ADMIN" (click)="goToWallet()" style="cursor: pointer;">
+    <i class="fas fa-wallet"></i>
+    <div>Wallet</div>
   </div>
   
   <div *ngIf="userType === UserType.ADMIN">

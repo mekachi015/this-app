@@ -5,6 +5,7 @@ import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { User } from '../../models/user/user';
 import { Router } from '@angular/router';
 
+
 @Injectable({
   providedIn: 'root',
 })
@@ -68,6 +69,7 @@ export class AuthService {
               firstname: response.firstName,
               lastname: response.lastName,
               userType: response.userType,
+              profilePhotoUrl: response.profilePhotoUrl,
               token: response.jwt,
               createdAt: response.createdAt,
             };
@@ -154,6 +156,7 @@ export class AuthService {
           firstname: response.firstName || response.firstname,
           lastname: response.lastName || response.lastname,
           userType: response.userType,
+          profilePhotoUrl: response.profilePhotoUrl,
           token: response.token || response.jwt, // Check for both token formats
           createdAt: response.createdAt,
         };
@@ -179,6 +182,11 @@ export class AuthService {
     );
   }
 
+  getLatestUserProfile(): Observable<User> {
+  const headers = this.getAuthHeaders();
+  return this.http.get<User>(`${this.apiUrl}/profile/me`, { headers });
+}
+
   logout(): void {
     // Remove user from local storage and set current user to null
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -188,17 +196,32 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  // Helper method to add authorization header
-  getAuthHeaders(token?: string): HttpHeaders {
-    const authToken = token || this.token;
-    if (authToken) {
-      return new HttpHeaders({
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      });
-    }
-    return new HttpHeaders({ 'Content-Type': 'application/json' });
+getAuthHeadersForMultipart(token?: string): HttpHeaders {
+  const authToken = token || this.token;
+  if (authToken) {
+    return new HttpHeaders({
+      'Authorization': `Bearer ${authToken}`
+      // No Content-Type - browser sets it for multipart
+    });
   }
+  return new HttpHeaders();
+}
+
+// Or modify existing method to accept a flag
+getAuthHeaders(token?: string, includeContentType: boolean = true): HttpHeaders {
+  const authToken = token || this.token;
+  const headers: any = {};
+
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
+  if (includeContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return new HttpHeaders(headers);
+}
 
   // Check if user is logged in
   isLoggedIn(): boolean {
@@ -231,9 +254,45 @@ export class AuthService {
     );
   }
 
+//Refactored method for uploading profile photo 
+uploadProfilePhotoRefactored(formData: FormData): Observable<{photoUrl: string}>{
+  const token = this.getToken();
+  const userId = this.currentUserValue?.id; //get from current user
+
+  if(!userId){
+    return throwError(() => new Error('User not logged in'));
+  }
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+  });
+
+  return this.http.post<{photoUrl: string}>(
+    `${this.apiUrl}/users/${userId}/profile-photo`,
+    formData,
+    {headers}
+  );
+}
+
   // Helper method to get token
   private getToken(): string {
     const user = this.currentUserValue;
     return user?.token || '';
   }
+
+  /**
+   * Redirects the user to the login page.
+   * Optionally, a return URL can be passed to redirect the user back after login.
+   */
+  redirectToLogin(returnUrl: string = '/'): void {
+    this.router.navigate(['/login'], { queryParams: { returnUrl } });
+  }
+
+ getUserProfilePicture(userId: number, headers: HttpHeaders): Observable<{ profilePhotoUrl: string }> {
+  // const token = this.getToken();
+  return this.http.get<{ profilePhotoUrl: string }>(
+    `${this.apiUrl}/users/${userId}/profile-picture`,
+    { headers }
+  );
+}
 }

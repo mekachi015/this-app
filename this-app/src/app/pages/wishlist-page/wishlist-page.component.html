@@ -1,30 +1,66 @@
+<app-search-bar></app-search-bar>
 
-
-  <app-search-bar></app-search-bar>
-
-  <!-- Favorite Stores: Horizontal scroll -->
-  <section class="favorite-stores-section">
-  <h2>Your Favorite Stores</h2>
-  <div class="stores-scroll">
-    <app-store-card 
-      *ngFor="let store of favoriteStores" 
-      [store]="store">
-    </app-store-card>
+<div class="wishlist-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-message">
+    <p>Loading your wishlist...</p>
   </div>
-</section>
 
- <section class="favorite-clothes-section">
-  <h2>Your Favorite Clothes</h2>
-  <div class="clothes-grid">
-    <div 
-      class="clothing-card"
-      *ngFor="let item of favoriteClothes">
-      <img [src]="item.imageUrl" [alt]="item.name" />
-      <div class="clothing-info">
-        <h3>{{ item.name }}</h3>
-        <p>{{ item.description }}</p>
-        <p class="price"> R{{item.price}}</p>
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="error-message">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Empty Wishlist Message -->
+  <div *ngIf="!isLoading && !errorMessage && favoriteStores.length === 0 && favoriteClothes.length === 0" class="empty-wishlist">
+    <p>Your wishlist is empty</p>
+    <button class="continue-shopping-btn" routerLink="/stores">Explore Stores</button>
+  </div>
+
+  <!-- Wishlist Content -->
+  <div *ngIf="!isLoading && !errorMessage && (favoriteStores.length > 0 || favoriteClothes.length > 0)">
+    <!-- Favorite Stores Section -->
+    <section class="favorite-stores-section" *ngIf="favoriteStores.length > 0">
+      <div class="section-header">
+        <h2>Your Favorite Stores</h2>
+        <span class="item-count">{{ favoriteStores.length }} stores</span>
       </div>
+      <div class="stores-scroll">
+        <div class="store-item" *ngFor="let store of favoriteStores">
+          <app-store-card [store]="toStore(store)"></app-store-card>
+          <button class="remove-wishlist-btn" (click)="removeStoreFromWishlist(store)">
+            <i class="fas fa-heart-broken"></i> Remove
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Favorite Clothes Section -->
+    <section class="favorite-clothes-section" *ngIf="favoriteClothes.length > 0">
+      <div class="section-header">
+        <h2>Your Favorite Clothes</h2>
+        <span class="item-count">{{ favoriteClothes.length }} items</span>
+      </div>
+      <div class="clothes-grid">
+        <div class="clothing-card" *ngFor="let item of favoriteClothes">
+          <img [src]="item.productImage" [alt]="item.productName" />
+          <div class="clothing-info">
+            <h3>{{ item.productName }}</h3>
+            <p class="store-name">{{ item.storeName }}</p>
+            <p class="price">R{{ item.productPrice?.toFixed(2) }}</p>
+          </div>
+          <button class="remove-wishlist-btn" (click)="removeProductFromWishlist(item)">
+            <i class="fas fa-heart-broken"></i> Remove
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Clear All Button -->
+    <div class="wishlist-actions" *ngIf="favoriteStores.length > 0 || favoriteClothes.length > 0">
+      <button class="clear-wishlist-btn" (click)="clearWishlist()">
+        Clear Entire Wishlist
+      </button>
     </div>
   </div>
-</section>
+</div>

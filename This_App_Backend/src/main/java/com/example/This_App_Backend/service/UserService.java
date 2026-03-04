@@ -48,8 +48,8 @@ public class UserService {
     }
 
     // Get user by id
-    public Optional<User> getUserById(Integer id) {
-        return userRepo.findById(id);
+    public Optional<User> getUserById(Long id) {
+        return userRepo.findByUserId(id);
     }
 
     // get user by username
@@ -63,8 +63,8 @@ public class UserService {
     }
 
     // Update user
-    public User updateUser(Integer id, User userDetails) {
-        return userRepo.findById(id).map(user -> {
+    public User updateUser(Long id, User userDetails) {
+        return userRepo.findByUserId(id).map(user -> {
             user.setFirstName(userDetails.getFirstName());
             user.setLastName(userDetails.getLastName());
             user.setEmail(userDetails.getEmail());
@@ -81,15 +81,15 @@ public class UserService {
     }
 
     // Delete specific user
-    public void deleteUser(Integer id) {
-        User user = userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    public void deleteUser(Long userId) {
+        User user = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
         userRepo.delete(user);
     }
 
     // Check if user exists
-    public boolean userExists(Integer id) {
+    public boolean userExists(Long id) {
         return userRepo.existsById(id);
     }
 

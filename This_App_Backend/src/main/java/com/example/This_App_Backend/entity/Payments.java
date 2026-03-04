@@ -3,6 +3,8 @@ package com.example.This_App_Backend.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.example.This_App_Backend.Enuma.EscrowStatus;
+import com.example.This_App_Backend.Enuma.PaymentStatus;
 import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.*;
@@ -14,35 +16,67 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Payments {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")
-    private Integer paymentId;
-
-    // Many Payments belong to one Order
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false) // Maps to order_id in payments table
-    private Orders order;
-
-    // Many Payments use one Payment_Method
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_method_id", nullable = false) // Maps to payment_method_id in payments table
-    private Payment_Methods paymentMethod;
-
-    @Column(name = "payment_status", nullable = false, length = 50)
-    private String paymentStatus; // e.g., 'pending', 'completed', 'failed'
+    private Long paymentId;
 
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "payment_date", nullable = false)
-    private LocalDateTime paymentDate;
+    //Ozow specific
+    @Column(name ="transaction_reference", unique = true, nullable = false)
+    private String transactionReference;
 
-    @Column(name = "transaction_id", unique = true, length = 255)
-    private String transactionId;
+    @Column(name = "ozow_transactions_id")
+    private String ozowTransactionId;
+
+    @Column(name = "payment_date")
+    private LocalDateTime paymentDate;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // Many Payments belong to one Order
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false) // Maps to order_id in payments table
+    private CustomerOrders order;
+
+    //the store that recieved the payment
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Stores store;
+
+    //Owner who recieved the money
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_owner_id", nullable = false)
+    private Store_Owners storeOwners;
+
+    //Customer who paid
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private User customer;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name ="payment_status", nullable = false)
+    private PaymentStatus paymentStatus;
+
+
+    // Many Payments use one Payment_Method (nullable - not required for PayFast redirect payments)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_method_id", nullable = true)
+    private Payment_Methods paymentMethod;
+
+    @Column(name ="payfast_payment_id")
+    private String payfastPaymentId;
+
+    @Column(name = "payfast_transaction_id")
+    private String payfastTransactionId;
+
+    //Escrow control
+    @Enumerated(EnumType.STRING)
+    @Column(name = "escrow_status", nullable = false)
+    private EscrowStatus escrowStatus;
+
 }

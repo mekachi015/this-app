@@ -1,25 +1,82 @@
 <div class="search-container">
-    <div class="store-name">STORE NAME</div>
-    
-    <div class="search-box">
-      <i class="fas fa-search search-icon"></i>
-      <input 
-        type="text" 
-        [(ngModel)]="searchQuery"
-        placeholder="Search by name"
-        class="search-input"
-      >
-    </div>
+  <div class="store-name">{{ storeName || (searchType === 'stores' ? 'ALL STORES' : 'ALL PRODUCTS') }}</div>
   
-    <div class="buttons-container">
-      <button class="filter-btn">
-        <i class="fas fa-filter"></i>
-        Filter
-      </button>
-  
-      <button class="sort-btn">
-        <i class="fas fa-sort"></i>
-        Sort Selection
-      </button>
-    </div>
+
+  <div class="search-box">
+    <i class="fas fa-search search-icon"></i>
+    <input 
+      type="text" 
+      [(ngModel)]="searchQuery" 
+      (input)="onSearchChange()" 
+      [placeholder]="placeholderText" 
+      class="search-input"
+    />
+    <i *ngIf="searchQuery" 
+       class="fas fa-times clear-icon inside-input" 
+       (click)="clearSearch()"></i>
+    <i *ngIf="isSearching" class="fas fa-spinner fa-spin loading-icon"></i>
+  </div>
+
+  <!-- Dropdown for search results -->
+  <ul *ngIf="searchType === 'stores' && searchResultsList.length > 0" class="dropdown styled-dropdown">
+    <li *ngFor="let store of searchResultsList" (click)="onStoreSelect(store)">
+      <div class="store-item">
+        <span class="store-name">{{ store.storeName }}</span>
+        <span class="store-address">{{ store.storeAddress }}</span>
+      </div>
+    </li>
+  </ul>
+
+  <div class="buttons-container">
+    <button class="filter-btn">
+      <i class="fas fa-filter"></i>
+      Filter
+    </button>
+
+    <button class="sort-btn">
+      <i class="fas fa-sort"></i>
+      Sort Selection
+    </button>
+  </div>
 </div>
+
+<style>
+  .dropdown {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+    margin-top: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .dropdown li {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dropdown li:hover {
+    background-color: #f0f0f0;
+  }
+
+  .store-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .store-name {
+    font-weight: bold;
+  }
+
+  .store-address {
+    font-size: 0.9em;
+    color: gray;
+  }
+</style>

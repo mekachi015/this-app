@@ -3,9 +3,36 @@
 .driver-dashboard {
   padding: 2rem;
   margin-top: 5rem;
-  height: calc(100vh - var(--navbar-height));
+  min-height: calc(100vh - var(--navbar-height));
   background-color: var(--background-color);
 
+  // ── Feedback Banners ──────────────────────────────────────────────────────
+  .success-banner,
+  .error-banner,
+  .loading-banner {
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 1rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .success-banner {
+    background: var(--status-success);
+    color: var(--text-light);
+  }
+
+  .error-banner {
+    background: #e74c3c;
+    color: var(--text-light);
+  }
+
+  .loading-banner {
+    background: var(--badge-background);
+    color: var(--text-secondary);
+  }
+
+  // ── Grid Layout ───────────────────────────────────────────────────────────
   .dashboard-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -14,19 +41,57 @@
   }
 
   .map-section {
-    grid-column: 1;
-    grid-row: 1 / span 2;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  background: var(--card-background);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  position: relative;
+
+   .eta-banner {
+    padding: 0.6rem 1rem;
     background: var(--card-background);
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    overflow: hidden;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-align: center;
+    letter-spacing: 0.01em;
   }
 
+  // The map div fills the section completely
+  #delivery-map {
+    width: 100%;
+    height: 450px;  // desktop height
+    border-radius: var(--border-radius);
+  }
+
+  .map-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--card-background-rgb, 255,255,255), 0.85);
+    border-radius: var(--border-radius);
+    pointer-events: none;
+
+    p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+  }
+}
+
+  // ── Delivery Card (shared) ────────────────────────────────────────────────
   .delivery-card {
     background: var(--card-background);
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
     padding: 1.5rem;
+    overflow-y: auto;
+    max-height: 600px;
 
     .card-header {
       display: flex;
@@ -37,43 +102,87 @@
       h2 {
         margin: 0;
         color: var(--text-primary);
+        font-size: 1.1rem;
+      }
+
+      .refresh-btn {
+        padding: 0.4rem 0.9rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-sm);
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: var(--primary-color);
+          color: var(--text-light);
+          border-color: var(--primary-color);
+        }
       }
     }
 
+    // Status badge — mapped to backend status strings
     .status-badge {
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.9rem;
       border-radius: var(--border-radius-sm);
-      font-size: 0.875rem;
-      font-weight: 500;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
 
-      &.pending {
-        background: var(--status-pending);
+      &.PENDING_PAYMENT {
+        background: #f39c12;
         color: var(--text-light);
       }
 
-      &.in-progress {
-        background: var(--status-progress);
+      &.ASSIGNED {
+        background: #3498db;
         color: var(--text-light);
       }
 
-      &.delivered {
-        background: var(--status-success);
+      &.OUT_FOR_DELIVERY {
+        background: var(--status-progress, #2980b9);
+        color: var(--text-light);
+      }
+
+      &.DELIVERED {
+        background: var(--status-success, #27ae60);
+        color: var(--text-light);
+      }
+
+      &.FAILED_DELIVERY {
+        background: #e74c3c;
         color: var(--text-light);
       }
     }
 
+    // ── Current Order Content ───────────────────────────────────────────────
     .delivery-content {
+
+      > p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 2rem 0;
+      }
+
       .customer-info {
         margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
 
         h3 {
           color: var(--text-primary);
-          margin-bottom: 0.5rem;
+          margin: 0 0 0.5rem 0;
+          font-size: 1rem;
         }
 
         p {
           color: var(--text-secondary);
           margin: 0.25rem 0;
+          font-size: 0.875rem;
         }
       }
 
@@ -91,9 +200,14 @@
             padding: 0.5rem 0;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
+            font-size: 0.875rem;
 
             &:last-child {
               border-bottom: none;
+            }
+
+            span:last-child {
+              color: var(--text-secondary);
             }
           }
         }
@@ -101,47 +215,60 @@
 
       .action-buttons {
         display: flex;
-        gap: 1rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
 
         button {
           flex: 1;
+          min-width: 100px;
           padding: 0.75rem 1rem;
           border: none;
           border-radius: var(--border-radius-sm);
           font-weight: 500;
+          font-size: 0.875rem;
           cursor: pointer;
-          transition: opacity 0.2s ease;
+          transition: opacity 0.2s ease, transform 0.1s ease;
+
+          &:active {
+            transform: scale(0.98);
+          }
 
           &.primary {
             background: var(--primary-color);
             color: var(--text-light);
           }
 
-          &.success {
-            background: var(--success-color);
-            color: var(--text-light);
-          }
-
           &.secondary {
-            background: var(--secondary-color);
+            background: #e74c3c;
             color: var(--text-light);
           }
 
           &:disabled {
-            opacity: 0.6;
+            opacity: 0.45;
             cursor: not-allowed;
+            transform: none;
           }
         }
       }
     }
   }
 
+  // ── Available Orders & My Orders ──────────────────────────────────────────
   .upcoming-deliveries {
+
     .delivery-item {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 1rem;
       border-bottom: 1px solid var(--border-color);
+      gap: 1rem;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: var(--badge-background);
+        border-radius: var(--border-radius-sm);
+      }
 
       &:last-child {
         border-bottom: none;
@@ -149,31 +276,101 @@
 
       .time-badge {
         background: var(--badge-background);
-        padding: 0.5rem;
+        padding: 0.4rem 0.6rem;
         border-radius: var(--border-radius-sm);
-        margin-right: 1rem;
-        font-size: 0.875rem;
+        font-size: 0.75rem;
+        font-weight: 600;
         color: var(--text-secondary);
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        flex-shrink: 0;
       }
 
       .delivery-details {
+        flex: 1;
+        min-width: 0;
+
         h4 {
           margin: 0 0 0.25rem 0;
           color: var(--text-primary);
+          font-size: 0.9rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         p {
-          margin: 0;
+          margin: 0 0 0.25rem 0;
           color: var(--text-secondary);
-          font-size: 0.875rem;
+          font-size: 0.8rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .items-count {
+        .items-count,
+        .order-total {
           display: inline-block;
-          margin-top: 0.5rem;
           font-size: 0.75rem;
           color: var(--text-tertiary);
+          margin-right: 0.75rem;
         }
+
+        .order-total {
+          font-weight: 600;
+          color: var(--primary-color);
+        }
+      }
+
+      // Claim button inside list item
+      button.primary {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        background: var(--primary-color);
+        color: var(--text-light);
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: opacity 0.2s ease;
+
+        &:hover {
+          opacity: 0.85;
+        }
+      }
+    }
+  }
+
+  // ── Responsive ────────────────────────────────────────────────────────────
+  @media (max-width: 768px) {
+    padding: 1rem;
+
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .map-section {
+    grid-column: 1;
+    grid-row: auto;
+
+    #delivery-map {
+      height: 250px;  // shorter on mobile
+    }
+  }
+
+
+    .delivery-card {
+      max-height: none;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+
+      button {
+        width: 100%;
       }
     }
   }

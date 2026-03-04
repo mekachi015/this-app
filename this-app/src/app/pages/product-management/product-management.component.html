@@ -1,0 +1,133 @@
+<!-- Loading Template -->
+<ng-template #loading>
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+</ng-template>
+
+<!-- Product Creation Overlay -->
+<div class="creating-overlay" *ngIf="isCreatingProduct">
+  <div class="creating-box">
+    <div class="spinner"></div>
+    <p>Adding product&hellip;</p>
+  </div>
+</div>
+
+<!-- No Products Template -->
+<ng-template #noProducts>
+  <div class="no-products">
+    <p>No products found. Click "+ Add Product" to create one.</p>
+  </div>
+</ng-template>
+
+<div class="product-management-container" *ngIf="!isLoading; else loading">
+  <!-- Fixed: Single heading -->
+  <h2 *ngIf="store?.storeName">{{ store?.storeName }} - Product Management</h2>
+    
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="btn primary" (click)="showProductForm = true">+ Add Product</button>
+    <button class="btn secondary" (click)="goBackToStores()">← Back to Dashboard</button>
+  </div>
+
+  <div class="product-count-bar" *ngIf="store">
+  <span class="count-badge">
+    <i class="fas fa-box"></i>
+    {{ totalProductCount }} {{ totalProductCount === 1 ? 'Product' : 'Products' }}
+  </span>
+</div>
+
+  <!-- Product Grid - Fixed condition -->
+  <div *ngIf="products && products.length > 0; else noProducts" class="product-grid">
+    <div class="product-card" *ngFor="let product of products; let i = index">
+      <!-- Image with delete overlay -->
+  <div class="product-image-wrapper">
+    <img [src]="product.imageUrl || 'assets/placeholder.png'" [alt]="product.productName" />
+    <button class="delete-overlay-btn" (click)="deleteProduct(product.productId!)">
+      <i class="fas fa-trash"></i>
+    </button>
+  </div>
+      
+      <div class="info">
+        <h3>{{ product.productName }}</h3>
+        <p class="description">{{ product.productDescription }}</p>
+        <p class="price">R{{ product.productPrice?.toFixed(2) }}</p>
+        <p class="stock">Stock: {{ product.stockQuantity }}</p>
+        <p class="category">Category: {{ product.category }}</p>
+      </div>
+      
+      <div class="actions">
+        <button class="btn edit" (click)="editProduct(product)">Edit</button>
+        <!-- <button class="btn delete" (click)="deleteProduct(product.productId, currentUserId!, store!.storeId)">Delete</button> -->
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Product Form Modal -->
+  <div class="modal" *ngIf="showProductForm">
+    <div class="modal-content">
+      <h3>{{ editingProduct ? 'Edit Product' : 'Add New Product' }}</h3>
+
+      <form #productForm="ngForm" (ngSubmit)="onSubmit()">
+        <label>Product Name</label>
+        <input type="text" [(ngModel)]="productModel.productName" name="productName" required />
+
+        <label>Description</label>
+        <textarea [(ngModel)]="productModel.productDescription" name="productDescription" required></textarea>
+
+        <label>Price</label>
+        <input type="number" id="productPrice" [(ngModel)]="productModel.productPrice" name="productPrice" min="0" step="0.01" required />
+
+        <label>Stock Quantity</label>
+        <input type="number" [(ngModel)]="productModel.stockQuantity" name="stockQuantity" min="0" required />
+
+        <label>Category</label>
+        <select [(ngModel)]="productModel.category" name="category" required>
+        <option value="" disabled>Select a Category</option>
+        <option *ngFor="let category of availableCategories" [value]="category">
+        {{ category }}
+        </option>
+        </select>
+
+        <!-- Image Upload -->
+        <label>Product Image</label>
+        <div class="upload-area"
+             (drop)="onDrop($event)"
+             (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave($event)"
+             (click)="fileInput.click()"
+             [class.drag-over]="isDragOver">
+          <input 
+            #fileInput
+            type="file" 
+            accept="image/jpeg,image/png,image/jpg" 
+            (change)="onFileSelected($event)"
+            style="display: none;" />
+          
+          <div *ngIf="!previewUrl" class="upload-placeholder">
+            <p>📸 Drag & Drop or Click to Upload Product Image</p>
+            <p class="upload-hint">JPG or PNG (Max 5MB)</p>
+          </div>
+          
+          <div *ngIf="previewUrl" class="preview-container">
+            <img [src]="previewUrl" alt="Preview" class="preview-image" />
+            <button type="button" class="btn-remove" (click)="resetUpload(); $event.stopPropagation()">✕ Remove</button>
+          </div>
+        </div>
+
+        <!-- Form Buttons -->
+        <div class="form-actions">
+          <button class="btn primary" type="submit" [disabled]="!productForm.valid || isCreatingProduct">
+            {{ editingProduct ? 'Update' : 'Create' }}
+          </button>
+           <button class="btn cancel" type="button" (click)="resetProductForm()" [disabled]="isCreatingProduct">Cancel</button> 
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -7,9 +7,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Import CommonModule for Angular directives
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { of, Subscription, switchMap } from 'rxjs';
 import { User, UserType } from '../../models/user/user';
 import { AuthService } from '../../services/authentication-service/auth.service';
+import { HttpHeaders } from '@angular/common/http'; // Import HttpHeaders
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -27,7 +28,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   UserType = UserType; // Expose enum to template
   isPhotoChanging = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private authService: AuthService) { }
 
   userName = 'Guest User';
   userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
@@ -44,8 +45,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         // Handle userType conversion from string to enum
         this.userType =
           this.convertStringToUserType(user.userType) || UserType.CUSTOMER;
-        this.userPhotoUrl =
-          user.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
+        // this.userPhotoUrl =
+        //   user.profilePhotoUrl + '?t=' + new Date().getTime();
+        console.log(user.id, 'User ID in profile component');
+        this.getProfilePhotoUrl(Number(user.id));
       } else {
         this.userName = 'Guest User';
         this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
@@ -71,6 +74,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   // Add these new methods
+  goToWallet(): void {
+    this.router.navigate(['/wallet']);
+  }
+
   onProfilePhotoClick(): void {
     this.fileInput.nativeElement.click();
   }
@@ -98,35 +105,47 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private uploadProfilePhoto(file: File): void {
     this.isPhotoChanging = true;
-  
-  // Create FormData for file upload
-  const formData = new FormData();
-  formData.append('profilePhoto', file);
-  
-  // Call your auth service or create a profile service
-  console.log(this.userPhotoUrl, 'User url');
-  this.authService.uploadProfilePhoto(formData).subscribe({
-    next: (response: any) => {
-      this.userPhotoUrl = response.photoUrl;
-      this.isPhotoChanging = false;
 
-      console.log(this.userPhotoUrl, 'User url after');
-      // Update current user data if needed
-      if (this.currentUser) {
-        this.currentUser.profilePhotoUrl = response.photoUrl;
-        
-      }
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
 
-    },
-    error: (error) => {
-      console.error('Error uploading photo:', error);
-      this.isPhotoChanging = false;
-      alert('Failed to upload photo. Please try again.');
-      // Reset to previous photo on error
-      this.userPhotoUrl = this.currentUser?.profilePhotoUrl || 'assets/profile-photos/profile-picture.jpg';
-      console.log(this.userPhotoUrl, 'User url');
-    }
-  });
+    // Call your auth service or create a profile service
+    console.log(this.userPhotoUrl, 'User url');
+    this.authService.uploadProfilePhotoRefactored(formData).subscribe({
+      next: (response: any) => {
+        this.userPhotoUrl = response.photoUrl;
+        this.currentUser!.profilePhotoUrl = response.photoUrl;
+        this.isPhotoChanging = false;
+
+        console.log(this.userPhotoUrl, 'User url after');
+        // Update current user data if needed
+        if (this.currentUser) {
+          this.currentUser.profilePhotoUrl = response.photoUrl;
+
+          // persist change in localStorage
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem(
+              'currentUser',
+              JSON.stringify(this.currentUser)
+            );
+          }
+
+          //update AuthService BehaviorSubject
+          this.authService['currentUserSubject'].next(this.currentUser);
+        }
+      },
+      error: (error) => {
+        console.error('Error uploading photo:', error);
+        this.isPhotoChanging = false;
+        alert('Failed to upload photo. Please try again.');
+        // Reset to previous photo on error
+        this.userPhotoUrl =
+          this.currentUser?.profilePhotoUrl ||
+          'assets/profile-photos/profile-picture.jpg';
+        console.log(this.userPhotoUrl, 'User url');
+      },
+    });
   }
 
   // Update settings based on user type
@@ -259,6 +278,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       case 'Privacy':
         // this.router.navigate(['/privacy']);
         break;
+        case 'Addresses':  // Add this case
+      this.router.navigate(['/addresses']);
+      break;
       case 'Vehicle Information':
         // this.router.navigate(['/driver/vehicle']);
         break;
@@ -304,6 +326,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     console.log('Navigating to wishlist');
   }
 
+  goToOrders() {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/customer-orders']);
+      console.log('Navigating to orders');
+    }
+  }
+
   logOut() {
     if (this.authService.isLoggedIn()) {
       this.authService.logout();
@@ -311,8 +340,31 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  private initCap(str: string): string {
+  private initCap(str?: string): string {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
+  getProfilePhotoUrl(userId: number): void {
+    const token = this.authService.token; // Retrieve the token from AuthService
+    
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    this.authService.getUserProfilePicture(userId, headers).subscribe({
+      next: (response: { profilePhotoUrl: string }) => {
+        console.log('Fetched profile photo URL:', this.userPhotoUrl);
+        this.userPhotoUrl = response.profilePhotoUrl;
+      },
+      error: (error) => {
+        console.error('Error fetching profile photo URL:', error);
+        this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg'; // Default photo
+      },
+    });
+  }
+
+  goToAddressPage() {
+    this.router.navigate(['/addresses']);
   }
 }

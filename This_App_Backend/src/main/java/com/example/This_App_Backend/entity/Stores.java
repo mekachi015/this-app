@@ -5,43 +5,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Table(name = "stores") //maps user entity to "Users" table
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Stores {
 
-    @Id
-    @Column(name = "store_id", length = 50)
-    private String storeId; // Unique identifier for the store
+   @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long storeId;
 
+    // Update the mapping to match Store_Owners entity
     @ManyToOne
-    @JoinColumn(name = "owner_id", nullable = false) // Foreign key to the owner (User)
-    private Store_Owners store_Owners; //Implement store owner entity to represent the owner of the store
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Store_Owners storeOwner;
 
     @Column(name = "store_name", nullable = false, length = 100)
-    private String storeName; // Name of the store
+    private String storeName;
 
     @Column(name = "store_description", length = 500)
-    private String storeDescription; // Description of the store
+    private String storeDescription;
 
-    @Column(name = "store_address", nullable = false, length = 255 )   
-    private String storeAddress; // Address of the store
+    @Column(name = "store_address", nullable = false, length = 255)
+    private String storeAddress;
 
-    @Column(name = "store_phone_number", length = 15)   
-    private String storePhoneNumber; // Phone number of the store
+    @Column(name = "store_phone_number", length = 15)
+    private String storePhoneNumber;
 
     @Column(name = "store_email", length = 100)
-    private String storeEmail; // Email address of the store
+    private String storeEmail;
 
-    @Column(name = "store_business_hours", length = 100)    
-    private String storeBusinessHours; // Business hours of the store
+    @Column(name = "store_business_hours", length = 100)
+    private String storeBusinessHours;
+
+    @Column(name = "store_logo", length = 255)
+    private String storeLogo;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -55,7 +58,7 @@ public class Stores {
 
     // One Store can have many Orders (if orders are per-store)
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)
-    private List<Orders> orders = new ArrayList<>();
+    private List<CustomerOrders> orders = new ArrayList<>();
 
     // One Store can have many Reviews_And_Ratings
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL)

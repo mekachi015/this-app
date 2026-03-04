@@ -23,12 +23,12 @@ public class Order_Items {
      @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_item_id")
-    private Integer orderItemId;
+    private Long orderItemId;
 
     // Many Order_Items belong to one Order
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false) // Maps to order_id in order_items table
-    private Orders order;
+    private CustomerOrders order;
 
     // Many Order_Items refer to one Product
     @ManyToOne(fetch = FetchType.LAZY)

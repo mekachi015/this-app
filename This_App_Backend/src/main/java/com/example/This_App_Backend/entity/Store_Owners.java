@@ -2,9 +2,7 @@ package com.example.This_App_Backend.entity;
 
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,16 +13,22 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Store_Owners {
 
-    @Id
+   @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "owner_id")
-    private Integer ownerId;
+    private Long ownerId;
 
-    @OneToOne // One store owner entity links to one user entity
-    @JoinColumn(name = "user_id", unique = true, nullable = false) // Foreign key to Users table
-    private User user; // Link to the User entity
+    @OneToOne
+    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    private User user;
+
+    // Update the mapping to reference the storeOwner field in Stores
+    @OneToMany(mappedBy = "storeOwner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Stores> stores = new ArrayList<>();
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -35,8 +39,8 @@ public class Store_Owners {
     // --- Relationships ---
 
     // One Store_Owner can own many Stores
-    @OneToMany(mappedBy = "store_Owners", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Stores> stores = new ArrayList<>();
+    // @OneToMany(mappedBy = "owner_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<Stores> stores = new ArrayList<>();
 
 
 
@@ -51,4 +55,8 @@ public class Store_Owners {
         this.updatedAt = LocalDateTime.now();
     }
 
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
 }

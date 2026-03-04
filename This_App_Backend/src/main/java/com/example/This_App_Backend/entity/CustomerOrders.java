@@ -1,13 +1,12 @@
 package com.example.This_App_Backend.entity;
 
 import java.math.BigDecimal;
-import java.sql.Driver;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.ssl.JksSslBundleProperties.Store;
+import com.example.This_App_Backend.Enuma.OrderStatus;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -21,12 +20,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Orders {
+public class CustomerOrders {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
-    private Integer orderId;
+    private Long orderId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false) // Foreign key to Users table
@@ -35,11 +34,14 @@ public class Orders {
     @ManyToOne(fetch = FetchType.LAZY)
     private Stores store; // Link to the Store entity
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 50)
-    private String orderStatus; // e.g., 'pending', 'shipped', 'delivered', 'cancelled'
+    public OrderStatus orderStatus;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
+
+    private BigDecimal shippingAmount;
 
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
@@ -50,7 +52,8 @@ public class Orders {
     // Many Orders can be assigned to one Driver (can be null)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id") // Maps to driver_id in orders table (can be null)
-    private Drivers driver;
+    private User assignedDriver;
+    //private Drivers driver;
 
     // Many Orders have one delivery User_Address
     @ManyToOne(fetch = FetchType.LAZY)

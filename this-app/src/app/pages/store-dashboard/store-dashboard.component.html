@@ -1,4 +1,23 @@
 <div class="dashboard-container">
+  <!-- Loading Indicator -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Product Creation Loader -->
+  <div class="loading-overlay" *ngIf="isCreatingProduct">
+    <div class="spinner"></div>
+    <p>Adding product to database&hellip;</p>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    <span>{{ errorMessage }}</span>
+    <button (click)="errorMessage = ''">&times;</button>
+  </div>
+
   <!-- Header Section -->
   <header class="dashboard-header">
     <div class="header-content">
@@ -15,143 +34,547 @@
     </div>
   </header>
 
-  <!-- Photo upload section  -->
-  <section class="upload-section">
-    <div class="upload-card">
-      <div class="upload-header">
-        <h2>Upload Photo</h2>
-        <p>Select an image from your device to upload</p>
-      </div>
+  <!-- Store Management Section (Admin Only) -->
+  <!-- Store Management Section -->
+  <section class="management-section" *ngIf="isAdmin">
+    <div class="section-header">
+      <h2>My Stores</h2>
+      <button class="btn-primary" (click)="showStoreForm = true" *ngIf="!showStoreForm && !editingStore">
+        <i class="fas fa-plus"></i> Create New Store
+      </button>
 
-      <div
-        class="upload-area"
-        (click)="fileInput.click()"
-        (drop)="onDrop($event)"
-        (dragover)="onDragOver($event)"
-        [class.drag-over]="isDragOver"
-      >
-        <div class="upload-content" *ngIf="!selectedFile; else previewTemplate">
-          <i class="fas fa-cloud-upload-alt"></i>
-          <p>Drag & drop your file here</p>
-          <span class="upload-or">or</span>
-          <button class="browse-btn">Browse Files</button>
-          <p class="upload-hint">Supports JPG, PNG up to 5MB</p>
+      <!-- Store Form for Creating New Store -->
+      <div class="form-card" *ngIf="showStoreForm && !editingStore">
+        <div class="form-header">
+          <h3>Create New Store</h3>
+          <button class="close-btn" (click)="resetStoreForm()">&times;</button>
         </div>
 
-        <ng-template #previewTemplate>
-          <div class="preview-container">
-            <img [src]="previewUrl" alt="Preview" class="image-preview" />
-            <div class="preview-actions">
-              <button
-                class="action-btn replace-btn"
-                (click)="$event.stopPropagation(); resetUpload()"
-              >
-                <i class="fas fa-sync-alt"></i> Replace
-              </button>
+        <!-- Store Logo Upload Section -->
+        <div class="upload-card">
+          <div class="upload-header">
+            <h2>Store Logo</h2>
+            <p>Upload a logo for your store</p>
+          </div>
+          <div class="upload-area" (click)="storeFileInput.click()" (drop)="onStoreDrop($event)"
+            (dragover)="onStoreDragOver($event)" [class.drag-over]="isStoreDragOver">
+            <div class="upload-content" *ngIf="!selectedStoreFile && !storeModel.storeLogo; else storePreviewTemplate">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <p>Drag & drop store logo here</p>
+              <span class="upload-or">or</span>
+              <button type="button" class="browse-btn">Browse Files</button>
+              <p class="upload-hint">Supports JPG, PNG up to 5MB</p>
+            </div>
+
+            <ng-template #storePreviewTemplate>
+              <div class="preview-container">
+                <img [src]="storeModel.storeLogo || storePreviewUrl" alt="Store Logo Preview" class="image-preview" />
+                <div class="preview-actions">
+                  <button type="button" class="action-btn replace-btn"
+                    (click)="$event.stopPropagation(); resetStoreUpload()">
+                    <i class="fas fa-sync-alt"></i> Replace
+                  </button>
+                </div>
+              </div>
+            </ng-template>
+
+            <input #storeFileInput type="file" hidden (change)="onStoreFileSelected($event)"
+              accept="image/jpeg, image/png" />
+          </div>
+        </div>
+
+        <form (ngSubmit)="createStore()" #storeForm="ngForm">
+          <div class="form-group">
+            <label for="storeName">Store Name</label>
+            <input type="text" id="storeName" name="storeName" [(ngModel)]="storeModel.storeName" required>
+          </div>
+
+          <div class="form-group">
+            <label for="storeDescription">Description</label>
+            <textarea id="storeDescription" name="storeDescription" [(ngModel)]="storeModel.storeDescription"
+              required></textarea>
+          </div>
+
+          <div class="form-group address-autocomplete">
+            <label for="storeAddress">Address</label>
+            <input
+              type="text"
+              id="storeAddress"
+              name="storeAddress"
+              [(ngModel)]="storeModel.storeAddress"
+              (input)="onAddressInput(storeModel.storeAddress)"
+              (blur)="clearAddressSuggestions()"
+              autocomplete="off"
+              placeholder="Start typing an address…"
+              required>
+            <small class="address-hint" *ngIf="!addressConfirmed && storeModel.storeAddress">
+              ⚠ Select an address from the suggestions to ensure it can be routed.
+            </small>
+            <ul class="address-suggestions" *ngIf="addressSuggestions.length > 0">
+              <li *ngFor="let s of addressSuggestions" (mousedown)="selectAddress(s)">{{ s.label }}</li>
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <label for="storeEmail">Contact Email</label>
+            <input type="email" id="storeEmail" name="storeEmail" [(ngModel)]="storeModel.storeEmail" required>
+          </div>
+
+          <div class="form-group">
+            <label for="storePhoneNumber">Contact Phone</label>
+            <input type="tel" id="storePhoneNumber" name="storePhoneNumber" [(ngModel)]="storeModel.storePhoneNumber"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label>Business Hours</label>
+            <div class="business-hours-row">
+              <label for="startDay">Start Day</label>
+              <select id="startDay" [(ngModel)]="storeModel.startDay" name="startDay" required>
+                <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+              </select>
+              <label for="endDay">End Day</label>
+              <select id="endDay" [(ngModel)]="storeModel.endDay" name="endDay" required>
+                <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+              </select>
+            </div>
+            <div class="business-hours-row">
+              <label for="startTime">Start Time</label>
+              <input type="time" id="startTime" [(ngModel)]="storeModel.startTime" name="startTime" required>
+              <label for="endTime">End Time</label>
+              <input type="time" id="endTime" [(ngModel)]="storeModel.endTime" name="endTime" required>
+            </div>
+            <button type="button" class="btn-secondary" (click)="updateBusinessHours()">Set Business Hours</button>
+            <div *ngIf="storeModel.storeBusinessHours">
+              <small>Business Hours: {{ storeModel.storeBusinessHours }}</small>
             </div>
           </div>
-        </ng-template>
 
-        <input
-          #fileInput
-          type="file"
-          hidden
-          (change)="onFileSelected($event)"
-          accept="image/jpeg, image/png"
-        />
-      </div>
-
-      <div class="upload-actions" *ngIf="selectedFile">
-        <button class="upload-btn" (click)="uploadFile()">Upload Photo</button>
-        <button class="cancel-btn" (click)="resetUpload()">Cancel</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Stats Cards -->
-  <section class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-shopping-bag"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Total Orders</h3>
-        <p class="stat-value">245</p>
-        <p class="stat-change positive">+12.5% <span>vs last week</span></p>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="!storeForm.valid || isLoading">
+              {{ isLoading ? 'Processing...' : 'Create Store' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="resetStoreForm()" [disabled]="isLoading">
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-wallet"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Revenue</h3>
-        <p class="stat-value">R52,489.00</p>
-        <p class="stat-change positive">+8.2% <span>vs last week</span></p>
-      </div>
-    </div>
+    <!-- Stores Grid -->
+    <div class="stores-grid" *ngIf="stores.length > 0">
+      <div *ngFor="let store of stores">
+        <!-- Inline Edit Form for this store -->
+        <div class="form-card" *ngIf="editingStore?.storeId === store.storeId">
+          <div class="form-header">
+            <h3>Update Store</h3>
+            <button class="close-btn" (click)="resetStoreForm()">&times;</button>
+          </div>
 
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-users"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Active Customers</h3>
-        <p class="stat-value">1,234</p>
-        <p class="stat-change positive">+5.3% <span>vs last week</span></p>
-      </div>
-    </div>
+          <!-- Store Logo Upload Section -->
+          <div class="upload-card">
+            <div class="upload-header">
+              <h2>Store Logo</h2>
+              <p>Upload a logo for your store</p>
+            </div>
+            <div class="upload-area" (click)="storeFileInput.click()" (drop)="onStoreDrop($event)"
+              (dragover)="onStoreDragOver($event)" [class.drag-over]="isStoreDragOver">
+              <div class="upload-content"
+                *ngIf="!selectedStoreFile && !storeModel.storeLogo; else storePreviewTemplate">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop store logo here</p>
+                <span class="upload-or">or</span>
+                <button type="button" class="browse-btn">Browse Files</button>
+                <p class="upload-hint">Supports JPG, PNG up to 5MB</p>
+              </div>
 
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-box"></i>
-      </div>
-      <div class="stat-info">
-        <h3>Products</h3>
-        <p class="stat-value">89</p>
-        <p class="stat-change neutral">0% <span>vs last week</span></p>
-      </div>
-    </div>
-  </section>
+              <ng-template #storePreviewTemplate>
+                <div class="preview-container">
+                  <img [src]="storeModel.storeLogo || storePreviewUrl" alt="Store Logo Preview" class="image-preview" />
+                  <div class="preview-actions">
+                    <button type="button" class="action-btn replace-btn"
+                      (click)="$event.stopPropagation(); resetStoreUpload()">
+                      <i class="fas fa-sync-alt"></i> Replace
+                    </button>
+                  </div>
+                </div>
+              </ng-template>
 
-  <!-- Recent Orders -->
-  <section class="orders-section">
-    <div class="section-header">
-      <h2>Recent Orders</h2>
-      <button class="view-all-btn">View All</button>
-    </div>
-    <div class="orders-table-container">
-      <table class="orders-table">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Products</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let order of recentOrders">
-            <td>{{ order.id }}</td>
-            <td>{{ order.customer }}</td>
-            <td>{{ order.products }}</td>
-            <td>R{{ order.total.toFixed(2) }}</td>
-            <td>
-              <span class="status-badge" [class]="order.status.toLowerCase()">
-                {{ order.status }}
-              </span>
-            </td>
-            <td>
-              <button class="action-btn">
-                <i class="fas fa-ellipsis-v"></i>
+              <input #storeFileInput type="file" hidden (change)="onStoreFileSelected($event)"
+                accept="image/jpeg, image/png" />
+            </div>
+          </div>
+
+          <form (ngSubmit)="updateStore()" #storeForm="ngForm">
+            <div class="form-group">
+              <label for="storeName">Store Name</label>
+              <input type="text" id="storeName" name="storeName" [(ngModel)]="storeModel.storeName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="storeDescription">Description</label>
+              <textarea id="storeDescription" name="storeDescription" [(ngModel)]="storeModel.storeDescription"
+                required></textarea>
+            </div>
+
+            <div class="form-group address-autocomplete">
+              <label for="storeAddress">Address</label>
+              <input
+                type="text"
+                id="storeAddress"
+                name="storeAddress"
+                [(ngModel)]="storeModel.storeAddress"
+                (input)="onAddressInput(storeModel.storeAddress)"
+                (blur)="clearAddressSuggestions()"
+                autocomplete="off"
+                placeholder="Start typing an address…"
+                required>
+              <small class="address-hint" *ngIf="!addressConfirmed && storeModel.storeAddress">
+                ⚠ Select an address from the suggestions to ensure it can be routed.
+              </small>
+              <ul class="address-suggestions" *ngIf="addressSuggestions.length > 0">
+                <li *ngFor="let s of addressSuggestions" (mousedown)="selectAddress(s)">{{ s.label }}</li>
+              </ul>
+            </div>
+
+            <div class="form-group">
+              <label for="storeEmail">Contact Email</label>
+              <input type="email" id="storeEmail" name="storeEmail" [(ngModel)]="storeModel.storeEmail" required>
+            </div>
+
+            <div class="form-group">
+              <label for="storePhoneNumber">Contact Phone</label>
+              <input type="tel" id="storePhoneNumber" name="storePhoneNumber" [(ngModel)]="storeModel.storePhoneNumber"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label>Business Hours</label>
+              <div class="business-hours-row">
+                <label for="editStartDay">Start Day</label>
+                <select id="editStartDay" [(ngModel)]="storeModel.startDay" name="editStartDay" required>
+                  <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+                </select>
+                <label for="editEndDay">End Day</label>
+                <select id="editEndDay" [(ngModel)]="storeModel.endDay" name="editEndDay" required>
+                  <option *ngFor="let day of daysOfWeek" [value]="day">{{ day }}</option>
+                </select>
+              </div>
+              <div class="business-hours-row">
+                <label for="editStartTime">Start Time</label>
+                <input type="time" id="editStartTime" [(ngModel)]="storeModel.startTime" name="editStartTime" required>
+                <label for="editEndTime">End Time</label>
+                <input type="time" id="editEndTime" [(ngModel)]="storeModel.endTime" name="editEndTime" required>
+              </div>
+              <button type="button" class="btn-secondary" (click)="updateBusinessHours()">Set Business Hours</button>
+              <div *ngIf="storeModel.storeBusinessHours">
+                <small>Business Hours: {{ storeModel.storeBusinessHours }}</small>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" [disabled]="!storeForm.valid || isLoading">
+                {{ isLoading ? 'Processing...' : 'Update Store' }}
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <button type="button" class="btn-secondary" (click)="resetStoreForm()" [disabled]="isLoading">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Store Card (shown when not editing) -->
+      <div class="store-card" *ngIf="editingStore?.storeId !== store.storeId"
+        [class.selected]="selectedStore?.storeId === store.storeId" (click)="onStoreSelected(store)">
+        <div class="store-logo">
+          <img [src]="store.storeLogo || 'assets/default-store.png'" [alt]="store.storeName">
+        </div>
+        <div class="store-info">
+          <h4>{{ store.storeName }}</h4>
+          <p>{{ store.storeDescription }}</p>
+          <div class="store-details">
+            <span><i class="fas fa-map-marker-alt"></i> {{ store.storeAddress }}</span>
+            <span><i class="fas fa-envelope"></i> {{ store.storeEmail }}</span>
+            <span><i class="fas fa-phone"></i> {{ store.storePhoneNumber }}</span>
+            <span><i class="fas fa-clock"></i> {{ store.storeBusinessHours }}</span>
+          </div>
+          <button class="btn-primary" (click)="navigateToProductManagement(store); $event.stopPropagation()">
+            View Products
+          </button>
+
+          <div class="button-group">
+            <button class="btn-warning" (click)="editStore(store); $event.stopPropagation()">
+              Edit
+            </button>
+            <button class="btn-danger" (click)="deleteStore(+store.storeId!); $event.stopPropagation()">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="stores.length === 0 && !showStoreForm">
+        <i class="fas fa-store"></i>
+        <h3>No Stores Created</h3>
+        <p>Start by creating your first store</p>
+        <button class="btn-primary" (click)="showStoreForm = true">
+          Create Your First Store
+        </button>
+      </div>
+
+      <div *ngIf="!isAdmin" class="access-denied">
+        <i class="fas fa-lock"></i>
+        <h2>Access Restricted</h2>
+        <p>You need administrator privileges to access store management features.</p>
+      </div>
+
+
+      <!-- Product Creation Section -->
+      <section class="management-section" *ngIf="isAdmin && showProductForm && selectedStore">
+        <div class="section-header">
+          <h2>Products for {{ selectedStore.storeName }}</h2>
+          <button class="btn-primary" (click)="showProductForm = true" *ngIf="!showProductForm">
+            <i class="fas fa-plus"></i> Add New Product
+          </button>
+        </div>
+
+        <div class="form-card">
+          <!-- Product Image Upload -->
+          <div class="upload-card">
+            <div class="upload-header">
+              <h2>Product Image</h2>
+              <p>Upload an image for your product</p>
+            </div>
+            <div class="upload-area" (click)="fileInput.click()" (drop)="onStoreDrop($event)"
+              (dragover)="onStoreDragOver($event)" [class.drag-over]="isDragOver">
+              <div class="upload-content" *ngIf="!selectedFile && !newProduct.imageUrl; else productPreviewTemplate">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop product image here</p>
+                <span class="upload-or">or</span>
+                <button type="button" class="browse-btn">Browse Files</button>
+                <p class="upload-hint">Supports JPG, PNG up to 5MB</p>
+              </div>
+
+              <ng-template #productPreviewTemplate>
+                <div class="preview-container">
+                  <img [src]="newProduct.imageUrl || previewUrl" alt="Preview" class="image-preview" />
+                  <div class="preview-actions">
+                    <button type="button" class="action-btn replace-btn"
+                      (click)="$event.stopPropagation(); resetUpload()">
+                      <i class="fas fa-sync-alt"></i> Replace
+                    </button>
+                  </div>
+                </div>
+              </ng-template>
+
+              <input #fileInput type="file" hidden (change)="onStoreFileSelected($event)"
+                accept="image/jpeg, image/png" />
+            </div>
+
+            <div class="upload-actions" *ngIf="selectedFile">
+              <button class="upload-btn" (click)="uploadFile()">Upload Image</button>
+              <button class="cancel-btn" (click)="resetUpload()">Cancel</button>
+            </div>
+          </div>
+
+          <form (ngSubmit)="createProduct()" class="product-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="productName">Product Name</label>
+                <input type="text" id="productName" [(ngModel)]="newProduct.productName" name="productName" required>
+              </div>
+              <div class="form-group">
+                <label for="productCategory">Category</label>
+                <input type="text" id="productCategory" [(ngModel)]="newProduct.category" name="productCategory"
+                  required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="productPrice">Price (R)</label>
+                <input type="number" id="productPrice" [(ngModel)]="newProduct.productPrice" name="productPrice"
+                  step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label for="productStock">Stock Quantity</label>
+                <input type="number" id="productStock" [(ngModel)]="newProduct.stockQuantity" name="productStock"
+                  required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="productDescription">Description</label>
+              <textarea id="productDescription" [(ngModel)]="newProduct.productDescription" name="productDescription"
+                required></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" [disabled]="!newProduct.imageUrl || isCreatingProduct">
+                <span *ngIf="isCreatingProduct">
+                  <i class="fas fa-spinner fa-spin"></i> Adding product…
+                </span>
+                <span *ngIf="!isCreatingProduct">Create Product</span>
+              </button>
+              <button type="button" class="btn-secondary" (click)="resetProductForm()" [disabled]="isCreatingProduct">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="empty-state" *ngIf="products.length === 0 && !showProductForm">
+          <i class="fas fa-box-open"></i>
+          <h3>No Products Added</h3>
+          <p>Start by adding products to {{ selectedStore.storeName }}</p>
+          <button class="btn-primary" (click)="showProductForm = true">
+            Add Your First Product
+          </button>
+        </div>
+      </section>
+
+      <!-- Products List -->
+      <section class="management-section" *ngIf="isAdmin && products.length > 0">
+        <div class="section-header">
+          <h2>Products Management</h2>
+        </div>
+
+        <div class="products-grid">
+          <div class="product-card" *ngFor="let product of products">
+            <div class="product-image">
+              <img [src]="product.imageUrl || 'assets/default-product.png'" [alt]="product.productName">
+            </div>
+            <div class="product-info">
+              <h4>{{ product.productName }}</h4>
+              <p class="product-description">{{ product.productDescription }}</p>
+              <div class="product-details">
+                <span class="product-price">R{{ product.productPrice.toFixed(2) }}</span>
+                <span class="product-stock">{{ product.stockQuantity }} in stock</span>
+                <span class="product-category">{{ product.category }}</span>
+              </div>
+              <div class="product-actions">
+                <!-- <button class="btn-danger" (click)="deleteProduct(product.productId!)">
+            <i class="fas fa-trash"></i> Delete
+          </button> -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Non-Admin Message -->
+      <div *ngIf="!isAdmin" class="access-denied">
+        <i class="fas fa-lock"></i>
+        <h2>Access Restricted</h2>
+        <p>You need administrator privileges to access store management features.</p>
+      </div>
+
+
+    <section class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">
+      <i class="fas fa-shopping-bag"></i>
     </div>
-  </section>
-</div>
+    <div class="stat-info">
+      <h3>Total Orders</h3>
+      <p class="stat-value">{{ orderCount }}</p>
+      <p class="stat-change neutral">Across all stores</p>
+    </div>
+  </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Revenue</h3>
+            <p class="stat-value">R52,489.00</p>
+            <p class="stat-change positive">+8.2% <span>vs last week</span></p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Active Stores</h3>
+              <p class="stat-value">{{ totalStores }}</p>
+              <p class="stat-change neutral">Total owned</p>
+          </div>
+        </div>
+
+        <!-- <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-box"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Products</h3>
+            <p class="stat-value">{{ products.length }}</p>
+            <p class="stat-change neutral">0% <span>vs last week</span></p>
+          </div>
+        </div> -->
+      </section>
+
+      <!-- Recent Orders -->
+     <!-- Recent Orders -->
+<section class="orders-section">
+  <div class="section-header">
+    <h2>Recent Orders</h2>
+    <span class="order-count-badge">{{ orderCount }} total orders</span>
+    <button class="view-all-btn" (click)="viewAllOrders()">View All</button>
+  </div>
+
+  <!-- Filter by store indicator -->
+  <div class="store-filter-info" *ngIf="selectedStore">
+    <i class="fas fa-filter"></i>
+    <span>Showing orders for: <strong>{{ selectedStore.storeName }}</strong></span>
+    <button class="clear-filter-btn" (click)="clearStoreFilter()">
+      <i class="fas fa-times"></i> Show All
+    </button>
+  </div>
+
+  <!-- Show actual orders -->
+  <div class="orders-table-container" *ngIf="recentOrders.length > 0">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Store</th>
+          <th>Customer</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of recentOrders">
+          <td data-label="Order ID">#{{ order.orderId }}</td>
+          <td data-label="Store">{{ order.storeName }}</td>
+          <td data-label="Customer">Customer {{ order.userId }}</td>
+          <td data-label="Items">{{ order.itemCount }} items</td>
+          <td data-label="Total">R{{ order.totalAmount.toFixed(2) }}</td>
+          <td data-label="Status">
+            <span class="status-badge" [class]="order.orderStatus.toLowerCase()">
+              {{ order.orderStatus }}
+            </span>
+          </td>
+          <td data-label="Date">{{ order.orderDate | date:'short' }}</td>
+          <td data-label="Actions">
+            <button class="action-btn" (click)="viewOrderDetails(order.orderId)">
+              <i class="fas fa-eye"></i> View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="recentOrders.length === 0 && !isLoading">
+    <i class="fas fa-inbox"></i>
+    <h3>No Orders Yet</h3>
+    <p>Your stores haven't received any orders yet</p>
+  </div>
+</section>

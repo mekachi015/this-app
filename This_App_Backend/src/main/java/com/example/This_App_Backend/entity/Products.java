@@ -19,7 +19,7 @@ public class Products {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
-    private Integer productId;
+    private Long productId;
 
     @ManyToOne // Many products can belong to one store
     @JoinColumn(name = "store_id", nullable = false) // Foreign key to Stores table
@@ -55,7 +55,15 @@ public class Products {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+//    @Column(name = "user_id", nullable = false)
+//    private User user;
+
     // --- Relationships ---
+
+
+    @ManyToOne
+    @JoinColumn(name = "created_by_user_id", nullable = false) // Foreign key to User table
+    private User createdBy;
 
     // One Product can be in many Order_Items
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)

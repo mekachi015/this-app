@@ -1,4 +1,4 @@
-package com.example.This_App_Backend.dto;
+package com.example.This_App_Backend.dto.AuthenticationDTO;
 
 import lombok.Getter;
 import lombok.Setter;
