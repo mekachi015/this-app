@@ -246,6 +246,18 @@ export class StoreDashboardComponent implements OnInit {
       return;
     }
 
+    // Validate description length
+    if (this.storeModel.storeDescription.length > 500) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Description Too Long',
+        text: `Store description cannot exceed 500 characters. You have entered ${this.storeModel.storeDescription.length}.`,
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#e91e8c',
+      });
+      return;
+    }
+
     // Validate business hours are set via the picker
     if (!this.storeModel.storeBusinessHours) {
       Swal.fire({
