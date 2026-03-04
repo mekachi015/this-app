@@ -8,7 +8,7 @@
     <div class="checkout-header">
       <button class="back-btn" (click)="router.navigate(['/cart'])">&#8592; Back to Cart</button>
       <h1>Checkout</h1>
-      <p *ngIf="storeName" class="store-label">Ordering from <strong>{{ storeName }}</strong></p>
+      <p *ngIf="storeNames" class="store-label">Ordering from <strong>{{ storeNames }}</strong></p>
     </div>
 
     <div class="checkout-body">
@@ -109,7 +109,7 @@
               </div>
               <div class="total-row">
                 <span>Shipping</span>
-                <span>R{{ shipping.toFixed(2) }}</span>
+                <span>R{{ applicableShipping.toFixed(2) }}</span>
               </div>
               <div class="total-row grand">
                 <span>Total</span>

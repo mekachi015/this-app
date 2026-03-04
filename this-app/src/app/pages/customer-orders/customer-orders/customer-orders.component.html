@@ -23,12 +23,13 @@
   </div>
 
   <!-- Orders Content -->
-  <main class="orders-content" *ngIf="!isLoading && !errorMessage && orders.length > 0">
+  <main class="orders-content" *ngIf="!isLoading && !errorMessage && groupedOrders.length > 0">
     <div class="order-items">
-      <div class="order-item" *ngFor="let order of orders">
+      <div class="order-item" *ngFor="let order of groupedOrders">
         <div class="order-details">
           <h3>Order :{{ order.orderId }}</h3>
           <p class="order-date">Date: {{ order.createdAt | date }}</p>
+          <p class="store-info" *ngIf="order.checkoutSessionId"><strong>{{ order.storeNames }}</strong></p>
           <p class="order-total">Total: R{{ order.totalAmount?.toFixed(2) }}</p>
           <div class="order-images">
             <img *ngFor="let item of order.items.slice(0, 3)" [src]="item.productImage" [alt]="item.productName" class="product-image">
@@ -46,13 +47,19 @@
   <div class="order-details-modal" *ngIf="selectedOrder">
     <div class="modal-content">
       <h2>Order :{{ selectedOrder.orderId }}</h2>
+      <p *ngIf="selectedOrder.checkoutSessionId"><strong>Stores:</strong> {{ selectedOrder.storeNames }}</p>
       <p><strong>Date:</strong> {{ selectedOrder.createdAt | date }}</p>
-      <p><strong>Total:</strong> R{{ selectedOrder.totalAmount?.toFixed(2) }}</p>
       <p><strong>Status:</strong> {{ selectedOrder.orderStatus }}</p>
       <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress?.streetNumber }}, {{ selectedOrder.deliveryAddress?.city }}, {{ selectedOrder.deliveryAddress?.province }}</p>
-      <h3>Items:</h3>
+      <h3>Order Summary:</h3>
+      <div class="order-breakdown">
+        <p>Subtotal: <strong>R{{ (selectedOrder.totalAmount - selectedOrder.shippingAmount).toFixed(2) }}</strong></p>
+        <p>Shipping: <strong>R{{ selectedOrder.shippingAmount.toFixed(2) }}</strong></p>
+        <p class="total-line">Total: <strong>R{{ selectedOrder.totalAmount.toFixed(2) }}</strong></p>
+      </div>
+      <h3>Items ({{ selectedOrder.items.length }}):</h3>
       <ul class="modal-items-list">
-        <li *ngFor="let item of selectedOrder.items">{{ item.productName }}</li>
+        <li *ngFor="let item of selectedOrder.items">{{ item.productName }} (x{{ item.quantity }})</li>
       </ul>
       <button class="close-modal-btn" (click)="closeOrderDetails()">Close</button>
     </div>

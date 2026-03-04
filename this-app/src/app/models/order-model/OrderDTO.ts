@@ -16,6 +16,7 @@ export interface OrderDTO{
   storeId: number;
   storeName: string;
   storeAddress?: string;   // store's street address used for route origin
+  checkoutSessionId?: string;  // links related orders from multi-store checkout
   deliveryAddress: DeliveryAddressDTO;
   driver?: DriverDTO;
   items: OrderItemDTO[];

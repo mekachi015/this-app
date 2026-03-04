@@ -27,6 +27,7 @@ export class CheckoutPageComponent implements OnInit {
   isCartLoading = false;
   paymentStatus: 'idle' | 'success' | 'cancelled' = 'idle';
   shipping = 0;
+  multiStoreShippingFee = 0;
 
   constructor(
     private cartService: CartService,
@@ -55,8 +56,14 @@ export class CheckoutPageComponent implements OnInit {
     this.loadAddresses();
 
     this.checkoutService.getCheckoutConfig().subscribe({
-      next: (config) => this.shipping = config.shippingFee,
-      error: () => this.shipping = 150 // safety fallback
+      next: (config) => {
+        this.shipping = config.shippingFee;
+        this.multiStoreShippingFee = config.multiStoreShippingFee;
+      },
+      error: () => {
+        this.shipping = 150; // safety fallback
+        this.multiStoreShippingFee = 250;
+      }
     });
   }
 
@@ -89,20 +96,6 @@ export class CheckoutPageComponent implements OnInit {
       next: (res: any) => {
         this.cartItems = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
         this.isCartLoading = false;
-
-        // Enforce single-store rule
-        const storeIds = new Set(this.cartItems.map((i: CartDTO) => i.storeId));
-        if (storeIds.size > 1) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Mixed Stores in Cart',
-            html: `Your cart has items from <strong>${storeIds.size} different stores</strong>.<br>
-                   Orders can only be placed from <strong>one store at a time</strong>.<br>
-                   Please go back and clear your cart.`,
-            confirmButtonColor: '#e91e8c',
-            confirmButtonText: 'Back to Cart',
-          }).then(() => this.router.navigate(['/cart']));
-        }
       },
       error: () => {
         this.isCartLoading = false;
@@ -139,12 +132,18 @@ export class CheckoutPageComponent implements OnInit {
     return this.cartItems.reduce((sum, item) => sum + item.subtotal, 0);
   }
 
-  get total(): number {
-    return this.subtotal + this.shipping;
+  get applicableShipping(): number {
+    const storeIds = new Set(this.cartItems.map(i => i.storeId));
+    return storeIds.size > 1 ? this.multiStoreShippingFee : this.shipping;
   }
 
-  get storeName(): string {
-    return this.cartItems[0]?.storeName ?? '';
+  get total(): number {
+    return this.subtotal + this.applicableShipping;
+  }
+
+  get storeNames(): string {
+    const uniqueStores = [...new Set(this.cartItems.map(i => i.storeName))];
+    return uniqueStores.join(' + ');
   }
 
   navigateToAddresses(): void {
@@ -173,7 +172,7 @@ export class CheckoutPageComponent implements OnInit {
       title: 'Confirm Payment',
       html: `
         <p>You are about to pay via <strong>PayFast</strong>.</p>
-        <p>Order from <strong>${this.storeName}</strong></p>
+        <p>Order from <strong>${this.storeNames}</strong></p>
         <p>Total: <strong>R${this.total.toFixed(2)}</strong></p>
       `,
       showCancelButton: true,
