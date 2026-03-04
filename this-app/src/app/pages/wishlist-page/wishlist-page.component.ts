@@ -4,10 +4,12 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar.compo
 import { CommonModule } from '@angular/common';
 import { WishlistService } from '../../services/wishlist-service/wishlist.service';
 import { AuthService } from '../../services/authentication-service/auth.service';
+import { CartService } from '../../services/cart-service/cart.service';
 import { WishlistResponse } from '../../models/wishlist-models/wishlistResponse';
-
 import { StoreWishlistItem } from '../../models/wishlist-models/store-wishlist-item';
 import { ProductWishlistItem } from '../../models/wishlist-models/product-wishlist-item';
+import { RouterModule } from '@angular/router';
+import Swal from 'sweetalert2';
 
 
 interface Store {
@@ -24,7 +26,7 @@ interface Store {
 @Component({
   selector: 'app-wishlist-page',
   standalone: true,
-  imports: [CommonModule, StoreCardComponent, SearchBarComponent],
+  imports: [CommonModule, StoreCardComponent, SearchBarComponent, RouterModule],
   templateUrl: './wishlist-page.component.html',
   styleUrl: './wishlist-page.component.scss'
 })
@@ -37,7 +39,8 @@ export class WishlistPageComponent {
 
   constructor(
     private wishlistService: WishlistService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cartService: CartService
   ) {}
 
   ngOnInit(): void {
@@ -127,42 +130,74 @@ export class WishlistPageComponent {
     });
   }
 
-  // ... rest of your methods remain the same
-  removeStoreFromWishlist(store: StoreWishlistItem): void {
-    if (!confirm(`Remove ${store.storeName} from your wishlist?`)) {
-      return;
-    }
-
-    this.wishlistService.removeFromWishlist(store.wishlistId, this.currentUserId).subscribe({
-      next: (response: WishlistResponse) => {
-        if (response.success) {
-          this.favoriteStores = this.favoriteStores.filter(s => s.wishlistId !== store.wishlistId);
-          console.log('Store removed from wishlist');
-        }
+  addToCart(item: ProductWishlistItem): void {
+    if (!item.productId) return;
+    this.cartService.addToCart(this.currentUserId, item.productId, 1).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Added to Cart',
+          text: `${item.productName} has been added to your cart.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
       },
-      error: (err) => {
-        console.error('Failed to remove store:', err);
-        alert('Failed to remove store. Please try again.');
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: 'Could not add item to cart. Please try again.',
+        });
       }
     });
   }
 
-  removeProductFromWishlist(product: ProductWishlistItem): void {
-    if (!confirm(`Remove ${product.productName} from your wishlist?`)) {
-      return;
-    }
-
-    this.wishlistService.removeFromWishlist(product.wishlistId, this.currentUserId).subscribe({
-      next: (response: WishlistResponse) => {
-        if (response.success) {
-          this.favoriteClothes = this.favoriteClothes.filter(p => p.wishlistId !== product.wishlistId);
-          console.log('Product removed from wishlist');
+  // ... rest of your methods remain the same
+  removeStoreFromWishlist(store: StoreWishlistItem): void {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Remove Store?',
+      text: `Remove ${store.storeName} from your wishlist?`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, remove it',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#ff3366',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      this.wishlistService.removeFromWishlist(store.wishlistId, this.currentUserId).subscribe({
+        next: (response: WishlistResponse) => {
+          if (response.success) {
+            this.favoriteStores = this.favoriteStores.filter(s => s.wishlistId !== store.wishlistId);
+          }
+        },
+        error: () => {
+          Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to remove store. Please try again.' });
         }
-      },
-      error: (err) => {
-        console.error('Failed to remove product:', err);
-        alert('Failed to remove product. Please try again.');
-      }
+      });
+    });
+  }
+
+  removeProductFromWishlist(product: ProductWishlistItem): void {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Remove Item?',
+      text: `Remove ${product.productName} from your wishlist?`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, remove it',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#ff3366',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      this.wishlistService.removeFromWishlist(product.wishlistId, this.currentUserId).subscribe({
+        next: (response: WishlistResponse) => {
+          if (response.success) {
+            this.favoriteClothes = this.favoriteClothes.filter(p => p.wishlistId !== product.wishlistId);
+          }
+        },
+        error: () => {
+          Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to remove item. Please try again.' });
+        }
+      });
     });
   }
 

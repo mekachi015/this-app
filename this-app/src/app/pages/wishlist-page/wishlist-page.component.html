@@ -38,20 +38,23 @@
     <!-- Favorite Clothes Section -->
     <section class="favorite-clothes-section" *ngIf="favoriteClothes.length > 0">
       <div class="section-header">
-        <h2>Your Favorite Clothes</h2>
+        <h2>Your Favourite Clothes</h2>
         <span class="item-count">{{ favoriteClothes.length }} items</span>
       </div>
       <div class="clothes-grid">
-        <div class="clothing-card" *ngFor="let item of favoriteClothes">
-          <img [src]="item.productImage" [alt]="item.productName" />
-          <div class="clothing-info">
-            <h3>{{ item.productName }}</h3>
-            <p class="store-name">{{ item.storeName }}</p>
-            <p class="price">R{{ item.productPrice?.toFixed(2) }}</p>
+        <div class="product-card" *ngFor="let item of favoriteClothes">
+          <div class="product-image">
+            <img [src]="item.productImage" [alt]="item.productName">
+            <button class="wishlist-button" (click)="removeProductFromWishlist(item)" title="Remove from wishlist">
+              <i class="fas fa-trash"></i>
+            </button>
           </div>
-          <button class="remove-wishlist-btn" (click)="removeProductFromWishlist(item)">
-            <i class="fas fa-heart-broken"></i> Remove
-          </button>
+          <div class="product-info">
+            <h3>{{ item.productName }}</h3>
+            <p>{{ item.storeName }}</p>
+            <p class="price">R{{ item.productPrice?.toFixed(2) }}</p>
+            <button class="add-to-cart" (click)="addToCart(item)">Add to Cart</button>
+          </div>
         </div>
       </div>
     </section>
