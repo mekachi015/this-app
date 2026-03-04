@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { StoreCardComponent } from '../../components/store-front/store-card/store-card.component';
-import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { WishlistService } from '../../services/wishlist-service/wishlist.service';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { CartService } from '../../services/cart-service/cart.service';
@@ -26,13 +26,15 @@ interface Store {
 @Component({
   selector: 'app-wishlist-page',
   standalone: true,
-  imports: [CommonModule, StoreCardComponent, SearchBarComponent, RouterModule],
+  imports: [CommonModule, FormsModule, StoreCardComponent, RouterModule],
   templateUrl: './wishlist-page.component.html',
   styleUrl: './wishlist-page.component.scss'
 })
 export class WishlistPageComponent {
   favoriteStores: StoreWishlistItem[] = [];
   favoriteClothes: ProductWishlistItem[] = [];
+  filteredClothes: ProductWishlistItem[] = [];
+  searchQuery: string = '';
   currentUserId: number = 0;
   isLoading: boolean = false;
   errorMessage: string = '';
@@ -114,6 +116,7 @@ export class WishlistPageComponent {
               description: ''
             }));
 
+          this.filteredClothes = [...this.favoriteClothes];
           console.log('Wishlist loaded successfully');
           console.log('Stores:', this.favoriteStores.length);
           console.log('Products:', this.favoriteClothes.length);
@@ -128,6 +131,23 @@ export class WishlistPageComponent {
         this.isLoading = false;
       }
     });
+  }
+
+  onSearchChange(): void {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) {
+      this.filteredClothes = [...this.favoriteClothes];
+      return;
+    }
+    this.filteredClothes = this.favoriteClothes.filter(item =>
+      (item.productName?.toLowerCase().includes(q)) ||
+      (item.storeName?.toLowerCase().includes(q))
+    );
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.filteredClothes = [...this.favoriteClothes];
   }
 
   addToCart(item: ProductWishlistItem): void {
@@ -192,6 +212,7 @@ export class WishlistPageComponent {
         next: (response: WishlistResponse) => {
           if (response.success) {
             this.favoriteClothes = this.favoriteClothes.filter(p => p.wishlistId !== product.wishlistId);
+            this.filteredClothes = this.filteredClothes.filter(p => p.wishlistId !== product.wishlistId);
           }
         },
         error: () => {
