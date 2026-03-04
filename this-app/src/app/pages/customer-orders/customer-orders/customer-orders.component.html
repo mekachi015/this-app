@@ -51,11 +51,8 @@
       <p><strong>Status:</strong> {{ selectedOrder.orderStatus }}</p>
       <p><strong>Delivery Address:</strong> {{ selectedOrder.deliveryAddress?.streetNumber }}, {{ selectedOrder.deliveryAddress?.city }}, {{ selectedOrder.deliveryAddress?.province }}</p>
       <h3>Items:</h3>
-      <ul>
-        <li *ngFor="let item of selectedOrder.items">
-          <img [src]="item.productImage" [alt]="item.productName" class="product-image">
-          <span>{{ item.productName }} - R{{ item.productPrice.toFixed(2) }} x {{ item.quantity }}</span>
-        </li>
+      <ul class="modal-items-list">
+        <li *ngFor="let item of selectedOrder.items">{{ item.productName }}</li>
       </ul>
       <button class="close-modal-btn" (click)="closeOrderDetails()">Close</button>
     </div>
