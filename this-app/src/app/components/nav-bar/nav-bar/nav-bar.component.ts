@@ -11,6 +11,7 @@ interface SidebarItem {
   route: string;
   requiredRole?: string;
   loginRoute?: string;
+  forbiddenRoles?: string[];
 }
 
 @Component({
@@ -27,7 +28,7 @@ export class NavBarComponent {
   sidebarVisible: boolean = false;
 
    sidebarItems: SidebarItem[] = [
-    { label: 'Home', route: '/home', icon: 'home' },
+    { label: 'Home', route: '/home', icon: 'home', forbiddenRoles: ['ADMIN', 'DRIVER'] },
     { label: 'Profile', route: '/profile', icon: 'user-circle' },
     { label: 'Settings', route: '/settings', icon: 'cog' },
     { label: 'Address', route: '/addresses', icon: 'map-marker-alt', requiredRole: 'CUSTOMER', loginRoute: '/login' },
@@ -46,6 +47,17 @@ export class NavBarComponent {
   async handleNavigation(item: SidebarItem): Promise<void> {
     const isLoggedIn = this.authService.isLoggedIn();
     const userRole = this.authService.getUserRole();
+
+    // Block access if the user's role is explicitly forbidden
+    if (item.forbiddenRoles && isLoggedIn && item.forbiddenRoles.includes(userRole ?? '')) {
+      this.toggleSidebar();
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: `${item.label} is not available for ${userRole?.toLowerCase()} accounts.`
+      });
+      return;
+    }
 
     if (item.requiredRole) {
       if (!isLoggedIn) {
