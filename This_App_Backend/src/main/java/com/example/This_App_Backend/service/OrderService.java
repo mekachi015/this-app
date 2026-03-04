@@ -144,10 +144,12 @@ public class OrderService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Store_Owners storeOwner = storeOwnerRepo.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("User is not a store owner"));
+        java.util.Optional<Store_Owners> storeOwner = storeOwnerRepo.findByUser(user);
+        if (storeOwner.isEmpty()) {
+            return List.of();
+        }
 
-        return orderRepo.findByStore_StoreOwnerOrderByOrderDateDesc(storeOwner)
+        return orderRepo.findByStore_StoreOwnerOrderByOrderDateDesc(storeOwner.get())
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -184,10 +186,12 @@ public class OrderService {
             throw new RuntimeException("Only admins can view their orders");
         }
 
-        Store_Owners storeOwners =  storeOwnerRepo.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("User is not a store owner"));
+        java.util.Optional<Store_Owners> storeOwners = storeOwnerRepo.findByUser(user);
+        if (storeOwners.isEmpty()) {
+            return List.of();
+        }
 
-        return orderRepo.findByStore_StoreOwnerOrderByOrderDateDesc(storeOwners)
+        return orderRepo.findByStore_StoreOwnerOrderByOrderDateDesc(storeOwners.get())
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

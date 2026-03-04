@@ -137,11 +137,13 @@ public class StoreService {
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Store_Owners storeOwner = storeOwnerRepo.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("You don't have any stores yet"));
+        Optional<Store_Owners> storeOwner = storeOwnerRepo.findByUser(user);
+        if (storeOwner.isEmpty()) {
+            return List.of();
+        }
 
         // Pass the entire Store_Owners entity, not just the ID
-        return storeRepo.findByStoreOwner(storeOwner);
+        return storeRepo.findByStoreOwner(storeOwner.get());
     }
 
     /**
