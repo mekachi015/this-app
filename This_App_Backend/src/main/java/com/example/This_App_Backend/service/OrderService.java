@@ -219,6 +219,7 @@ public class OrderService {
         dto.setEstimatedDeliveryDate(orders.getEstimatedDeliveryDate());
         dto.setActualDeliveryDate(orders.getActualDeliveryDate());
         dto.setIsAssignedDriver(orders.getIsAssignedDriver());
+        dto.setCheckoutSessionId(orders.getCheckoutSessionId());
         dto.setCreatedAt(orders.getCreatedAt());
         dto.setUpdatedAt(orders.getUpdatedAt());
 

@@ -36,9 +36,11 @@ public class PendingCheckout {
     @Column(name =  "shipping_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal shippingAmount;
 
-    @Column(name = "store_id", nullable = false)
+    @Column(name = "store_id", nullable = true)
     private Long storeId;
 
+    @Column(name = "store_count", nullable = false)
+    private int storeCount = 1;
 
     //Json snapshot of cart at moment checkout is initiated
     @Column(name = "cart_snapshot", columnDefinition = "TEXT", nullable = false)

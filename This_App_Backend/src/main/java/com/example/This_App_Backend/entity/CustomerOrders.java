@@ -66,6 +66,9 @@ public class CustomerOrders {
     @Column(name = "actual_delivery_date")
     private LocalDate actualDeliveryDate;
 
+    @Column(name = "checkout_session_id")
+    private String checkoutSessionId;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
