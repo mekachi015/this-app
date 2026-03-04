@@ -6,10 +6,11 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { Store } from '../../models/store-admin-models/store-admin/Store';
 import { StoreAdminServiceService } from '../../services/store-admin-service/store-admin-service.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CreateProductDTO } from '../../models/store-admin-models/product-admin/CreateProductDTO';
 import { ProductService } from '../../services/product-service/product.service';
 import { Product } from '../../models/store-admin-models/product-admin/product';
+import { WalletService } from '../../services/wallet-service/wallet.service';
 
 import Swal from 'sweetalert2';
 
@@ -24,7 +25,7 @@ interface Order {
 @Component({
   selector: 'app-store-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './store-dashboard.component.html',
   styleUrl: './store-dashboard.component.scss',
 })
@@ -37,6 +38,7 @@ export class StoreDashboardComponent implements OnInit {
 
   // --- Product creation loader ---
   isCreatingProduct = false;
+  isCreatingStore = false;
   daysOfWeek: string[] = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
   ];
@@ -51,6 +53,7 @@ export class StoreDashboardComponent implements OnInit {
 
   totalProducts: number = 0;
   totalStores: number = 0;
+  walletBalance: number = 0;
 
   // File upload properties
   selectedFile: File | null = null;
@@ -120,6 +123,7 @@ export class StoreDashboardComponent implements OnInit {
     public authService: AuthService,
     private storeAdminService: StoreAdminServiceService,
     private productService: ProductService,
+    private walletService: WalletService,
     private router: Router,
     private http: HttpClient,
   ) {}
@@ -178,6 +182,7 @@ export class StoreDashboardComponent implements OnInit {
     if (user?.id) {
       this.storeModel.ownerId = user.id;
       this.loadOrderCount(Number(user.id));
+      this.loadWalletBalance(Number(user.id));
     }
 
     this.loadStores();
@@ -194,6 +199,10 @@ export class StoreDashboardComponent implements OnInit {
           this.errorMessage = 'Failed to navigate to product management';
         });
     }
+  }
+
+  navigateToWallet(): void{
+    this.router.navigate(['/wallet'], { queryParams: { returnUrl: '/dashboard' } });
   }
 
   // ---------------------- Auth ----------------------
@@ -237,18 +246,28 @@ export class StoreDashboardComponent implements OnInit {
       return;
     }
 
-    // Validate that all required fields are filled
+    // Validate business hours are set via the picker
+    if (!this.storeModel.storeBusinessHours) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Business Hours Required',
+        text: 'Please set your business hours and click "Set Business Hours" before creating store.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    // Validate that all other required fields are filled
     if (
       !this.storeModel.storeAddress ||
       !this.storeModel.storeEmail ||
-      !this.storeModel.storePhoneNumber ||
-      !this.storeModel.storeBusinessHours
+      !this.storeModel.storePhoneNumber
     ) {
       this.errorMessage = 'All store fields are required';
       return;
     }
 
-    this.isLoading = true;
+    this.isCreatingStore = true;
 
     // Pass storeModel and selectedStoreFile (can be null)
     this.storeAdminService
@@ -260,7 +279,7 @@ export class StoreDashboardComponent implements OnInit {
         next: (store) => {
           this.stores.push(store);
           this.resetStoreForm();
-          this.isLoading = false;
+          this.isCreatingStore = false;
           Swal.fire({
             icon: 'success',
             title: 'Store created successfully!',
@@ -278,7 +297,7 @@ export class StoreDashboardComponent implements OnInit {
             errorMsg += 'Unknown error occurred';
           }
           this.errorMessage = errorMsg;
-          this.isLoading = false;
+          this.isCreatingStore = false;
           Swal.fire({
             icon: 'error',
             title: 'Store creation failed',
@@ -661,6 +680,13 @@ export class StoreDashboardComponent implements OnInit {
     }
   });
 }
+
+  loadWalletBalance(userId: number): void {
+    this.walletService.getBalance(userId).subscribe({
+      next: (res) => { this.walletBalance = res.balance; },
+      error: () => { this.walletBalance = 0; }
+    });
+  }
 
   clearStoreFilter(): void{
     this.selectedStore = null;

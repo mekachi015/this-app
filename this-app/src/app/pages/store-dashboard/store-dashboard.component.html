@@ -5,6 +5,12 @@
     <p>Loading...</p>
   </div>
 
+  <!-- Store Creation Loader -->
+  <div class="loading-overlay" *ngIf="isCreatingStore">
+    <div class="spinner"></div>
+    <p>Creating Store&hellip;</p>
+  </div>
+
   <!-- Product Creation Loader -->
   <div class="loading-overlay" *ngIf="isCreatingProduct">
     <div class="spinner"></div>
@@ -481,14 +487,14 @@
     </div>
   </div>
 
-        <div class="stat-card">
+        <div class="stat-card" (click)="navigateToWallet()" style="cursor:pointer">
           <div class="stat-icon">
             <i class="fas fa-wallet"></i>
           </div>
           <div class="stat-info">
-            <h3>Revenue</h3>
-            <p class="stat-value">R52,489.00</p>
-            <p class="stat-change positive">+8.2% <span>vs last week</span></p>
+            <h3>Wallet</h3>
+            <p class="stat-value">R{{ walletBalance | number:'1.2-2' }}</p>
+            <p class="stat-change positive">Wallet balance</p>
           </div>
         </div>
 
@@ -524,14 +530,14 @@
     <button class="view-all-btn" (click)="viewAllOrders()">View All</button>
   </div>
 
-  <!-- Filter by store indicator -->
+  <!-- Filter by store indicator
   <div class="store-filter-info" *ngIf="selectedStore">
     <i class="fas fa-filter"></i>
     <span>Showing orders for: <strong>{{ selectedStore.storeName }}</strong></span>
     <button class="clear-filter-btn" (click)="clearStoreFilter()">
       <i class="fas fa-times"></i> Show All
     </button>
-  </div>
+  </div> -->
 
   <!-- Show actual orders -->
   <div class="orders-table-container" *ngIf="recentOrders.length > 0">

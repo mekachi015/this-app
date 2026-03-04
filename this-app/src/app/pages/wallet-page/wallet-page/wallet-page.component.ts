@@ -66,7 +66,9 @@ export class WalletPageComponent implements OnInit {
   }
 
   goBack(): void{
-    this.router.navigate(['/profile']);
+    // this.router.navigate(['/profile']);
+    window.history.back();
+
   }
 
   //Maps CREDIT or DEBIT to a css class for colour coding
