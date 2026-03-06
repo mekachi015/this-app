@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+#Enviroment variables
+.env
+.env.local
+.env.*.local
+
+#Maven
+target/
