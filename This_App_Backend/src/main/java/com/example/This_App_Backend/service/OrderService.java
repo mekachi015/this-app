@@ -209,11 +209,8 @@ public class OrderService {
         dto.setTotalAmount(orders.getTotalAmount());
         dto.setShippingAmount(orders.getShippingAmount()); // was incorrectly dto.getShippingAmount()
 
-        // Calculate subtotal
-        BigDecimal subtotal = orders.getTotalAmount().subtract(
-                orders.getShippingAmount() != null ? orders.getShippingAmount() : BigDecimal.ZERO
-        );
-        dto.setSubTotal(subtotal);
+        // Subtotal is now stored directly in totalAmount (shipping is separate)
+        dto.setSubTotal(orders.getTotalAmount());
 
         dto.setOrderDate(orders.getOrderDate());
         dto.setEstimatedDeliveryDate(orders.getEstimatedDeliveryDate());

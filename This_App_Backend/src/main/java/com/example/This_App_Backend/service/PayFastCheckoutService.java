@@ -266,7 +266,7 @@ public class PayFastCheckoutService {
            order.setOrderStatus(OrderStatus.PENDING);
            order.setOrderDate(LocalDateTime.now());
            order.setShippingAmount(storeShipping);
-           order.setTotalAmount(storeTotal);
+           order.setTotalAmount(storeSubTotal);
            order.setDeliveryAddress(address);
            order.setIsAssignedDriver(false);
            order.setCheckoutSessionId(checkoutSessionId);

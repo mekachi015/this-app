@@ -109,9 +109,11 @@ public class CartContoller {
                     .map(CustomerOrders::getShippingAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal subtotal = grandTotal.subtract(totalShipping);
+            // Since totalAmount now excludes shipping, grandTotal is already the subtotal
+            BigDecimal subtotal = grandTotal;
+            BigDecimal actualGrandTotal = subtotal.add(totalShipping);
 
-            response.put("grandTotal", grandTotal);
+            response.put("grandTotal", actualGrandTotal);
             response.put("subtotal", subtotal);
             response.put("totalShipping", totalShipping);
 
@@ -134,10 +136,8 @@ public class CartContoller {
                     orderDetails.put("store", storeInfo);
                 }
 
-                // Calculate subtotal for this order (total - shipping)
-                BigDecimal orderSubtotal = order.getTotalAmount()
-                        .subtract(order.getShippingAmount());
-                orderDetails.put("subtotal", orderSubtotal);
+                // Subtotal is now stored directly in totalAmount (shipping is separate)
+                orderDetails.put("subtotal", order.getTotalAmount());
 
                 // Add item count for this order
                 orderDetails.put("itemCount", order.getOrderItems().size());
