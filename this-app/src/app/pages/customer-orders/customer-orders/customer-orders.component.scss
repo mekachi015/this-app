@@ -114,6 +114,13 @@
       margin: 0 0 0.75rem;
     }
 
+    .store-info {
+      font-size: 0.85rem;
+      color: #667eea;
+      margin: 0 0 0.5rem;
+      font-weight: 500;
+    }
+
     .order-total {
       font-size: 1.2rem;
       font-weight: 600;
@@ -193,6 +200,8 @@
     padding: 2rem;
     width: 90%;
     max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     text-align: center;
 
@@ -212,6 +221,30 @@
       font-size: 1.2rem;
       font-weight: 600;
       margin-top: 1.5rem;
+    }
+
+    .order-breakdown {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      text-align: left;
+
+      p {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.5rem 0;
+        font-size: 0.95rem;
+      }
+
+      .total-line {
+        border-top: 2px solid #dee2e6;
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #ff3366;
+      }
     }
 
     ul {

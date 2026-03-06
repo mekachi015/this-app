@@ -82,11 +82,12 @@
         <h2>My Orders</h2>
       </div>
       <div class="delivery-content">
-        <p *ngIf="myOrders.length === 0">You have no claimed orders.</p>
-        <div class="delivery-item" *ngFor="let order of myOrders">
+        <p *ngIf="groupedMyOrders.length === 0">You have no claimed orders.</p>
+        <div class="delivery-item" *ngFor="let order of groupedMyOrders">
           <div class="time-badge">{{ order.orderStatus | titlecase }}</div>
           <div class="delivery-details">
-            <h4>Order #{{ order.orderId }} — {{ order.storeName }}</h4>
+            <h4>Order #{{ order.orderId }} — {{ order.storeNames }}</h4>
+            <p *ngIf="order.checkoutSessionId" class="multi-store-badge">Multi-Store ({{ order.orders.length }} stops)</p>
             <p *ngIf="order.deliveryAddress">{{ order.deliveryAddress.streetNumber }} {{ order.deliveryAddress.streetName }}</p>
             <span class="items-count">{{ order.itemCount }} items</span>
           </div>
@@ -102,18 +103,19 @@
         <button class="refresh-btn" (click)="loadAvailableOrders()">Refresh</button>
       </div>
       <div class="delivery-content">
-        <p *ngIf="availableOrders.length === 0">No available orders at the moment.</p>
-        <div class="delivery-item" *ngFor="let order of availableOrders">
+        <p *ngIf="groupedAvailableOrders.length === 0">No available orders at the moment.</p>
+        <div class="delivery-item" *ngFor="let order of groupedAvailableOrders">
           <div class="delivery-details">
-            <h4>Order #{{ order.orderId }} — {{ order.storeName }}</h4>
+            <h4>Order #{{ order.orderId }} — {{ order.storeNames }}</h4>
+            <p *ngIf="order.checkoutSessionId" class="multi-store-badge">Multi-Store Delivery ({{ order.orders.length }} stops)</p>
             <p *ngIf="order.deliveryAddress">
               {{ order.deliveryAddress.streetNumber }} {{ order.deliveryAddress.streetName }},
               {{ order.deliveryAddress.city }}
             </p>
             <span class="items-count">{{ order.itemCount }} items</span>
-            <span class="order-total">R{{ order.totalAmount }}</span>
+            <span class="order-total">R{{ order.totalAmount.toFixed(2) }}</span>
           </div>
-          <button class="primary" (click)="claimOrder(order.orderId)">
+          <button class="primary" (click)="claimOrder(order)">
             Claim Order
           </button>
         </div>

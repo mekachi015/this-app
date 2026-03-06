@@ -42,6 +42,8 @@ public class OrderDTO {
     private List<OrderItemsDTO> items;
     private Integer itemCount;
 
+    private String checkoutSessionId;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

@@ -287,6 +287,157 @@ export class MapService {
     );
   }
 
+  /**
+   * Multi-stop routing: geocodes all store addresses + delivery address,
+   * then calls POST /api/map/route/multi-stop on the backend with all waypoints.
+   * Returns a route with multiple stops (stores) before final delivery.
+   */
+  getMultiStopRoute(
+    storeAddresses: string[],
+    deliveryAddress: string,
+    backendBaseUrl: string,
+    token: string
+  ): Observable<any> {
+    const geocode = (query: string): Observable<[number, number]> => {
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ' South Africa')}&limit=1`;
+      return this.http.get<any>(url).pipe(
+        map(res => {
+          const coords = res.features?.[0]?.geometry?.coordinates;
+          if (!coords) throw new Error(`Could not geocode: ${query}`);
+          return [coords[1], coords[0]] as [number, number]; // [lat, lng]
+        })
+      );
+    };
+
+    // Geocode all stores + delivery
+    const geocodeRequests = [
+      ...storeAddresses.map(addr => geocode(addr)),
+      geocode(deliveryAddress)
+    ];
+
+    return forkJoin(geocodeRequests).pipe(
+      switchMap((coords) => {
+        // All coords except last are stores, last is delivery
+        const storeCoords = coords.slice(0, -1);
+        const deliveryCoords = coords[coords.length - 1];
+
+        const body = {
+          storeCoordinates: storeCoords.map(([lat, lng]) => ({ lat, lng })),
+          deliveryCoordinates: { lat: deliveryCoords[0], lng: deliveryCoords[1] },
+          storeAddresses,
+          deliveryAddress
+        };
+
+        const headers = new HttpHeaders({
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        });
+
+        return this.http.post<any>(
+          `${backendBaseUrl}/api/map/route/multi-stop`,
+          body,
+          { headers }
+        );
+      })
+    );
+  }
+
+  /**
+   * Displays a multi-stop route on the map:
+   * - Places store markers for each pickup location
+   * - Places delivery marker at final destination
+   * - Draws the full polyline connecting all waypoints
+   */
+  showMultiStopRoute(route: any): void {
+    if (!this.map || !this.L) return;
+
+    // Remove old route layer
+    if (this.routeLayer) this.map.removeLayer(this.routeLayer);
+    if (this.destinationMarker) this.map.removeLayer(this.destinationMarker);
+
+    const bounds = this.L.latLngBounds([]);
+
+    // Place numbered store markers
+    if (route.storeCoordinates) {
+      route.storeCoordinates.forEach((store: any, index: number) => {
+        const pos = this.L.latLng(store.lat, store.lng);
+        const stopNumber = index + 1;
+        const storeAddress = route.storeAddresses?.[index] || 'Store';
+        
+        // Create numbered marker icon
+        const numberedIcon = this.L.divIcon({
+          className: '',
+          html: `<div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                 width:32px;height:32px;border-radius:50%;
+                 border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.4);
+                 display:flex;align-items:center;justify-content:center;
+                 color:white;font-weight:bold;font-size:14px;">
+                 ${stopNumber}
+                 </div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const marker = this.L.marker(pos, { icon: numberedIcon })
+          .addTo(this.map)
+          .bindPopup(`<div style="text-align:center;font-weight:500;">
+                      <div style="font-size:16px;margin-bottom:4px;">🏪 Pickup Stop ${stopNumber}</div>
+                      <div style="font-size:13px;color:#666;">${storeAddress}</div>
+                      </div>`);
+        
+        // Open popup for first store
+        if (index === 0) {
+          marker.openPopup();
+        }
+        
+        bounds.extend(pos);
+      });
+    }
+
+    // Place delivery marker (final destination)
+    if (route.deliveryCoordinates) {
+      const destPos = this.L.latLng(route.deliveryCoordinates.lat, route.deliveryCoordinates.lng);
+      const deliveryIcon = this.L.divIcon({
+        className: '',
+        html: `<div style="background:#ff3366;width:36px;height:36px;
+               border-radius:50%;border:3px solid white;
+               box-shadow:0 3px 10px rgba(0,0,0,0.4);display:flex;
+               align-items:center;justify-content:center;font-size:18px;">📦</div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+      });
+      
+      this.destinationMarker = this.L.marker(destPos, { icon: deliveryIcon })
+        .addTo(this.map)
+        .bindPopup(`<div style="text-align:center;font-weight:500;">
+                    <div style="font-size:16px;margin-bottom:4px;">📦 Delivery Destination</div>
+                    <div style="font-size:13px;color:#666;">${route.deliveryAddress || 'Customer'}</div>
+                    </div>`)
+        .openPopup();
+      bounds.extend(destPos);
+    }
+
+    // Draw polyline from ORS route
+    if (route.geometry?.coordinates) {
+      const coords = route.geometry.coordinates.map(
+        ([lng, lat]: [number, number]) => this.L.latLng(lat, lng)
+      );
+      this.routeLayer = this.L.polyline(coords, {
+        color: '#e91e8c',
+        weight: 5,
+        opacity: 0.8,
+      }).addTo(this.map);
+    }
+
+    // Fit map to show all markers
+    if (bounds.isValid()) {
+      this.map.fitBounds(bounds.pad(0.25));
+    }
+
+    // Set ETA if available
+    this.eta = route.eta || '';
+  }
+
   invalidateSize(): void {
     setTimeout(() => this.map?.invalidateSize(), 100);
   }

@@ -7,6 +7,7 @@ import { AuthService } from '../../services/authentication-service/auth.service'
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { FormsModule } from '@angular/forms';
+import { CheckoutService } from '../../services/checkout-service/checkout.service';
 
 
 
@@ -23,6 +24,7 @@ export class CartPageComponent implements OnInit {
   cartItems: CartDTO[] = [];
   currentUserId: number = 0;
   shipping: number = 150.00;
+  multiStoreShippingFee: number = 250.00;
   isLoading: boolean = false;
   errorMessage: string = '';
 
@@ -38,11 +40,24 @@ export class CartPageComponent implements OnInit {
   constructor(
     private cartService: CartService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private checkoutService: CheckoutService
   ){}
 
   ngOnInit(): void {
     this.currentUserId = Number(this.authService.currentUserValue?.id || 0);
+
+    // Fetch shipping config
+    this.checkoutService.getCheckoutConfig().subscribe({
+      next: (config) => {
+        this.shipping = config.shippingFee;
+        this.multiStoreShippingFee = config.multiStoreShippingFee;
+      },
+      error: () => {
+        this.shipping = 150; // safety fallback
+        this.multiStoreShippingFee = 250;
+      }
+    });
 
    if (this.currentUserId > 0) {
       this.loadUserCart();
@@ -68,7 +83,7 @@ export class CartPageComponent implements OnInit {
       next: (response: CartResponse) => {
         if (response && response.data) {
           this.cartItems = Array.isArray(response.data) ? response.data : [response.data];
-          this.validateSingleStore();
+          // Multi-store checkout enabled: no validation needed
         } else {
           Swal.fire({
             icon: 'info',
@@ -92,30 +107,10 @@ export class CartPageComponent implements OnInit {
   }
 
   /**
-   * Warns the user (and optionally clears the cart) if items from
-   * multiple stores somehow ended up in the cart.
+   * Multi-store checkout enabled: no validation needed
    */
   private validateSingleStore(): void {
-    if (this.cartItems.length === 0) return;
-    const storeIds = new Set(this.cartItems.map(i => i.storeId));
-    if (storeIds.size > 1) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Multiple Stores Detected',
-        html: `Your cart contains items from <strong>${storeIds.size} different stores</strong>.<br>
-               Orders can only be placed from <strong>one store at a time</strong>.<br>
-               Please clear your cart and shop from a single store.`,
-        showCancelButton: true,
-        confirmButtonColor: '#e91e8c',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Clear Cart',
-        cancelButtonText: 'Keep Cart',
-      }).then(result => {
-        if (result.isConfirmed) {
-          this.clearCart();
-        }
-      });
-    }
+    // Method disabled for multi-store support
   }
 
   /**
@@ -130,8 +125,13 @@ export class CartPageComponent implements OnInit {
     return this.cartItems.reduce((total, item) => total + (item.productPrice * item.quantity), 0);
   }
 
+  get applicableShipping(): number {
+    const storeIds = new Set(this.cartItems.map(i => i.storeId));
+    return storeIds.size > 1 ? this.multiStoreShippingFee : this.shipping;
+  }
+
   get total(): number {
-    return this.subtotal + this.shipping;
+    return this.subtotal + this.applicableShipping;
   }
 
    increaseQuantity(item: CartDTO): void {
@@ -269,20 +269,7 @@ export class CartPageComponent implements OnInit {
       return;
     }
 
-    // Enforce single-store rule before proceeding
-    const storeIds = new Set(this.cartItems.map(i => i.storeId));
-    if (storeIds.size > 1) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Mixed Stores',
-        html: `Your cart has items from <strong>${storeIds.size} different stores</strong>.<br>
-               You can only checkout from <strong>one store at a time</strong>.<br>
-               Please remove items from other stores before proceeding.`,
-        confirmButtonColor: '#e91e8c',
-      });
-      return;
-    }
-
+    // Multi-store checkout enabled: proceed directly
     this.router.navigate(['/checkout']);
   }
 

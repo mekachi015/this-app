@@ -309,6 +309,17 @@
           text-overflow: ellipsis;
         }
 
+        .multi-store-badge {
+          display: inline-block;
+          padding: 0.15rem 0.5rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 12px;
+          font-size: 0.7rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+
         .items-count,
         .order-total {
           display: inline-block;
