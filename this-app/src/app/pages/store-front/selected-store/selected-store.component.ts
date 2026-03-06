@@ -98,7 +98,8 @@ export class SelectedStoreComponent implements OnInit {
     this.productService.searchProductsByStore(storeId, this.searchQuery).subscribe({
       next: (products) => {
         console.log('Search results:', products);
-        this.products = products; // Update the products list with search results
+        // Filter out products with stock quantity 0
+        this.products = products.filter(p => p.stockQuantity > 0);
         this.isLoading = false;
       },
       error: (err) => {
@@ -128,7 +129,8 @@ export class SelectedStoreComponent implements OnInit {
     this.productService.searchProductsByStore(storeId, this.searchQuery).subscribe({
       next: (products) => {
         console.log('Search results:', products);
-        this.searchResultsList = products; // Update the dropdown with search results
+        // Filter out products with stock quantity 0
+        this.searchResultsList = products.filter(p => p.stockQuantity > 0);
       },
       error: (err) => {
         console.error('Error searching products:', err);
@@ -277,7 +279,8 @@ export class SelectedStoreComponent implements OnInit {
     console.log('Selected product:', product);
     this.searchQuery = product.productName; // Update search bar with the product name
     this.searchResultsList = []; // Clear the dropdown
-    this.products = [product]; // Show only the selected product in the main content
+    // Only show the product if it's in stock
+    this.products = product.stockQuantity > 0 ? [product] : [];
   }
 
   clearSearch(): void {
@@ -338,7 +341,8 @@ export class SelectedStoreComponent implements OnInit {
     this.productService.getAllStoreProductsPublic(idNum).subscribe({
       next: (products) => {
         console.log('Loaded products for store:', products);
-        this.products = products;
+        // Filter out products with stock quantity 0
+        this.products = products.filter(p => p.stockQuantity > 0);
       },
       error: (err) => {
         console.error('Failed to load products for store:', err);

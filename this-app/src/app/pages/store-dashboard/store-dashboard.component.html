@@ -522,65 +522,93 @@
       </section>
 
       <!-- Recent Orders -->
-     <!-- Recent Orders -->
 <section class="orders-section">
   <div class="section-header">
-    <h2>Recent Orders</h2>
-    <span class="order-count-badge">{{ orderCount }} total orders</span>
-    <button class="view-all-btn" (click)="viewAllOrders()">View All</button>
+    <div class="header-content">
+      <h2>Recent Orders</h2>
+      <span class="order-count-badge">
+        <i class="fas fa-shopping-bag"></i>
+        {{ orderCount }} total orders
+      </span>
+    </div>
+    <button class="view-all-btn" (click)="viewAllOrders()">
+      View All <i class="fas fa-arrow-right"></i>
+    </button>
   </div>
 
-  <!-- Filter by store indicator
-  <div class="store-filter-info" *ngIf="selectedStore">
-    <i class="fas fa-filter"></i>
-    <span>Showing orders for: <strong>{{ selectedStore.storeName }}</strong></span>
-    <button class="clear-filter-btn" (click)="clearStoreFilter()">
-      <i class="fas fa-times"></i> Show All
-    </button>
-  </div> -->
+  <!-- Orders Grid -->
+  <div class="orders-grid" *ngIf="recentOrders.length > 0">
+    <div class="order-card" *ngFor="let order of recentOrders">
+      <div class="order-card-header">
+        <div class="order-id-section">
+          <span class="order-id">#{{ order.orderId }}</span>
+          <span class="status-badge" [ngClass]="order.orderStatus.toLowerCase()">
+            <i class="fas" 
+               [ngClass]="{
+                 'fa-clock': order.orderStatus === 'PENDING',
+                 'fa-check-circle': order.orderStatus === 'COMPLETED' || order.orderStatus === 'DELIVERED',
+                 'fa-times-circle': order.orderStatus === 'CANCELLED',
+                 'fa-truck': order.orderStatus === 'SHIPPED'
+               }"></i>
+            {{ order.orderStatus }}
+          </span>
+        </div>
+        <div class="order-date">
+          <i class="far fa-calendar"></i>
+          {{ order.orderDate | date:'MMM d, y' }}
+        </div>
+      </div>
 
-  <!-- Show actual orders -->
-  <div class="orders-table-container" *ngIf="recentOrders.length > 0">
-    <table class="orders-table">
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Store</th>
-          <th>Customer</th>
-          <th>Items</th>
-          <th>Total</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let order of recentOrders">
-          <td data-label="Order ID">#{{ order.orderId }}</td>
-          <td data-label="Store">{{ order.storeName }}</td>
-          <td data-label="Customer">Customer {{ order.userId }}</td>
-          <td data-label="Items">{{ order.itemCount }} items</td>
-          <td data-label="Total">R{{ order.totalAmount.toFixed(2) }}</td>
-          <td data-label="Status">
-            <span class="status-badge" [class]="order.orderStatus.toLowerCase()">
-              {{ order.orderStatus }}
-            </span>
-          </td>
-          <td data-label="Date">{{ order.orderDate | date:'short' }}</td>
-          <td data-label="Actions">
-            <button class="action-btn" (click)="viewOrderDetails(order.orderId)">
-              <i class="fas fa-eye"></i> View
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <div class="order-card-body">
+        <div class="order-info-row">
+          <div class="info-item">
+            <i class="fas fa-store"></i>
+            <div class="info-content">
+              <span class="info-label">Store</span>
+              <span class="info-value">{{ order.storeName }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-user"></i>
+            <div class="info-content">
+              <span class="info-label">Customer</span>
+              <span class="info-value">Customer {{ order.userId }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-info-row">
+          <div class="info-item">
+            <i class="fas fa-shopping-cart"></i>
+            <div class="info-content">
+              <span class="info-label">Items</span>
+              <span class="info-value">{{ order.itemCount }} item{{ order.itemCount !== 1 ? 's' : '' }}</span>
+            </div>
+          </div>
+          <div class="info-item total-item">
+            <i class="fas fa-money-bill-wave"></i>
+            <div class="info-content">
+              <span class="info-label">Total</span>
+              <span class="info-value total-amount">R{{ order.totalAmount.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-card-footer">
+        <button class="view-details-btn" (click)="viewOrderDetails(order.orderId)">
+          <i class="fas fa-eye"></i> View Details
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Empty state -->
-  <div class="empty-state" *ngIf="recentOrders.length === 0 && !isLoading">
-    <i class="fas fa-inbox"></i>
+  <div class="empty-state" *ngIf="(!recentOrders || recentOrders.length === 0) && orderCount === 0 && !isLoading">
+    <div class="empty-icon">
+      <i class="fas fa-inbox"></i>
+    </div>
     <h3>No Orders Yet</h3>
-    <p>Your stores haven't received any orders yet</p>
+    <p>Your stores haven't received any orders yet. Orders will appear here once customers start purchasing.</p>
   </div>
 </section>

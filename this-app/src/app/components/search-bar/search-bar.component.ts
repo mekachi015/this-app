@@ -74,8 +74,9 @@ export class SearchBarComponent {
 
     searchObservable.subscribe({
       next: (results) => {
-        // This emit call is now valid
-        this.searchResults.emit(results);
+        // Filter out products with stock quantity 0
+        const inStockResults = results.filter((p: any) => p.stockQuantity > 0);
+        this.searchResults.emit(inStockResults);
         this.isSearching = false;
       },
       error: (error) => {
