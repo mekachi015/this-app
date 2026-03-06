@@ -165,6 +165,7 @@ public class ProductsRedefined {
         List<Products> products = productsRepository.findByStore(store);
 
         return products.stream()
+                .filter(product -> product.getStockQuantity() > 0) // Filter out out-of-stock products
                 .map(product -> {
                     ProductsDTO dto = new ProductsDTO();
                     dto.setProductId(product.getProductId());
@@ -189,12 +190,14 @@ public class ProductsRedefined {
     public List<ProductsDTO> searchProducts(String searchTerm){
         if(searchTerm == null || searchTerm.trim().isEmpty()){
             return productsRepository.findAll().stream()
+            .filter(product -> product.getStockQuantity() > 0) // Filter out out-of-stock products
             .map(this::convertToDTO)
             .toList();
         }
 
         String search = searchTerm.toLowerCase().trim();
          return productsRepository.findAll().stream()
+            .filter(product -> product.getStockQuantity() > 0) // Filter out out-of-stock products
             .filter(product -> 
                 product.getProductName().toLowerCase().contains(search) ||
                 (product.getProductDescription() != null && 
@@ -217,12 +220,14 @@ public class ProductsRedefined {
 
         if(searchTerm == null || searchTerm.trim().isEmpty()){
             return products.stream()
+            .filter(product -> product.getStockQuantity() > 0) // Filter out out-of-stock products
             .map(this::convertToDTO)
             .toList();
         }
 
         String search = searchTerm.toLowerCase().trim();
           return products.stream()
+            .filter(product -> product.getStockQuantity() > 0) // Filter out out-of-stock products
             .filter(product -> 
                 product.getProductName().toLowerCase().contains(search) ||
                 (product.getProductDescription() != null && 
