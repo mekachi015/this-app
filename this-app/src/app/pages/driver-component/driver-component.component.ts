@@ -5,6 +5,7 @@ import { AuthService } from '../../services/authentication-service/auth.service'
 import { DriverService } from '../../services/driver-service/driver.service';
 import { MapService } from '../../services/map-service/map.service';
 import { forkJoin } from 'rxjs';
+import Swal from 'sweetalert2';
 
 const BACKEND_URL = 'http://localhost:9091';
 
@@ -133,10 +134,24 @@ export class DriverComponentComponent implements OnInit{
     forkJoin(claimRequests).subscribe({
       next: (claimedOrders) => {
         const firstOrder = claimedOrders[0];
-        if (groupedOrder.checkoutSessionId) {
-          this.successMessage = `Multi-store order #${groupedOrder.orderId} claimed (${groupedOrder.orders.length} stores)`;
+        
+        // Show SweetAlert popup based on whether it's multi-store
+        if (groupedOrder.orders.length > 1) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Claim Successful!',
+            text: `Multi-store order #${groupedOrder.orderId} claimed (${groupedOrder.orders.length} stores)`,
+            timer: 3000,
+            showConfirmButton: false
+          });
         } else {
-          this.successMessage = `Order #${groupedOrder.orderId} claimed successfully`;
+          Swal.fire({
+            icon: 'success',
+            title: 'Claim Successful!',
+            text: `Order #${groupedOrder.orderId} claimed successfully`,
+            timer: 3000,
+            showConfirmButton: false
+          });
         }
         
         this.currentOrder = firstOrder;
@@ -164,7 +179,13 @@ export class DriverComponentComponent implements OnInit{
     this.driverService.updateOrderStatus(this.currentOrder.orderId, 'DELIVERED').subscribe({
       next: (order) => {
         const id = order.orderId ?? order.id;
-        this.successMessage = `Order #${id} marked as delivered`;
+        Swal.fire({
+          icon: 'success',
+          title: 'Delivery Complete!',
+          text: `Order #${id} marked as delivered`,
+          timer: 3000,
+          showConfirmButton: false
+        });
         this.currentOrder = null;
         this.loadMyOrders(); // Refresh the list
       },

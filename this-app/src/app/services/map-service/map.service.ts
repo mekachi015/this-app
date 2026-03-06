@@ -34,7 +34,7 @@ export class MapService {
   private L: any; // Leaflet instance
   private driverMarker: any;
   private destinationMarker: any;
-  private routeLayer: any;
+  private routeLayer: any; // Can be a single polyline or LayerGroup for multi-segment routes
   private ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjJlNTg1M2Q3ZDBmMzRmZmNiM2Q4ZjUxN2IzZTgwM2ZhIiwiaCI6Im11cm11cjY0In0=';
   public eta: string = '';
 
@@ -417,8 +417,47 @@ export class MapService {
       bounds.extend(destPos);
     }
 
-    // Draw polyline from ORS route
-    if (route.geometry?.coordinates) {
+    // Draw polyline from ORS route with different colors for each segment
+    if (route.geometry?.coordinates && route.segments) {
+      const allCoords = route.geometry.coordinates.map(
+        ([lng, lat]: [number, number]) => this.L.latLng(lat, lng)
+      );
+
+      // Define colors for each segment (store-to-store, then final store-to-delivery)
+      const segmentColors = [
+        '#667eea',  // Purple for first segment
+        '#f093fb',  // Pink for second segment
+        '#4facfe',  // Blue for third segment
+        '#43e97b',  // Green for fourth segment
+        '#fa709a',  // Coral for fifth segment
+        '#feca57',  // Yellow for sixth segment
+      ];
+
+      // Create a layer group to hold all segment polylines
+      const layerGroup = this.L.layerGroup();
+
+      // Draw each segment with a different color
+      route.segments.forEach((segment: any, index: number) => {
+        const startIdx = segment.steps[0]?.way_points?.[0] || 0;
+        const endIdx = segment.steps[segment.steps.length - 1]?.way_points?.[1] || allCoords.length - 1;
+        
+        const segmentCoords = allCoords.slice(startIdx, endIdx + 1);
+        const color = segmentColors[index % segmentColors.length];
+        
+        const polyline = this.L.polyline(segmentCoords, {
+          color: color,
+          weight: 5,
+          opacity: 0.8,
+        });
+
+        layerGroup.addLayer(polyline);
+      });
+
+      // Add the layer group to the map
+      layerGroup.addTo(this.map);
+      this.routeLayer = layerGroup;
+    } else if (route.geometry?.coordinates) {
+      // Fallback: draw single-color route if segments not available
       const coords = route.geometry.coordinates.map(
         ([lng, lat]: [number, number]) => this.L.latLng(lat, lng)
       );
