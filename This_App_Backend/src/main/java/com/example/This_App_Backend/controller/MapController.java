@@ -95,6 +95,10 @@ public class MapController {
             Map<String, Object> geometry = (Map<String, Object>) feature.get("geometry");
             Map<String, Object> properties = (Map<String, Object>) feature.get("properties");
             Map<String, Object> summary = (Map<String, Object>) properties.get("summary");
+            
+            // Extract segments for color differentiation
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> segments = (List<Map<String, Object>>) properties.get("segments");
 
             double durationSeconds = ((Number) summary.get("duration")).doubleValue();
             double distanceMeters = ((Number) summary.get("distance")).doubleValue();
@@ -118,6 +122,7 @@ public class MapController {
                     "storeAddresses", storeAddresses,
                     "deliveryAddress", deliveryAddress,
                     "geometry", geometry,
+                    "segments", segments,
                     "eta", eta,
                     "durationSeconds", durationSeconds,
                     "distanceKm", km
