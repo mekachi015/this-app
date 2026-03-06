@@ -337,6 +337,10 @@
       // Claim button inside list item
       button.primary {
         padding: 0.5rem 1rem;
+        position: relative;
+        top: 1.6rem;
+        left : 1.3rem;
+        // right: 1rem;
         border: none;
         border-radius: var(--border-radius-sm);
         background: var(--primary-color);
@@ -347,7 +351,7 @@
         white-space: nowrap;
         flex-shrink: 0;
         transition: opacity 0.2s ease;
-
+       
         &:hover {
           opacity: 0.85;
         }

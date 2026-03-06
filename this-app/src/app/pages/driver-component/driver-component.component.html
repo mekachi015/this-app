@@ -87,7 +87,7 @@
           <div class="time-badge">{{ order.orderStatus | titlecase }}</div>
           <div class="delivery-details">
             <h4>Order #{{ order.orderId }} — {{ order.storeNames }}</h4>
-            <p *ngIf="order.checkoutSessionId" class="multi-store-badge">Multi-Store ({{ order.orders.length }} stops)</p>
+            <p *ngIf="order.checkoutSessionId && order.orders.length > 1" class="multi-store-badge">Multi-Store ({{ order.orders.length }} stops)</p>
             <p *ngIf="order.deliveryAddress">{{ order.deliveryAddress.streetNumber }} {{ order.deliveryAddress.streetName }}</p>
             <span class="items-count">{{ order.itemCount }} items</span>
           </div>
@@ -107,7 +107,7 @@
         <div class="delivery-item" *ngFor="let order of groupedAvailableOrders">
           <div class="delivery-details">
             <h4>Order #{{ order.orderId }} — {{ order.storeNames }}</h4>
-            <p *ngIf="order.checkoutSessionId" class="multi-store-badge">Multi-Store Delivery ({{ order.orders.length }} stops)</p>
+            <p *ngIf="order.checkoutSessionId && order.orders.length > 1" class="multi-store-badge">Multi-Store Delivery ({{ order.orders.length }} stops)</p>
             <p *ngIf="order.deliveryAddress">
               {{ order.deliveryAddress.streetNumber }} {{ order.deliveryAddress.streetName }},
               {{ order.deliveryAddress.city }}
