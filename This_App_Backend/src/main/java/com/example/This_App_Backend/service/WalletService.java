@@ -65,13 +65,17 @@ public class WalletService {
         BigDecimal shippingFee = order.getShippingAmount() != null
                                 ? order.getShippingAmount() : BigDecimal.ZERO;
 
+        //Calculate items subtotal (total minus delivery fee)
+        BigDecimal itemsSubtotal = orderTotal.subtract(shippingFee);
+
         //Admin store earnings
-        //Admin recieves order total minus platform commision
-        BigDecimal platformCut = orderTotal
+        //Platform commission is taken from items subtotal only (not from shipping)
+        BigDecimal platformCut = itemsSubtotal
                                 .multiply(BigDecimal.valueOf(commissionPercent))
                                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         
-        BigDecimal adminEarning = orderTotal.subtract(platformCut);
+        //Store owner receives items subtotal minus platform commission
+        BigDecimal adminEarning = itemsSubtotal.subtract(platformCut);
 
         //Driver earnings 
         //Driver recieves shipping fee minus platform delivery cut
