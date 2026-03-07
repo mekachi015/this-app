@@ -11,6 +11,7 @@ import { CreateProductDTO } from '../../models/store-admin-models/product-admin/
 import { ProductService } from '../../services/product-service/product.service';
 import { Product } from '../../models/store-admin-models/product-admin/product';
 import { WalletService } from '../../services/wallet-service/wallet.service';
+import { OrderService } from '../../services/order-service/order.service';
 
 import Swal from 'sweetalert2';
 
@@ -81,6 +82,7 @@ export class StoreDashboardComponent implements OnInit {
 
   // Store model for form binding
   storeModel: any = {
+    storeId:'',
     storeName: '',
     storeDescription: '',
     storeAddress: '',
@@ -124,6 +126,7 @@ export class StoreDashboardComponent implements OnInit {
     private storeAdminService: StoreAdminServiceService,
     private productService: ProductService,
     private walletService: WalletService,
+    private orderService: OrderService,
     private router: Router,
     private http: HttpClient,
   ) {}
@@ -425,6 +428,15 @@ export class StoreDashboardComponent implements OnInit {
 
   loadOrdersByStore(storeId: number): void {
     this.isLoading = true;
+    
+    // Ensure selectedStore is set based on the storeId
+    if (!this.selectedStore || this.selectedStore.storeId !== storeId) {
+      const store = this.stores.find(s => s.storeId === storeId);
+      if (store) {
+        this.selectedStore = store;
+      }
+    }
+    
     this.storeAdminService.getOrdersByStoreId(storeId).subscribe({
       next: (response) => {
         this.recentOrders = response.data ?? [];
@@ -444,6 +456,63 @@ export class StoreDashboardComponent implements OnInit {
       },
       error: (error) => {
         this.errorMessage = 'Failed to load total order count.';
+      },
+    });
+  }
+
+  updateOrderStatus(orderId: number, newStatus: string): void {
+    console.log('Attempting to update order status', { orderId, newStatus, storeId: this.selectedStore?.storeId });
+    
+    if (!this.selectedStore?.storeId) {
+      // Try to find the store from the order
+      const order = this.recentOrders.find(o => o.orderId === orderId);
+      if (order?.storeId) {
+        const store = this.stores.find(s => s.storeId === order.storeId);
+        if (store) {
+          this.selectedStore = store;
+          console.log('Found store from order:', store.storeId);
+        }
+      }
+      
+      // If still no store, show error
+      if (!this.selectedStore?.storeId) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No store selected. Please select a store first.',
+        });
+        return;
+      }
+    }
+
+    this.orderService.updateOrderStatus(this.selectedStore.storeId, orderId, newStatus).subscribe({
+      next: (response) => {
+        if (response.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Order status updated successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Reload orders to reflect the change
+          this.loadOrdersByStore(this.selectedStore!.storeId!);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: response.message || 'Failed to update order status',
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error updating order status:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.error?.message || 'Failed to update order status',
+        });
       },
     });
   }

@@ -27,7 +27,6 @@ export class CheckoutPageComponent implements OnInit {
   isCartLoading = false;
   paymentStatus: 'idle' | 'success' | 'cancelled' = 'idle';
   shipping = 0;
-  multiStoreShippingFee = 0;
 
   constructor(
     private cartService: CartService,
@@ -58,11 +57,9 @@ export class CheckoutPageComponent implements OnInit {
     this.checkoutService.getCheckoutConfig().subscribe({
       next: (config) => {
         this.shipping = config.shippingFee;
-        this.multiStoreShippingFee = config.multiStoreShippingFee;
       },
       error: () => {
         this.shipping = 150; // safety fallback
-        this.multiStoreShippingFee = 250;
       }
     });
   }
@@ -133,8 +130,7 @@ export class CheckoutPageComponent implements OnInit {
   }
 
   get applicableShipping(): number {
-    const storeIds = new Set(this.cartItems.map(i => i.storeId));
-    return storeIds.size > 1 ? this.multiStoreShippingFee : this.shipping;
+    return this.shipping;
   }
 
   get total(): number {

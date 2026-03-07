@@ -62,5 +62,17 @@ export class OrderService {
       });
   }
 
+  // Update order status (store owner)
+  updateOrderStatus(storeId: number, orderId: number, status: string): Observable<OrderResponse> {
+    const url = `${this.baseUrl}/store/${storeId}/orders/${orderId}/status`;
+    const params = new HttpParams().set('status', status);
+
+    return this.http.patch<OrderResponse>(url, null, {
+      headers: this.getAuthHeaders(),
+      params: params,
+      withCredentials: true
+    });
+  }
+
   
 }

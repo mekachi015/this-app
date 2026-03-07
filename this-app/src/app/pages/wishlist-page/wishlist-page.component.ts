@@ -162,11 +162,11 @@ export class WishlistPageComponent {
           showConfirmButton: false,
         });
       },
-      error: () => {
+      error: (err) => {
         Swal.fire({
           icon: 'error',
           title: 'Failed',
-          text: 'Could not add item to cart. Please try again.',
+          text: err?.error?.message || err?.message || 'Cannot add items from different store yet',
         });
       }
     });

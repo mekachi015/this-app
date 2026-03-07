@@ -336,6 +336,9 @@
 
       // Claim button inside list item
       button.primary {
+        position: relative;
+        left :1rem;
+        top: 1rem;
         padding: 0.5rem 1rem;
         border: none;
         border-radius: var(--border-radius-sm);

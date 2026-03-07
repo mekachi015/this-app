@@ -154,7 +154,6 @@ export class SelectedStoreComponent implements OnInit {
       return;
     }
 
-    // Multi-store checkout enabled: add items from any store
     this.doAddToCart(product);
   }
 
@@ -180,16 +179,16 @@ export class SelectedStoreComponent implements OnInit {
           Swal.fire({
             icon: 'error',
             title: 'Add to Cart Failed',
-            text: response.message || 'Failed to add product to cart.',
+            text: response.message || 'Cannot add items from different store yet',
             confirmButtonColor: '#e91e8c',
           });
         }
       },
-      error: () => {
+      error: (err) => {
         Swal.fire({
           icon: 'error',
           title: 'Add to Cart Failed',
-          text: 'Failed to add product to cart. Please try again.',
+          text: err?.error?.message || err?.message || 'Cannot add items from different store yet',
           confirmButtonColor: '#e91e8c',
         });
       }

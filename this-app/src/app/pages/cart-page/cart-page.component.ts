@@ -24,7 +24,6 @@ export class CartPageComponent implements OnInit {
   cartItems: CartDTO[] = [];
   currentUserId: number = 0;
   shipping: number = 150.00;
-  multiStoreShippingFee: number = 250.00;
   isLoading: boolean = false;
   errorMessage: string = '';
 
@@ -51,11 +50,9 @@ export class CartPageComponent implements OnInit {
     this.checkoutService.getCheckoutConfig().subscribe({
       next: (config) => {
         this.shipping = config.shippingFee;
-        this.multiStoreShippingFee = config.multiStoreShippingFee;
       },
       error: () => {
         this.shipping = 150; // safety fallback
-        this.multiStoreShippingFee = 250;
       }
     });
 
@@ -83,7 +80,6 @@ export class CartPageComponent implements OnInit {
       next: (response: CartResponse) => {
         if (response && response.data) {
           this.cartItems = Array.isArray(response.data) ? response.data : [response.data];
-          // Multi-store checkout enabled: no validation needed
         } else {
           Swal.fire({
             icon: 'info',
@@ -126,8 +122,7 @@ export class CartPageComponent implements OnInit {
   }
 
   get applicableShipping(): number {
-    const storeIds = new Set(this.cartItems.map(i => i.storeId));
-    return storeIds.size > 1 ? this.multiStoreShippingFee : this.shipping;
+    return this.shipping;
   }
 
   get total(): number {

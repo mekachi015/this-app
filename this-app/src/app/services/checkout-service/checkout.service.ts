@@ -35,9 +35,9 @@ export class CheckoutService {
   }
 
   //get shipping amount 
-  getCheckoutConfig(): Observable<{ shippingFee: number; multiStoreShippingFee: number }> {
+  getCheckoutConfig(): Observable<{ shippingFee: number }> {
     const headers = this.authService.getAuthHeaders();
-    return this.http.get<{ shippingFee: number; multiStoreShippingFee: number }>(
+    return this.http.get<{ shippingFee: number }>(
       `${this.baseUrl}/config`,
       { headers }
     );

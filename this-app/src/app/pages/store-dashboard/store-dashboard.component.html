@@ -562,7 +562,19 @@
           <td data-label="Items">{{ order.itemCount }} items</td>
           <td data-label="Total">R{{ order.totalAmount.toFixed(2) }}</td>
           <td data-label="Status">
-            <span class="status-badge" [class]="order.orderStatus.toLowerCase()">
+            <div *ngIf="order.orderStatus === 'PENDING'" class="status-dropdown-container">
+              <select 
+                class="status-dropdown" 
+                [value]="order.orderStatus"
+                (change)="updateOrderStatus(order.orderId, $any($event.target).value)">
+                <option value="PENDING">PENDING</option>
+                <option value="READY_FOR_DELIVERY">READY FOR DELIVERY</option>
+              </select>
+            </div>
+            <span 
+              *ngIf="order.orderStatus !== 'PENDING'" 
+              class="status-badge" 
+              [class]="order.orderStatus.toLowerCase()">
               {{ order.orderStatus }}
             </span>
           </td>
