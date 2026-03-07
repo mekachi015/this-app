@@ -61,6 +61,15 @@ public class CartService {
           throw new RuntimeException("Product is not associated with store");
       }
 
+      // Check if user already has items from a different store
+      List<Cart> existingCartItems = cartRepo.findByUser(user);
+      if (!existingCartItems.isEmpty()) {
+          Stores existingStore = existingCartItems.get(0).getStore();
+          if (!existingStore.getStoreId().equals(store.getStoreId())) {
+              throw new RuntimeException("Cannot add items from different store yet");
+          }
+      }
+
       //Check if product already exists
       Cart cart = cartRepo.findByUserAndProduct(user, products)
               .orElse(new Cart());

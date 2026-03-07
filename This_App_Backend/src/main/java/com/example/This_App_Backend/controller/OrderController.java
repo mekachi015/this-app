@@ -226,6 +226,45 @@ public class OrderController {
         }
     }
 
+    // Update order status (store owner only)
+    @PatchMapping("/store/{storeId}/orders/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long storeId,
+            @PathVariable Long orderId,
+            @RequestParam String status,
+            Authentication authentication
+    ) {
+        try {
+            String username = authentication.getName();
+            OrderDTO updatedOrder = orderService.updateOrderStatus(storeId, orderId, status, username);
+            
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Order status updated successfully",
+                    "order", updatedOrder
+            ));
+            
+        } catch (IllegalArgumentException e) {
+            return switch (e.getMessage()) {
+                case "ORDER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "Order not found"));
+                case "STORE_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "Store not found"));
+                case "UNAUTHORIZED" -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "You are not authorized to update this order"));
+                case "INVALID_STATUS" -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "Invalid order status"));
+                case "INVALID_STATUS_TRANSITION" -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "Can only mark PENDING orders as READY_FOR_DELIVERY"));
+                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("success", false, "message", "Unexpected error: " + e.getMessage()));
+            };
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "An error occurred: " + e.getMessage()));
+        }
+    }
+
       // Response classes
     private static class ErrorResponse {
         private String message;

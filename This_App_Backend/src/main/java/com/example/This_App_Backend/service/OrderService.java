@@ -198,6 +198,55 @@ public class OrderService {
     }
 
     // -------------------------------------------------------------------------
+    // Update Order Status (Store Owner)
+    // -------------------------------------------------------------------------
+
+    public OrderDTO updateOrderStatus(Long storeId, Long orderId, String status, String username) {
+        // Find the store
+        Stores store = storeRepo.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("STORE_NOT_FOUND"));
+
+        // Verify the user is the store owner
+        if (store.getStoreOwner() == null || 
+            store.getStoreOwner().getUser() == null || 
+            !store.getStoreOwner().getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("UNAUTHORIZED");
+        }
+
+        // Find the order
+        CustomerOrders order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("ORDER_NOT_FOUND"));
+
+        // Verify the order belongs to this store
+        if (!order.getStore().getStoreId().equals(storeId)) {
+            throw new IllegalArgumentException("UNAUTHORIZED");
+        }
+
+        // Validate the status
+        OrderStatus newStatus;
+        try {
+            newStatus = OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("INVALID_STATUS");
+        }
+
+        // Validate status transition (store owners can only mark PENDING orders as READY_FOR_DELIVERY)
+        if (newStatus == OrderStatus.READY_FOR_DELIVERY) {
+            if (order.getOrderStatus() != OrderStatus.PENDING) {
+                throw new IllegalArgumentException("INVALID_STATUS_TRANSITION");
+            }
+        } else {
+            throw new IllegalArgumentException("INVALID_STATUS");
+        }
+
+        // Update the status
+        order.setOrderStatus(newStatus);
+        CustomerOrders updatedOrder = orderRepo.save(order);
+
+        return convertToDTO(updatedOrder);
+    }
+
+    // -------------------------------------------------------------------------
     // Conversion — package-private so DriverOrderService can reuse it
     // -------------------------------------------------------------------------
 

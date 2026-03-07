@@ -30,12 +30,12 @@ public class DriverOrderService {
     @Autowired
     private WalletService walletService;
 
-    //View orders with pending payment status
+    //View orders ready for delivery
     public List<OrderDTO> getAvailableOrder(Long userId) {
         verifyDriver(userId);
 
         List<CustomerOrders> orders = orderRepo.
-                findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc(OrderStatus.PENDING);
+                findByOrderStatusAndIsAssignedDriverFalseOrderByOrderDateDesc(OrderStatus.READY_FOR_DELIVERY);
 
         return orders.stream()
                 .map(orderService::convertToDTO)
@@ -49,7 +49,7 @@ public class DriverOrderService {
         CustomerOrders order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if(!order.getOrderStatus().equals(OrderStatus.PENDING)) {
+        if(!order.getOrderStatus().equals(OrderStatus.READY_FOR_DELIVERY)) {
             throw new RuntimeException("Order is not available to be claimed");
         }
 

@@ -78,9 +78,6 @@ public class PayFastCheckoutService {
     @Value("${platform.shipping.fee}")
     private BigDecimal shippingAmount;
 
-    @Value("${platform.shipping.fee.multistore}")
-    private BigDecimal multiStoreShippingAmount;
-
     //Validate , build pending record, return payfast url
     @Transactional
     public CheckoutInitiateResponse initiateCheckout(Long userId, Long deliveryAddressId) throws Exception{
@@ -98,15 +95,13 @@ public class PayFastCheckoutService {
             throw new RuntimeException("Cart is empty");
         }
 
-        //Count distinct stores for shipping fee calculation
-        long distinctStores = cartItems.stream()
-        .map(c -> c.getStore().getStoreId())
-        .distinct().count();
-
-        int storeCount = (int) distinctStores;
-
-        // Determine applicable shipping fee
-        BigDecimal applicableShipping = distinctStores > 1 ? multiStoreShippingAmount : shippingAmount;
+        // Ensure all items are from the same store (validation)
+        Stores store = cartItems.get(0).getStore();
+        for(Cart item : cartItems) {
+            if(!item.getStore().getStoreId().equals(store.getStoreId())) {
+                throw new RuntimeException("Cart contains items from multiple stores. Please checkout one store at a time.");
+            }
+        }
 
         //Stock check - do not deduct here
         for(Cart item: cartItems){
@@ -124,7 +119,7 @@ public class PayFastCheckoutService {
         .map(c -> c.getProduct().getProductPrice().multiply(BigDecimal.valueOf(c.getQuantity())))
         .reduce(BigDecimal.ZERO, BigDecimal:: add);
 
-        BigDecimal grandTotal = subtotal.add(applicableShipping);
+        BigDecimal grandTotal = subtotal.add(shippingAmount);
 
         //Serialize cart snapshot to json
         ObjectMapper mapper = new ObjectMapper();
@@ -148,9 +143,9 @@ public class PayFastCheckoutService {
         pending.setUser(user);
         pending.setDeliveryAddressId(address.getAddressId());
         pending.setTotalAmount(grandTotal);
-        pending.setShippingAmount(applicableShipping);
-        pending.setStoreId(storeCount == 1 ? cartItems.get(0).getStore().getStoreId() : null);
-        pending.setStoreCount(storeCount);
+        pending.setShippingAmount(shippingAmount);
+        pending.setStoreId(store.getStoreId());
+        pending.setStoreCount(1);
         pending.setCartSnapshot(cartSnapshotJson);
         pending.setStatus(PendingCheckoutStatus.PAYMENT_PENDING);
         pending.setCreatedAt(LocalDateTime.now());
@@ -158,12 +153,7 @@ public class PayFastCheckoutService {
         pendingCheckoutRepo.save(pending);
 
         //Build payfast payment URL
-        String itemName;
-        if (storeCount == 1) {
-            itemName = "Order from " + cartItems.get(0).getStore().getStoreName();
-        } else {
-            itemName = "Order from " + storeCount + " stores";
-        }
+        String itemName = "Order from " + store.getStoreName();
         String paymentUrl = payfastService.buildPaymentUrl(
                 pendingId,
                 grandTotal,
@@ -178,8 +168,8 @@ public class PayFastCheckoutService {
         response.setPendingCheckoutId(pendingId);
         response.setPaymentUrl(paymentUrl);
         response.setTotalAmount(grandTotal);
-        response.setShippingAmount(applicableShipping);
-        response.setStoreName(itemName.replace("Order from ", ""));
+        response.setShippingAmount(shippingAmount);
+        response.setStoreName(store.getStoreName());
         return response;
     }
 
@@ -234,78 +224,60 @@ public class PayFastCheckoutService {
             productsRepo.save(product);
        }
 
-       // Group cart items by store for multi-store support
-       Map<Stores, List<Cart>> cartByStore = cartItems.stream()
-           .collect(Collectors.groupingBy(Cart::getStore));
+       // Get the single store from cart items
+       Stores store = cartItems.get(0).getStore();
 
-       // Generate a single checkout session ID for all orders from this checkout
-       String checkoutSessionId = UUID.randomUUID().toString();
+       // Calculate order total
+       BigDecimal subtotal = cartItems.stream()
+           .map(c -> c.getProduct().getProductPrice()
+               .multiply(BigDecimal.valueOf(c.getQuantity())))
+           .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-       // Track whether this is the first store (to apply shipping fee to first order only)
-       boolean isFirstStore = true;
+       BigDecimal totalAmount = subtotal.add(pending.getShippingAmount());
 
-       // Create one CustomerOrders + one Payments per store
-       for (Map.Entry<Stores, List<Cart>> entry : cartByStore.entrySet()) {
-           Stores store = entry.getKey();
-           List<Cart> storeCartItems = entry.getValue();
+       // Create single CustomerOrders for this order
+       CustomerOrders order = new CustomerOrders();
+       order.setUser(user);
+       order.setStore(store);
+       order.setOrderStatus(OrderStatus.PENDING);
+       order.setOrderDate(LocalDateTime.now());
+       order.setShippingAmount(pending.getShippingAmount());
+       order.setTotalAmount(totalAmount);
+       order.setDeliveryAddress(address);
+       order.setIsAssignedDriver(false);
+       order.setCheckoutSessionId(null);
+       order.setCreatedAt(LocalDateTime.now());
+       order.setUpdatedAt(LocalDateTime.now());
 
-           // Calculate subtotal for this store
-           BigDecimal storeSubTotal = storeCartItems.stream()
-               .map(c -> c.getProduct().getProductPrice()
-                   .multiply(BigDecimal.valueOf(c.getQuantity())))
-               .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-           // Apply shipping to first store only, others get 0 shipping
-           BigDecimal storeShipping = isFirstStore ? pending.getShippingAmount() : BigDecimal.ZERO;
-           BigDecimal storeTotal = storeSubTotal.add(storeShipping);
-
-           // Create CustomerOrders for this store
-           CustomerOrders order = new CustomerOrders();
-           order.setUser(user);
-           order.setStore(store);
-           order.setOrderStatus(OrderStatus.PENDING);
-           order.setOrderDate(LocalDateTime.now());
-           order.setShippingAmount(storeShipping);
-           order.setTotalAmount(storeTotal);
-           order.setDeliveryAddress(address);
-           order.setIsAssignedDriver(false);
-           order.setCheckoutSessionId(checkoutSessionId);
-           order.setCreatedAt(LocalDateTime.now());
-           order.setUpdatedAt(LocalDateTime.now());
-
-           // Create order items for this store
-           List<Order_Items> orderItems = new ArrayList<>();
-           for(Cart item : storeCartItems) {
-               Order_Items oi = new Order_Items();
-               oi.setOrder(order);
-               oi.setProduct(item.getProduct());
-               oi.setQuantity(item.getQuantity().intValue());
-               oi.setPriceAtPurchase(item.getProduct().getProductPrice());
-               oi.setCreatedAt(LocalDateTime.now());
-               orderItems.add(oi);
-           }
-
-           order.setOrderItems(orderItems);
-           CustomerOrders savedOrder = orderRepo.save(order);
-
-           // Record payment with escrow status HELD for this store
-           Payments payment = new Payments();
-           payment.setOrder(savedOrder);
-           payment.setStore(store);
-           payment.setStoreOwners(store.getStoreOwner());
-           payment.setCustomer(user);
-           payment.setAmount(storeTotal);
-           payment.setPaymentDate(LocalDateTime.now());
-           payment.setCreatedAt(LocalDateTime.now());
-           // For multi-store: append order ID to transaction reference to ensure uniqueness
-           payment.setTransactionReference(pendingId + "-" + savedOrder.getOrderId());
-           payment.setPayfastPaymentId(itnParams.get("m_payment_id"));
-           payment.setPaymentStatus(PaymentStatus.COMPLETED);
-           payment.setEscrowStatus(EscrowStatus.HELD);
-           paymentsRepo.save(payment);
-
-           isFirstStore = false;
+       // Create order items
+       List<Order_Items> orderItems = new ArrayList<>();
+       for(Cart item : cartItems) {
+           Order_Items oi = new Order_Items();
+           oi.setOrder(order);
+           oi.setProduct(item.getProduct());
+           oi.setQuantity(item.getQuantity().intValue());
+           oi.setPriceAtPurchase(item.getProduct().getProductPrice());
+           oi.setCreatedAt(LocalDateTime.now());
+           orderItems.add(oi);
        }
+
+       order.setOrderItems(orderItems);
+       CustomerOrders savedOrder = orderRepo.save(order);
+
+       // Record payment with escrow status HELD
+       Payments payment = new Payments();
+       payment.setOrder(savedOrder);
+       payment.setStore(store);
+       payment.setStoreOwners(store.getStoreOwner());
+       payment.setCustomer(user);
+       payment.setAmount(totalAmount);
+       payment.setPaymentDate(LocalDateTime.now());
+       payment.setCreatedAt(LocalDateTime.now());
+       payment.setTransactionReference(pendingId);
+       payment.setPayfastPaymentId(itnParams.get("m_payment_id"));
+       payment.setPaymentStatus(PaymentStatus.COMPLETED);
+       payment.setEscrowStatus(EscrowStatus.HELD);
+       paymentsRepo.save(payment);
 
         //clear the cart
         cartRepo.deleteAll(cartItems);

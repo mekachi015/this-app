@@ -34,9 +34,6 @@ public class PayfastController {
     @Value("${platform.shipping.fee}")
     private BigDecimal shippingFee;
 
-    @Value("${platform.shipping.fee.multistore}")
-    private BigDecimal multiStoreShippingFee;
-
     //customer initiates checkout and returns payfast url for the frontend to redirect to
     @PostMapping("/initiate")
     public ResponseEntity<?> initiateCheckout(
@@ -94,7 +91,6 @@ public class PayfastController {
         public ResponseEntity<?> getCheckoutConfig(){
             Map<String, Object> config = new HashMap<>();
             config.put("shippingFee", shippingFee);
-            config.put("multiStoreShippingFee", multiStoreShippingFee);
             return ResponseEntity.ok(config);
         }
 
