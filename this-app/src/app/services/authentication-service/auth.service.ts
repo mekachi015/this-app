@@ -187,13 +187,15 @@ export class AuthService {
   return this.http.get<User>(`${this.apiUrl}/profile/me`, { headers });
 }
 
-  logout(): void {
+  logout(navigate: boolean = true): void {
     // Remove user from local storage and set current user to null
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.removeItem('currentUser');
     }
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    if (navigate) {
+      this.router.navigate(['/login']);
+    }
   }
 
 getAuthHeadersForMultipart(token?: string): HttpHeaders {

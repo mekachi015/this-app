@@ -172,6 +172,8 @@ export class NewAuthComponent implements OnInit {
             this.navigateAfterSuccess();
           })
         } else {
+          // User logged in with wrong user type - logout immediately
+          this.authService.logout(false);
           Swal.fire({
             icon: 'error',
             title: 'Access Denied',
