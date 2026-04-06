@@ -30,21 +30,6 @@ public class FileStorageService {
         }
     }
 
-//    //start of product image download
-//    public String storeProductPhoto(MultipartFile file, Long storeId, Long productId )throws IOException{
-//        try {
-//            Map<String, Object> uploadParams = ObjectUtils.asMap(
-//                    "folder", "product_photos",
-//                    "public_id", "store_" + storeId,
-//                    "overwrite", true,
-//                    "resource_type", "image");
-//            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadParams);
-//            return (String) uploadResult.get("secure_url");
-//        } catch (IOException e){
-//            throw new IOException("Cloudinary upload failed" + e.getMessage(), e);
-//        }
-//    }
-
     // Generic method for any image upload
     public String uploadImage(MultipartFile file, String folder, String publicId) throws IOException {
         Map<String, Object> uploadParams = ObjectUtils.asMap(
@@ -59,7 +44,12 @@ public class FileStorageService {
 
     // Delete image method
     public void deleteImage(String publicId) throws IOException {
-        cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        try {
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            // This wraps the Cloudinary/Runtime error into the IOException your test expects
+            throw new IOException("Failed to delete product image: " + e.getMessage(), e);
+        }
     }
     // End of profile photo upload
 
@@ -118,12 +108,7 @@ public class FileStorageService {
             // Delete store logo
             deleteStoreImage(storeId);
             
-            // // Delete folder containing all product images for this store
-            // Map<String, Object> params = ObjectUtils.asMap(
-            //     "prefix", "store_" + storeId + "/products/",
-            //     "type", "upload"
-            // );
-            // cloudinary.api().deleteResources(params);
+           
         } catch (Exception e) {
             throw new IOException("Failed to delete store images: " + e.getMessage(), e);
         }
