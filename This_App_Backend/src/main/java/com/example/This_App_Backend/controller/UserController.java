@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.This_App_Backend.entity.User;
@@ -93,24 +94,18 @@ public class UserController {
             @PathVariable Long id,
             Authentication authentication
     ){
-//        try {
-//            Optional<User> user = userService.getUserById(id);
-//
-//            if(user.isPresent() && user.get().getProfilePhotoUrl() != null){
-//                Map<String, String> response = new HashMap<>();
-//
-//                response.put("profilePhotoUrl", user.get().getProfilePhotoUrl());
-//                return  new ResponseEntity<>(response, HttpStatus.OK);
-//            } else {
-//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//            }
-//        } catch (Exception e){
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
         try {
-            // Get current authenticated user
-            String currentUsername = authentication.getName();
+            // Resolve authentication from the method argument or the security context
+            Authentication auth = authentication != null ? authentication : SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getName() == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+
+            String currentUsername = auth.getName();
             Optional<User> currentUser = userService.getUserByUsername(currentUsername);
+            if (currentUser.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
 
             // Check if user is accessing their own profile or has admin role
             if (!currentUser.get().getUserId().equals(id)) {
