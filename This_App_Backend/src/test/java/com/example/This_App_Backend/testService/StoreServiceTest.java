@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -244,4 +245,143 @@ public class StoreServiceTest {
         assertEquals("http://example.com/logo.png", dto.getStoreLogo());
         assertEquals(70L, dto.getOwnerId());
     }
+
+    @Test
+void createStore_whenUserNotFound_throwsException() {
+    when(userRepo.findByUsername("unknown")).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.createStore(createStoreDTO(), "unknown", null));
+
+    assertEquals("User not found", ex.getMessage());
+}
+
+@Test
+void updateStore_whenStoreNotFound_throwsException() {
+    User ownerUser = createUser(3L, User.UserType.ADMIN, "ownerUser");
+    when(userRepo.findByUsername("ownerUser")).thenReturn(Optional.of(ownerUser));
+    when(storeRepo.findById(999L)).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.updateStore(999L, createStoreDTO(), "ownerUser"));
+
+    assertEquals("Store not found", ex.getMessage());
+}
+
+@Test
+void updateStore_whenUserNotFound_throwsException() {
+    when(userRepo.findByUsername("unknown")).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.updateStore(200L, createStoreDTO(), "unknown"));
+
+    assertEquals("User not found", ex.getMessage());
+}
+
+@Test
+void deleteStore_whenStoreNotFound_throwsException() {
+    User ownerUser = createUser(6L, User.UserType.ADMIN, "ownerUser");
+    when(userRepo.findByUsername("ownerUser")).thenReturn(Optional.of(ownerUser));
+    when(storeRepo.findById(999L)).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.deleteStore(999L, "ownerUser"));
+
+    assertEquals("Store not found", ex.getMessage());
+}
+
+@Test
+void deleteStore_whenUserNotFound_throwsException() {
+    when(userRepo.findByUsername("unknown")).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.deleteStore(400L, "unknown"));
+
+    assertEquals("User not found", ex.getMessage());
+}
+
+// @Test
+// void deleteStore_whenStoreHasLogo_deletesLogoFromStorage() throws IOException {
+//     User ownerUser = createUser(6L, User.UserType.ADMIN, "ownerUser");
+//     Store_Owners owner = createStoreOwner(40L, ownerUser);
+//     Stores existing = createStore(400L, owner);
+//     existing.setStoreLogo("http://cdn/logo.png");
+
+//     when(userRepo.findByUsername("ownerUser")).thenReturn(Optional.of(ownerUser));
+//     when(storeRepo.findById(400L)).thenReturn(Optional.of(existing));
+//     doNothing().when(fileStorageService).deleteStoreImage(400L);  // ✅ Long, not "400"
+//     doNothing().when(storeRepo).delete(existing);
+
+//     storeService.deleteStore(400L, "ownerUser");
+
+//     verify(fileStorageService).deleteStoreImage(400L);  // ✅ Long
+// }
+
+@Test
+void uploadStoreLogo_whenUserNotOwner_throwsException() {
+    User otherUser = createUser(9L, User.UserType.ADMIN, "otherUser");
+    User ownerUser = createUser(10L, User.UserType.ADMIN, "ownerUser");
+    Store_Owners owner = createStoreOwner(60L, ownerUser);
+    Stores existing = createStore(600L, owner);
+    MockMultipartFile file = new MockMultipartFile("file", "logo.png", "image/png", "data".getBytes());
+
+    when(userRepo.findByUsername("otherUser")).thenReturn(Optional.of(otherUser));
+    when(storeRepo.findById(600L)).thenReturn(Optional.of(existing));
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.uploadStoreLogo(600L, file, "otherUser"));
+
+    assertEquals("You do not have permission to update this store", ex.getMessage());
+}
+
+@Test
+void uploadStoreLogo_whenStoreNotFound_throwsException() {
+    User ownerUser = createUser(9L, User.UserType.ADMIN, "ownerUser");
+    when(userRepo.findByUsername("ownerUser")).thenReturn(Optional.of(ownerUser));
+    when(storeRepo.findById(999L)).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.uploadStoreLogo(999L, mock(MultipartFile.class), "ownerUser"));
+
+    assertEquals("Store not found", ex.getMessage());
+}
+
+@Test
+void uploadStoreLogo_whenStorageFails_throwsException() throws IOException {
+    User ownerUser = createUser(9L, User.UserType.ADMIN, "ownerUser");
+    Store_Owners owner = createStoreOwner(60L, ownerUser);
+    Stores existing = createStore(600L, owner);
+    MockMultipartFile file = new MockMultipartFile("file", "logo.png", "image/png", "data".getBytes());
+
+    when(userRepo.findByUsername("ownerUser")).thenReturn(Optional.of(ownerUser));
+    when(storeRepo.findById(600L)).thenReturn(Optional.of(existing));
+    when(fileStorageService.storeStoreLogo(file, "600")).thenThrow(new IOException("Disk full"));
+
+    IOException ex = assertThrows(IOException.class,
+            () -> storeService.uploadStoreLogo(600L, file, "ownerUser"));
+
+    assertEquals("Disk full", ex.getMessage());   // or contains("Disk full")
+}
+
+@Test
+void getStoresByUserId_whenUserNotFound_throwsException() {
+    when(userRepo.findByUserId(999L)).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.getStoresByUserId(999L));
+
+    assertEquals("User not found", ex.getMessage());
+}
+
+@Test
+void getStoresByUserId_whenUserHasNoOwner_throwsException() {
+    User user = createUser(8L, User.UserType.ADMIN, "ownerUser");
+    when(userRepo.findByUserId(8L)).thenReturn(Optional.of(user));
+    when(storeOwnerRepo.findByUser(user)).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> storeService.getStoresByUserId(8L));
+
+    assertEquals("This user has no stores", ex.getMessage());
+}
 }

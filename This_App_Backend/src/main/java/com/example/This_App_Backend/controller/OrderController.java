@@ -17,20 +17,19 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/orders")
-@CrossOrigin (origins = "http://localhost:4200", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
-    //Get all orders for a user
+    // Get all orders for a user
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserOrders(
             @PathVariable Long userId,
-            Authentication authentication
-    ) {
-        try{
-            if(authentication == null || !authentication.isAuthenticated()){
+            Authentication authentication) {
+        try {
+            if (authentication == null || !authentication.isAuthenticated()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("success", false, "message", "User must be logged in"));
             }
@@ -44,33 +43,32 @@ public class OrderController {
             response.put("count", orders.size());
 
             return ResponseEntity.ok(response);
-        } catch(RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
-    //Get orders by specific Id
+    // Get orders by specific Id
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrderById(
             @PathVariable Long orderId,
             @RequestParam Long userId,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         try {
             if (authentication == null || !authentication.isAuthenticated()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("syccess", false, "message", "user must be logged in "));
+                        .body(Map.of("success", false, "message", "user must be logged in "));
             }
 
-                OrderDTO order = orderService.getOrderById(userId, orderId);
+            OrderDTO order = orderService.getOrderById(userId, orderId);
 
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "Order retrieved successfully");
-                response.put("data", order);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Order retrieved successfully");
+            response.put("data", order);
 
-                return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -78,14 +76,13 @@ public class OrderController {
         }
     }
 
-    //Get order count
+    // Get order count
     @GetMapping("/user/{userId}/count")
-    public ResponseEntity<?> getOrderCount (
+    public ResponseEntity<?> getOrderCount(
             @PathVariable Long userId,
-            Authentication authentication
-    ) {
-        try{
-            if (authentication == null || !authentication.isAuthenticated()){
+            Authentication authentication) {
+        try {
+            if (authentication == null || !authentication.isAuthenticated()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("success", false, "message", "User must be logged in"));
             }
@@ -98,28 +95,26 @@ public class OrderController {
             response.put("count", count);
 
             return ResponseEntity.ok(response);
-        } catch(RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
-
-    //get all orders for a store
+    // get all orders for a store
     @GetMapping("{storeId}/orders")
-     public ResponseEntity<?> getStoreOrders(@PathVariable Long storeId) {
+    public ResponseEntity<?> getStoreOrders(@PathVariable Long storeId) {
         try {
             List<OrderDTO> orders = orderService.getStoreOrders(storeId);
             return ResponseEntity.ok(orders);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(
-                    new ErrorResponse(e.getMessage())
-            );
+                    new ErrorResponse(e.getMessage()));
         }
     }
 
-    //get specific order by id for a store
-     @GetMapping("/{storeId}/orders/{orderId}")
+    // get specific order by id for a store
+    @GetMapping("/{storeId}/orders/{orderId}")
     public ResponseEntity<?> getStoreOrderById(
             @PathVariable Long storeId,
             @PathVariable Long orderId) {
@@ -128,12 +123,11 @@ public class OrderController {
             return ResponseEntity.ok(order);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(
-                    new ErrorResponse(e.getMessage())
-            );
+                    new ErrorResponse(e.getMessage()));
         }
     }
 
-    //get All orders according to
+    // get All orders according to
     @GetMapping("/owner/{userId}/all")
     public ResponseEntity<?> getAllOrdersByUserId(
             @PathVariable Long userId,
@@ -168,34 +162,6 @@ public class OrderController {
         }
     }
 
-//    //total order count for a store
-//      @GetMapping("/orders/count/{userId}")
-//    public ResponseEntity<?> getStoreOrderCount(@PathVariable Long userId,
-//                                                Authentication authentication) {
-//        try {
-//            if(authentication == null || !authentication.isAuthenticated()){
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                        .body(Map.of("success", false, "message", "User must be logged in"));
-//            }
-//            Long count = orderService.getOrderCountByOwnerId(userId);
-//
-//            return ResponseEntity.ok(Map.of(
-//                    "success", true,
-//                    "userId", userId,
-//                    "totalOrders", count
-//            ));
-//        } catch (IllegalArgumentException e) {
-//            return switch (e.getMessage()) {
-//                case "USER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-//                        .body(Map.of("success", false, "message", "User not found"));
-//                case "STORE_OWNER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-//                        .body(Map.of("success", false, "message", "No store owner profile found for this user"));
-//                default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                        .body(Map.of("success", false, "message", "Unexpected error"));
-//            };
-//        }
-//    }
-
     @GetMapping("/owner/count/{userId}")
     public ResponseEntity<?> getOrderCountByOwner(
             @PathVariable Long userId,
@@ -211,8 +177,7 @@ public class OrderController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "userId", userId,
-                    "totalOrders", count
-            ));
+                    "totalOrders", count));
 
         } catch (IllegalArgumentException e) {
             return switch (e.getMessage()) {
@@ -232,18 +197,20 @@ public class OrderController {
             @PathVariable Long storeId,
             @PathVariable Long orderId,
             @RequestParam String status,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         try {
+
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "User must be logged in"));
+            }
             String username = authentication.getName();
             OrderDTO updatedOrder = orderService.updateOrderStatus(storeId, orderId, status, username);
-            
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Order status updated successfully",
-                    "order", updatedOrder
-            ));
-            
+                    "order", updatedOrder));
+
         } catch (IllegalArgumentException e) {
             return switch (e.getMessage()) {
                 case "ORDER_NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -255,7 +222,8 @@ public class OrderController {
                 case "INVALID_STATUS" -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("success", false, "message", "Invalid order status"));
                 case "INVALID_STATUS_TRANSITION" -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "Can only mark PENDING orders as READY_FOR_DELIVERY"));
+                        .body(Map.of("success", false, "message",
+                                "Can only mark PENDING orders as READY_FOR_DELIVERY"));
                 default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of("success", false, "message", "Unexpected error: " + e.getMessage()));
             };
@@ -265,7 +233,7 @@ public class OrderController {
         }
     }
 
-      // Response classes
+    // Response classes
     private static class ErrorResponse {
         private String message;
 
@@ -289,6 +257,5 @@ public class OrderController {
             return count;
         }
     }
-
 
 }
