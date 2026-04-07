@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -69,9 +70,11 @@ public class DriverOrderController {
     public ResponseEntity<?> updateOrderStatus(
             @PathVariable Long orderId,
             @PathVariable Long userId,
-            @RequestParam String status,
-            Authentication authentication) {
+            @RequestParam String status
+            //Authentication authentication
+        ) {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("success", false, "message", "User must be logged in"));
@@ -86,7 +89,8 @@ public class DriverOrderController {
                     .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
-    }
+}
+
 
 
 

@@ -143,6 +143,7 @@ public class AddressService {
                     addressesRepos.save(add);
                 });
 
+            address.setDefault(true);
         User_Addresses updated = addressesRepos.save(address);
         return convertToDTO(updated);
     }
