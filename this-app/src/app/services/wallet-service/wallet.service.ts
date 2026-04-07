@@ -19,6 +19,6 @@ export class WalletService {
   }
 
   getTransactions(userId: number): Observable<WalletTransaction[]> {
-    return this.http.get<WalletTransaction[]>(`${this.baseUrl}/${userId}/transactions`);
+    return this.http.get<WalletTransaction[]>(`${this.baseUrl}/${userId}/transaction`);
   }
 }

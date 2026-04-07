@@ -11,6 +11,7 @@ import { of, Subscription, switchMap } from 'rxjs';
 import { User, UserType } from '../../models/user/user';
 import { AuthService } from '../../services/authentication-service/auth.service';
 import { HttpHeaders } from '@angular/common/http'; // Import HttpHeaders
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -28,7 +29,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   UserType = UserType; // Expose enum to template
   isPhotoChanging = false;
 
-  constructor(private router: Router, private authService: AuthService) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+  ) {}
 
   userName = 'Guest User';
   userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
@@ -104,46 +108,67 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private uploadProfilePhoto(file: File): void {
-    this.isPhotoChanging = true;
+    // 1. Show Loading Alert
+    Swal.fire({
+      title: 'Uploading...',
+      text: 'Please wait while we update your profile picture.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
-    // Create FormData for file upload
+    this.isPhotoChanging = true;
     const formData = new FormData();
     formData.append('profilePhoto', file);
 
-    // Call your auth service or create a profile service
-    console.log(this.userPhotoUrl, 'User url');
     this.authService.uploadProfilePhotoRefactored(formData).subscribe({
       next: (response: any) => {
         this.userPhotoUrl = response.photoUrl;
-        this.currentUser!.profilePhotoUrl = response.photoUrl;
         this.isPhotoChanging = false;
 
-        console.log(this.userPhotoUrl, 'User url after');
-        // Update current user data if needed
+        // Update Local State & Storage
         if (this.currentUser) {
           this.currentUser.profilePhotoUrl = response.photoUrl;
-
-          // persist change in localStorage
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.setItem(
               'currentUser',
-              JSON.stringify(this.currentUser)
+              JSON.stringify(this.currentUser),
             );
           }
-
-          //update AuthService BehaviorSubject
           this.authService['currentUserSubject'].next(this.currentUser);
         }
+
+        // 2. Show Success Alert
+        Swal.fire({
+          icon: 'success',
+          title: 'Updated!',
+          text: 'Your profile photo has been changed successfully.',
+          timer: 2000,
+          showConfirmButton: false,
+        }).then(() => {
+          const currentUrl = this.router.url;
+          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+            this.router.navigate([currentUrl]);
+          })
+        });
       },
       error: (error) => {
         console.error('Error uploading photo:', error);
         this.isPhotoChanging = false;
-        alert('Failed to upload photo. Please try again.');
-        // Reset to previous photo on error
+
+        // Reset to previous photo
         this.userPhotoUrl =
           this.currentUser?.profilePhotoUrl ||
           'assets/profile-photos/profile-picture.jpg';
-        console.log(this.userPhotoUrl, 'User url');
+
+        // 3. Show Error Alert
+        Swal.fire({
+          icon: 'error',
+          title: 'Upload Failed',
+          text: 'There was an error uploading your photo. Please try again.',
+          confirmButtonColor: '#d33',
+        });
       },
     });
   }
@@ -278,9 +303,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       case 'Privacy':
         // this.router.navigate(['/privacy']);
         break;
-        case 'Addresses':  // Add this case
-      this.router.navigate(['/addresses']);
-      break;
+      case 'Addresses': // Add this case
+        this.router.navigate(['/addresses']);
+        break;
       case 'Vehicle Information':
         // this.router.navigate(['/driver/vehicle']);
         break;
@@ -347,7 +372,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   getProfilePhotoUrl(userId: number): void {
     const token = this.authService.token; // Retrieve the token from AuthService
-    
+
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
