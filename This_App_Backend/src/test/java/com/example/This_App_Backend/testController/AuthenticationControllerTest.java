@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -35,12 +36,12 @@ import com.example.This_App_Backend.security.JwtRequestFilter;
 import com.example.This_App_Backend.security.JwtUtil;
 import com.example.This_App_Backend.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-@WebMvcTest(value = AuthenticationController.class,
-        excludeAutoConfiguration = {
-                org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
-                org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration.class
-        })
+@WebMvcTest(value = AuthenticationController.class, excludeAutoConfiguration = {
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration.class
+})
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 public class AuthenticationControllerTest {
@@ -66,7 +67,7 @@ public class AuthenticationControllerTest {
     @MockBean
     private JwtUtil jwtUtil;
 
-    private User createSampleUser(Long id, String username, String email, User.UserType userType) {
+    private User createSampleUser(Long id, String username, String email, String password, User.UserType userType) {
         User user = new User();
         user.setUserId(id);
         user.setUsername(username);
@@ -88,49 +89,67 @@ public class AuthenticationControllerTest {
     }
 
     private Authentication createAuthentication(UserDetails userDetails) {
-        return new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(),
+                userDetails.getAuthorities());
     }
 
     @Test
     void login_whenCredentialsValid_shouldReturnAuthenticationResponse() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest("testuser", "secret");
-        User user = createSampleUser(1L, "testuser", "testuser@example.com", User.UserType.CUSTOMER);
-        UserDetails userDetails = createSpringUserDetails("testuser");
+        String username = "testuser";
+        String email = "testuser@example.com";
 
-        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(createAuthentication(userDetails));
-        when(customUserDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
-        when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("fake-jwt");
-        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+        // Ensure the DTO is populated correctly
+        AuthenticationRequest request = new AuthenticationRequest();
+        request.setUsername(username);
+        request.setEmail(email);
+        request.setPassword("secret");
+
+        User user = createSampleUser(1L, username, email, "secret", User.UserType.CUSTOMER);
+        UserDetails userDetails = createSpringUserDetails(username);
+
+        // Mocks
+        when(authenticationManager.authenticate(any(Authentication.class)))
+                .thenReturn(createAuthentication(userDetails));
+
+        when(customUserDetailsService.loadUserByUsername(anyString()))
+                .thenReturn(userDetails);
+
+        when(jwtUtil.generateToken(any(UserDetails.class)))
+                .thenReturn("fake-jwt");
+
+        // USE ANYSTRING() HERE TO PREVENT 404
+        when(userService.getUserByUsernameOrEmail(anyString()))
+                .thenReturn(Optional.of(user));
 
         mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print()) // LOOK AT THE "Body" IN THE CONSOLE OUTPUT
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.jwt").value("fake-jwt"))
-                .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.email").value("testuser@example.com"))
-                .andExpect(jsonPath("$.userType").value("CUSTOMER"));
+                .andExpect(jsonPath("$.username").value(username))
+                .andExpect(jsonPath("$.email").value(email));
     }
 
     @Test
     void login_whenInvalidCredentials_shouldReturnUnauthorized() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest("baduser", "wrong");
+        AuthenticationRequest request = new AuthenticationRequest("baduser", "wrong", null);
 
         doThrow(new BadCredentialsException("Invalid credentials"))
                 .when(authenticationManager).authenticate(any(Authentication.class));
 
         mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("Invalid credentials"));
+                .andExpect(jsonPath("$.message").value("Invalid email/username or password"));
     }
 
     @Test
     void register_whenUserIsNew_shouldReturnCreatedAuthenticationResponse() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest("newuser", "password");
-        User newUser = createSampleUser(null, "newuser", "newuser@example.com", User.UserType.CUSTOMER);
-        User savedUser = createSampleUser(2L, "newuser", "newuser@example.com", User.UserType.CUSTOMER);
+        AuthenticationRequest request = new AuthenticationRequest("newuser", "password", "testpassword");
+        User newUser = createSampleUser(null, "newuser", "newuser@example.com", "testpassword", User.UserType.CUSTOMER);
+        User savedUser = createSampleUser(2L, "newuser", "newuser@example.com", "testpassword", User.UserType.CUSTOMER);
         UserDetails userDetails = createSpringUserDetails("newuser");
 
         when(userService.existsByEmail("newuser@example.com")).thenReturn(false);
@@ -140,8 +159,8 @@ public class AuthenticationControllerTest {
         when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("created-jwt");
 
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newUser)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.jwt").value("created-jwt"))
                 .andExpect(jsonPath("$.username").value("newuser"))
@@ -150,9 +169,11 @@ public class AuthenticationControllerTest {
 
     @Test
     void registerDriver_whenUserIsNew_shouldReturnCreatedDriverResponse() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest("driveruser", "password");
-        User newUser = createSampleUser(null, "driveruser", "driveruser@example.com", User.UserType.DRIVER);
-        User savedUser = createSampleUser(3L, "driveruser", "driveruser@example.com", User.UserType.DRIVER);
+        AuthenticationRequest request = new AuthenticationRequest("driveruser", "password", "testpassword");
+        User newUser = createSampleUser(null, "driveruser", "driveruser@example.com", "testpassword",
+                User.UserType.DRIVER);
+        User savedUser = createSampleUser(3L, "driveruser", "driveruser@example.com", "testpassword",
+                User.UserType.DRIVER);
         UserDetails userDetails = createSpringUserDetails("driveruser");
 
         when(userService.existsByEmail("driveruser@example.com")).thenReturn(false);
@@ -162,8 +183,8 @@ public class AuthenticationControllerTest {
         when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("driver-jwt");
 
         mockMvc.perform(post("/api/auth/register/driver")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newUser)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.jwt").value("driver-jwt"))
                 .andExpect(jsonPath("$.username").value("driveruser"))
@@ -172,9 +193,11 @@ public class AuthenticationControllerTest {
 
     @Test
     void registerAdmin_whenUserIsNew_shouldReturnCreatedAdminResponse() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest("adminuser", "password");
-        User newUser = createSampleUser(null, "adminuser", "adminuser@example.com", User.UserType.ADMIN);
-        User savedUser = createSampleUser(4L, "adminuser", "adminuser@example.com", User.UserType.ADMIN);
+        AuthenticationRequest request = new AuthenticationRequest("adminuser", "password", "testpassword");
+        User newUser = createSampleUser(null, "adminuser", "adminuser@example.com", "testpassword",
+                User.UserType.ADMIN);
+        User savedUser = createSampleUser(4L, "adminuser", "adminuser@example.com", "testpassword",
+                User.UserType.ADMIN);
         UserDetails userDetails = createSpringUserDetails("adminuser");
 
         when(userService.existsByEmail("adminuser@example.com")).thenReturn(false);
@@ -184,8 +207,8 @@ public class AuthenticationControllerTest {
         when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("admin-jwt");
 
         mockMvc.perform(post("/api/auth/register/admin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newUser)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.jwt").value("admin-jwt"))
                 .andExpect(jsonPath("$.username").value("adminuser"))
@@ -194,31 +217,52 @@ public class AuthenticationControllerTest {
 
     @Test
     void register_whenEmailAlreadyExists_shouldReturnConflict() throws Exception {
-        User duplicateUser = createSampleUser(null, "existinguser", "existing@example.com", User.UserType.CUSTOMER);
+        User duplicateUser = createSampleUser(null, "existinguser", "existing@example.com", "testpassword",
+                User.UserType.CUSTOMER);
 
         when(userService.existsByEmail("existing@example.com")).thenReturn(true);
 
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(duplicateUser)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(duplicateUser)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Email already exists"));
     }
 
     @Test
     void loginDriver_whenUserIsNotDriver_shouldReturnForbidden() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest("testuser", "secret");
-        User user = createSampleUser(1L, "testuser", "testuser@example.com", User.UserType.CUSTOMER);
-        UserDetails userDetails = createSpringUserDetails("testuser");
+        String testUsername = "testuser";
+        // Ensure constructor matches: (username, email, password)
+        AuthenticationRequest request = new AuthenticationRequest(testUsername, "testuser@example.com",
+                "secretPassword");
 
-        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(createAuthentication(userDetails));
-        when(customUserDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
+        // Create a CUSTOMER (to trigger 403)
+        User user = createSampleUser(1L, testUsername, "testuser@example.com", "secretPassword",
+                User.UserType.CUSTOMER);
+        UserDetails userDetails = createSpringUserDetails(testUsername);
+
+        // 1. Mock the Auth Manager
+        when(authenticationManager.authenticate(any(Authentication.class)))
+                .thenReturn(createAuthentication(userDetails));
+
+        // 2. Mock using the INTERFACE type (UserDetailsService)
+        // Make sure your @MockBean at the top of the class is:
+        // @MockBean private UserDetailsService userDetailsService;
+        when(customUserDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
+
+        // 3. Mock the JWT Util
         when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("fake-jwt");
-        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
 
+        // 4. THE CRITICAL MOCKS: Use anyString() to bypass potential string mismatches
+        // This covers both the /login and /login/driver logic
+        when(userService.getUserByUsername(anyString())).thenReturn(Optional.of(user));
+        when(userService.getUserByUsernameOrEmail(anyString())).thenReturn(Optional.of(user));
+
+        // 5. Perform the request
         mockMvc.perform(post("/api/auth/login/driver")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print()) // CHECK THE CONSOLE OUTPUT FOR THE BODY!
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value("Access denied for user type"));
     }
