@@ -186,7 +186,7 @@ public class AuthenticationController {
                 .loadUserByUsername(authenticationRequest.getUsername());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        Optional<User> userOpt = userService.getUserByUsername(authenticationRequest.getUsername());
+        Optional<User> userOpt = userService.getUserByUsernameOrEmail(authenticationRequest.getUsername());
 
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
