@@ -100,8 +100,14 @@ public class UserService {
     public boolean existsByUsername(String username) {
         return userRepo.existsByUsername(username);
     }
-    
+
     public User updateUser(User user) {
-    return userRepo.save(user);
-}
+        return userRepo.save(user);
+    }
+
+    // Find by username OR email
+    public Optional<User> getUserByUsernameOrEmail(String identifier) {
+        Optional<User> user = userRepo.findByUsername(identifier);
+        return user.isPresent() ? user : userRepo.findByEmail(identifier);
+    }
 }

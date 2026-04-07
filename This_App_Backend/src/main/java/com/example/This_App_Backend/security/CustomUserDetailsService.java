@@ -18,18 +18,18 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository userRepo;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("Username not found with username" + username));
-
-        return new org.springframework.security.core.userdetails.User(
+public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+    return userRepo.findByUsername(identifier)
+        .or(() -> userRepo.findByEmail(identifier))
+        .map(user -> new org.springframework.security.core.userdetails.User(
             user.getUsername(),
             user.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getUserType().name()))
-            );
-    }
+            Collections.emptyList()
+        ))
+        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
+}
 
 }

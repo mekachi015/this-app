@@ -50,7 +50,7 @@ public class AuthenticationController {
                             authenticationRequest.getPassword()));
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid credentials"));
+                    .body(Map.of("message", "Invalid email/username or password"));
         }
 
         final UserDetails userDetails = userDetailsService
@@ -58,7 +58,7 @@ public class AuthenticationController {
         final String jwt = jwtUtil.generateToken(userDetails);
 
         // Get user details to return in response
-        Optional<User> userOpt = userService.getUserByUsername(authenticationRequest.getUsername());
+        Optional<User> userOpt = userService.getUserByUsernameOrEmail(authenticationRequest.getUsername());
 
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
