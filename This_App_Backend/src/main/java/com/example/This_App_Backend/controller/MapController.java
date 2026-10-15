@@ -27,7 +27,10 @@ public class MapController {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${openrouteservice.api.key:eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjJlNTg1M2Q3ZDBmMzRmZmNiM2Q4ZjUxN2IzZTgwM2ZhIiwiaCI6Im11cm11cjY0In0=}")
+    //@Value("${openrouteservice.api.key:eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjJlNTg1M2Q3ZDBmMzRmZmNiM2Q4ZjUxN2IzZTgwM2ZhIiwiaCI6Im11cm11cjY0In0=}")
+    //private String orsApiKey;
+
+    @Value("${ors.api.key}")
     private String orsApiKey;
 
     /**
