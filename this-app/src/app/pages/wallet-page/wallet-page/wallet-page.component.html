@@ -1,0 +1,93 @@
+<div class="wallet-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Back
+    </button>
+    <h1>My Wallet</h1>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-banner" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading your wallet...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-banner" *ngIf="errorMessage && !isLoading">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <ng-container *ngIf="!isLoading && !errorMessage">
+
+    <!-- Balance card — has a balance -->
+    <div class="balance-card" *ngIf="wallet">
+      <div class="balance-label">Available Balance</div>
+      <div class="balance-amount">R{{ wallet.balance.toFixed(2) }}</div>
+      <div class="balance-meta">
+        <span class="owner-name">{{ wallet.ownerName }}</span>
+        <span class="owner-type-badge" [ngClass]="wallet.ownerType.toLowerCase()">
+          {{ wallet.ownerType }}
+        </span>
+      </div>
+      <div class="last-updated">
+        Last updated: {{ wallet.updatedAt | date:'medium' }}
+      </div>
+    </div>
+
+    <!-- Balance card — no wallet yet -->
+    <div class="balance-card empty-wallet" *ngIf="!wallet">
+      <i class="fas fa-wallet"></i>
+      <div class="balance-amount">R0.00</div>
+      <p>Your wallet activates once your first order is completed.</p>
+    </div>
+
+    <!-- Transaction history -->
+    <div class="transactions-card">
+      <h2 class="section-title">Transaction History</h2>
+
+      <!-- Table (collapses to cards on mobile via data-label) -->
+      <div class="table-wrapper" *ngIf="transactions.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of transactions">
+              <td data-label="Order #">
+                <span *ngIf="tx.orderId">#{{ tx.orderId }}</span>
+                <span class="muted" *ngIf="!tx.orderId">—</span>
+              </td>
+              <td data-label="Description">{{ tx.description }}</td>
+              <td data-label="Type">
+                <span class="type-badge" [ngClass]="txClass(tx.type)">{{ tx.type }}</span>
+              </td>
+              <td data-label="Amount">
+                <span class="amount" [ngClass]="txClass(tx.type)">
+                  {{ tx.type === 'CREDIT' ? '+' : '-' }} R{{ tx.amount.toFixed(2) }}
+                </span>
+              </td>
+              <td data-label="Date">{{ tx.createdAt | date:'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" *ngIf="transactions.length === 0">
+        <i class="fas fa-receipt"></i>
+        <h3>No transactions yet</h3>
+        <p>Earnings from completed orders will appear here.</p>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

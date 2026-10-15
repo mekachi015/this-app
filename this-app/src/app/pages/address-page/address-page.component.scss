@@ -1,0 +1,142 @@
+.address-page {
+  
+  padding: 16px;
+
+
+  h1 {
+    text-align: center;
+    margin-bottom: 24px;
+    color: #333;
+  }
+
+  form {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+    padding: 2.5rem 2rem 2rem 2rem;
+    text-align: center;
+    animation: fadeIn 0.4s ease-out;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 480px;
+    margin: 0 auto;
+    border: 1px solid #f3f3f3;
+
+    label {
+      font-weight: bold;
+      margin-bottom: 8px;
+      text-align: left;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border: 1px solid var(--light-gray);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(255, 51, 102, 0.1);
+      outline: none;
+    }
+
+    button {
+      background: linear-gradient(90deg, #ff3366 0%, #ff7e5f 100%);
+      color: #fff;
+      border: none;
+      padding: 0.95rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(.4,0,.2,1);
+      margin-top: 0.5rem;
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(255,51,102,0.08);
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(90deg, #ff7e5f 0%, #ff3366 100%);
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 4px 16px rgba(255,51,102,0.13);
+    }
+
+    button:disabled {
+      background: #eee;
+      color: #aaa;
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+  }
+
+  .address-list {
+    margin-top: 3.5rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+
+    h2 {
+      text-align: center;
+      margin-bottom: 18px;
+      color: #222;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .address-item {
+      border: 1px solid #f0f0f0;
+      padding: 20px 18px 16px 18px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      background: #fafbfc;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      p {
+        margin: 2px 0;
+        color: #444;
+        font-size: 1rem;
+      }
+
+      button {
+        padding: 7px 16px;
+        background: linear-gradient(90deg, #ff3366 0%, #ff7e5f 100%);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.97rem;
+        font-weight: 500;
+        margin-right: 8px;
+        margin-top: 10px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 1px 4px rgba(255,51,102,0.07);
+      }
+
+      button:hover {
+        background: linear-gradient(90deg, #ff7e5f 0%, #ff3366 100%);
+        box-shadow: 0 2px 8px rgba(255,51,102,0.13);
+      }
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

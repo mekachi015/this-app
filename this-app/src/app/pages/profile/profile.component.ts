@@ -1,34 +1,395 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common'; // Import CommonModule for Angular directives
 import { Router } from '@angular/router';
+import { of, Subscription, switchMap } from 'rxjs';
+import { User, UserType } from '../../models/user/user';
+import { AuthService } from '../../services/authentication-service/auth.service';
+import { HttpHeaders } from '@angular/common/http'; // Import HttpHeaders
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss'
+  styleUrl: './profile.component.scss',
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit, OnDestroy {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  constructor(private router: Router) {}
+  private userSubscription: Subscription = new Subscription();
 
-  userName = 'Penny Pennyworth'; // Replace with actual user name
-  userPhotoUrl = 'assets/profile-photos/profile-picture.jpg'; // Replace with actual photo URL
-  
+  // Add these properties
+  userType: UserType = UserType.CUSTOMER; // Default
+  UserType = UserType; // Expose enum to template
+  isPhotoChanging = false;
+
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+  ) {}
+
+  userName = 'Guest User';
+  userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
+  currentUser: User | null = null;
+
+  ngOnInit(): void {
+    this.userSubscription = this.authService.currentUser.subscribe((user) => {
+      this.currentUser = user;
+      if (user) {
+        const firstName = this.initCap(user.firstname);
+        const lastName = this.initCap(user.lastname);
+        this.userName =
+          `${firstName} ${lastName}`.trim() || user.username || 'User';
+        // Handle userType conversion from string to enum
+        this.userType =
+          this.convertStringToUserType(user.userType) || UserType.CUSTOMER;
+        // this.userPhotoUrl =
+        //   user.profilePhotoUrl + '?t=' + new Date().getTime();
+        console.log(user.id, 'User ID in profile component');
+        this.getProfilePhotoUrl(Number(user.id));
+      } else {
+        this.userName = 'Guest User';
+        this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg';
+        this.userType = UserType.CUSTOMER;
+      }
+    });
+  }
+
+  private convertStringToUserType(userTypeString: string | UserType): UserType {
+    if (typeof userTypeString === 'string') {
+      switch (userTypeString.toUpperCase()) {
+        case 'CUSTOMER':
+          return UserType.CUSTOMER;
+        case 'DRIVER':
+          return UserType.DRIVER;
+        case 'ADMIN':
+          return UserType.ADMIN;
+        default:
+          return UserType.CUSTOMER;
+      }
+    }
+    return userTypeString || UserType.CUSTOMER;
+  }
+
+  // Add these new methods
+  goToWallet(): void {
+    this.router.navigate(['/wallet']);
+  }
+
+  onProfilePhotoClick(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB.');
+        return;
+      }
+
+      this.uploadProfilePhoto(file);
+    }
+  }
+
+  private uploadProfilePhoto(file: File): void {
+    // 1. Show Loading Alert
+    Swal.fire({
+      title: 'Uploading...',
+      text: 'Please wait while we update your profile picture.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    this.isPhotoChanging = true;
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
+
+    this.authService.uploadProfilePhotoRefactored(formData).subscribe({
+      next: (response: any) => {
+        this.userPhotoUrl = response.photoUrl;
+        this.isPhotoChanging = false;
+
+        // Update Local State & Storage
+        if (this.currentUser) {
+          this.currentUser.profilePhotoUrl = response.photoUrl;
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem(
+              'currentUser',
+              JSON.stringify(this.currentUser),
+            );
+          }
+          this.authService['currentUserSubject'].next(this.currentUser);
+        }
+
+        // 2. Show Success Alert
+        Swal.fire({
+          icon: 'success',
+          title: 'Updated!',
+          text: 'Your profile photo has been changed successfully.',
+          timer: 2000,
+          showConfirmButton: false,
+        }).then(() => {
+          const currentUrl = this.router.url;
+          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+            this.router.navigate([currentUrl]);
+          })
+        });
+      },
+      error: (error) => {
+        console.error('Error uploading photo:', error);
+        this.isPhotoChanging = false;
+
+        // Reset to previous photo
+        this.userPhotoUrl =
+          this.currentUser?.profilePhotoUrl ||
+          'assets/profile-photos/profile-picture.jpg';
+
+        // 3. Show Error Alert
+        Swal.fire({
+          icon: 'error',
+          title: 'Upload Failed',
+          text: 'There was an error uploading your photo. Please try again.',
+          confirmButtonColor: '#d33',
+        });
+      },
+    });
+  }
+
+  // Update settings based on user type
+  getSettingsForUserType(): any[] {
+    const baseSettings = [
+      {
+        icon: 'fas fa-user-cog',
+        name: 'Account Settings',
+        description: 'Manage your account information and preferences.',
+      },
+      {
+        icon: 'fas fa-lock',
+        name: 'Privacy',
+        description: 'Control your privacy settings and data.',
+      },
+      {
+        icon: 'fas fa-bell',
+        name: 'Notifications',
+        description: 'Set your notification preferences.',
+      },
+    ];
+
+    const customerSettings = [
+      ...baseSettings,
+      {
+        icon: 'fas fa-map-marker-alt',
+        name: 'Addresses',
+        description: 'Manage your saved addresses.',
+      },
+      {
+        icon: 'fas fa-credit-card',
+        name: 'Payment Methods',
+        description: 'Add or remove payment methods.',
+      },
+      {
+        icon: 'fas fa-question-circle',
+        name: 'Help & Support',
+        description: 'Get help or contact support.',
+      },
+    ];
+
+    const driverSettings = [
+      ...baseSettings,
+      {
+        icon: 'fas fa-car',
+        name: 'Vehicle Information',
+        description: 'Manage your vehicle details and documents.',
+      },
+      {
+        icon: 'fas fa-route',
+        name: 'Delivery History',
+        description: 'View your completed deliveries and earnings.',
+      },
+      {
+        icon: 'fas fa-clock',
+        name: 'Work Schedule',
+        description: 'Set your availability and working hours.',
+      },
+      {
+        icon: 'fas fa-wallet',
+        name: 'Earnings & Payouts',
+        description: 'Track earnings and manage payout methods.',
+      },
+      {
+        icon: 'fas fa-question-circle',
+        name: 'Driver Support',
+        description: 'Get help with delivery-related issues.',
+      },
+    ];
+
+    const adminSettings = [
+      ...baseSettings,
+      {
+        icon: 'fas fa-users-cog',
+        name: 'User Management',
+        description: 'Manage customers, drivers, and other admins.',
+      },
+      {
+        icon: 'fas fa-chart-bar',
+        name: 'Analytics Dashboard',
+        description: 'View system analytics and reports.',
+      },
+      {
+        icon: 'fas fa-cog',
+        name: 'System Settings',
+        description: 'Configure system-wide settings.',
+      },
+      {
+        icon: 'fas fa-database',
+        name: 'Data Management',
+        description: 'Manage application data and backups.',
+      },
+      {
+        icon: 'fas fa-shield-alt',
+        name: 'Security Settings',
+        description: 'Configure security and access controls.',
+      },
+    ];
+
+    const logoutSetting = {
+      icon: 'fas fa-sign-out-alt',
+      name: 'Logout',
+      description: 'Log out of the current account.',
+    };
+
+    switch (this.userType) {
+      case UserType.DRIVER:
+        return [...driverSettings, logoutSetting];
+      case UserType.ADMIN:
+        return [...adminSettings, logoutSetting];
+      default:
+        return [...customerSettings, logoutSetting];
+    }
+  }
+
+  // Update the settings getter
+  get settings() {
+    return this.getSettingsForUserType();
+  }
+
+  // Update onSettingClick to handle new settings
+  onSettingClick(settingName: string): void {
+    switch (settingName) {
+      case 'Logout':
+        this.logOut();
+        break;
+      case 'Account Settings':
+        // this.router.navigate(['/account-settings']);
+        break;
+      case 'Privacy':
+        // this.router.navigate(['/privacy']);
+        break;
+      case 'Addresses': // Add this case
+        this.router.navigate(['/addresses']);
+        break;
+      case 'Vehicle Information':
+        // this.router.navigate(['/driver/vehicle']);
+        break;
+      case 'Delivery History':
+        // this.router.navigate(['/driver/history']);
+        break;
+      case 'Work Schedule':
+        // this.router.navigate(['/driver/schedule']);
+        break;
+      case 'Earnings & Payouts':
+        // this.router.navigate(['/driver/earnings']);
+        break;
+      case 'User Management':
+        // this.router.navigate(['/admin/users']);
+        break;
+      case 'Analytics Dashboard':
+        // this.router.navigate(['/admin/analytics']);
+        break;
+      case 'System Settings':
+        // this.router.navigate(['/admin/settings']);
+        break;
+      case 'Data Management':
+        // this.router.navigate(['/admin/data']);
+        break;
+      case 'Security Settings':
+        // this.router.navigate(['/admin/security']);
+        break;
+      default:
+        console.log(`${settingName} clicked - not implemented yet`);
+    }
+  }
+
+  // Rest of your existing methods remain the same...
+  ngOnDestroy(): void {
+    this.userSubscription.unsubscribe();
+  }
 
   goToWishlist() {
-    this.router.navigate(['/wishlist']);
-
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/wishlist']);
+      console.log('Navigating to wishlist');
+    }
     console.log('Navigating to wishlist');
   }
 
-settings = [
-  { icon: 'fas fa-user-cog', name: 'Account Settings', description: 'Manage your account information and preferences.' },
-  { icon: 'fas fa-lock', name: 'Privacy', description: 'Control your privacy settings and data.' },
-  { icon: 'fas fa-bell', name: 'Notifications', description: 'Set your notification preferences.' },
-  { icon: 'fas fa-map-marker-alt', name: 'Addresses', description: 'Manage your saved addresses.' },
-  { icon: 'fas fa-credit-card', name: 'Payment Methods', description: 'Add or remove payment methods.' },
-  { icon: 'fas fa-question-circle', name: 'Help & Support', description: 'Get help or contact support.' }
-];
+  goToOrders() {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/customer-orders']);
+      console.log('Navigating to orders');
+    }
+  }
 
+  logOut() {
+    if (this.authService.isLoggedIn()) {
+      this.authService.logout();
+      this.router.navigate(['/login']);
+    }
+  }
+
+  private initCap(str?: string): string {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
+  getProfilePhotoUrl(userId: number): void {
+    const token = this.authService.token; // Retrieve the token from AuthService
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    this.authService.getUserProfilePicture(userId, headers).subscribe({
+      next: (response: { profilePhotoUrl: string }) => {
+        console.log('Fetched profile photo URL:', this.userPhotoUrl);
+        this.userPhotoUrl = response.profilePhotoUrl;
+      },
+      error: (error) => {
+        console.error('Error fetching profile photo URL:', error);
+        this.userPhotoUrl = 'assets/profile-photos/profile-picture.jpg'; // Default photo
+      },
+    });
+  }
+
+  goToAddressPage() {
+    this.router.navigate(['/addresses']);
+  }
 }

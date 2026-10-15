@@ -9,14 +9,11 @@
     
     <div class="store-details">
       <h3 class="store-name">{{ store.name }}</h3>
-      
-      <div class="category-tag">{{ store.category }}</div>
-      
+
       <div class="bestseller-section">
-        <span class="section-title">Popular Item</span>
-        <span class="bestseller">{{ store.bestseller }}</span>
+        <span class="bestseller">{{ store.description || 'No description available.' }}</span>
       </div>
-      
+
       <div class="hours-section">
         <i class="far fa-clock"></i>
         <span class="hours">{{ store.operatingHours }}</span>

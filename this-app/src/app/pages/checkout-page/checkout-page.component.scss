@@ -1,0 +1,316 @@
+// ============================================================
+//  Checkout Page Styles
+// ============================================================
+
+$primary: #e91e8c;
+$bg: #f9f9f9;
+$card-bg: #ffffff;
+$border: #e4e4e4;
+$text-muted: #666;
+$radius: 12px;
+
+.checkout-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+// ── Header ──────────────────────────────────────────────────
+.checkout-header {
+  margin-bottom: 28px;
+
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 8px 0 4px;
+  }
+
+  .store-label {
+    color: $text-muted;
+    font-size: 0.9rem;
+  }
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: $primary;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 6px;
+
+  &:hover { text-decoration: underline; }
+}
+
+// ── Two-column layout ────────────────────────────────────────
+.checkout-body {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Card ────────────────────────────────────────────────────
+.checkout-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: $primary;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+// ── Address List ─────────────────────────────────────────────
+.address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.address-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 2px solid $border;
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+
+  &.selected {
+    border-color: $primary;
+    background: lighten($primary, 44%);
+  }
+
+  input[type='radio'] {
+    margin-top: 3px;
+    accent-color: $primary;
+  }
+
+  .address-details {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #333;
+    }
+  }
+
+  .addr-type {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: capitalize;
+  }
+
+  .default-badge {
+    display: inline-block;
+    background: $primary;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+}
+
+.no-address {
+  text-align: center;
+  color: $text-muted;
+  padding: 12px 0;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: $primary;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 6px 0;
+  margin-top: 6px;
+
+  &:hover { text-decoration: underline; }
+}
+
+// ── Payment Method ────────────────────────────────────────────
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: $bg;
+  border-radius: 8px;
+
+  .payfast-logo {
+    height: 36px;
+    object-fit: contain;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #333;
+  }
+}
+
+// ── Order Summary ─────────────────────────────────────────────
+.summary-card {
+  position: sticky;
+  top: 16px;
+}
+
+.order-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.order-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+
+  .line-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .item-thumb {
+    width: 42px;
+    height: 42px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid $border;
+  }
+
+  .item-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: block;
+  }
+
+  .item-qty {
+    font-size: 0.8rem;
+    color: $text-muted;
+    display: block;
+  }
+
+  .item-price {
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+}
+
+.divider {
+  height: 1px;
+  background: $border;
+  margin: 16px 0;
+}
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #444;
+
+  &.grand {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111;
+    padding-top: 8px;
+    border-top: 1px solid $border;
+    margin-top: 4px;
+  }
+}
+
+// ── Pay Button ────────────────────────────────────────────────
+.pay-btn {
+  width: 100%;
+  padding: 14px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: $radius;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  letter-spacing: 0.3px;
+
+  &:hover:not(:disabled) {
+    background: darken($primary, 8%);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+// ── Hints ─────────────────────────────────────────────────────
+.subtle-hint {
+  text-align: center;
+  font-size: 0.8rem;
+  color: $text-muted;
+  margin-top: 10px;
+
+  &.warn { color: #c0392b; }
+}
+
+// ── Skeleton loader ───────────────────────────────────────────
+.skeleton-block {
+  height: 80px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}

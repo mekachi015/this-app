@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Store } from '../../../models/store-front/store.model';
 
 @Component({
@@ -10,8 +10,12 @@ import { Store } from '../../../models/store-front/store.model';
 })
 export class StoreCardComponent {
   @Input() store!: Store;
+  @Output() storeSelected = new EventEmitter<Store>();
   
   selectStore() {
     // Handle store selection logic
+    this.storeSelected.emit(this.store);
   }
+
+  
 }
